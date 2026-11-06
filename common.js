@@ -159,13 +159,13 @@ onScroll();
 (function(){
   try{
     const ul=document.querySelector('.nav ul');
-    if(ul){const k=ul.querySelector('a[href="kontakt.html"]');[['live.html','📍 Live'],['zeugnis.html','Zeugnis'],['quiz.html','Quiz']].forEach(([h,t])=>{if(ul.querySelector('a[href="'+h+'"]'))return;const li=document.createElement('li'),a=document.createElement('a');a.className='l';a.href=h;a.textContent=t;if(location.pathname.endsWith('/'+h))a.className+=' cur';li.appendChild(a);ul.insertBefore(li,k?k.parentNode:null);});}
-    if(!location.pathname.endsWith('/live.html')){
+    if(ul){const k=ul.querySelector('a[href="index.html"]');[['quiz.html','Quiz'],['zeugnis.html','Zeugnis'],['live.html','📍 Live']].forEach(([h,t])=>{if(ul.querySelector('a[href="'+h+'"]'))return;const li=document.createElement('li'),a=document.createElement('a');a.className='l';a.href=h;a.textContent=t;if(location.pathname.endsWith('/'+h))a.className+=' cur';li.appendChild(a);ul.insertBefore(li,k?k.parentNode.nextSibling:null);});}
+    {const live=location.pathname.endsWith('/live.html');
       const S=Date.parse('2026-11-30T00:00:00+01:00'),D=7200000;
       const p=document.createElement('a');p.href='live.html';p.className='livepill';
       const st=()=>{const e=L.now()-S;p.innerHTML=e<0?'📍 <b>Lasse live</b> · Abfahrt am 30.11. um 0:00':e<D?'🛷 <b>Lasse ist unterwegs!</b> Live ansehen':'🏠 <b>Lasse ist da!</b>';};
-      st();setInterval(st,30000);document.body.appendChild(p);
-      const css=document.createElement('style');css.textContent='.livepill{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:45;padding:10px 18px;border-radius:999px;background:#070d1fe6;border:1px solid #7dffd088;color:#fff;text-decoration:none;font-size:.88rem;box-shadow:0 8px 30px #0009,0 0 0 0 #7dffd055;backdrop-filter:blur(8px);white-space:nowrap;max-width:calc(100vw - 24px);overflow:hidden;text-overflow:ellipsis}.livepill b{color:#7dffd0}@media print{.livepill{display:none}}';document.head.appendChild(css);
+      st();setInterval(st,30000);if(!live)document.body.appendChild(p);
+      const css=document.createElement('style');css.textContent='.livepill{position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:45;padding:10px 18px;border-radius:999px;background:#070d1fe6;border:1px solid #7dffd088;color:#fff;text-decoration:none;font-size:.88rem;box-shadow:0 8px 30px #0009,0 0 0 0 #7dffd055;backdrop-filter:blur(8px);white-space:nowrap;max-width:calc(100vw - 24px);overflow:hidden;text-overflow:ellipsis}.livepill b{color:#7dffd0}@media(max-width:760px){.nav{flex-wrap:wrap;row-gap:2px;padding-bottom:6px;background:linear-gradient(#070d1fee,#070d1fcc)}.nav ul{display:flex!important;order:3;width:100%;overflow-x:auto;gap:18px;padding:2px 0 4px;scrollbar-width:none}.nav ul::-webkit-scrollbar{display:none}.nav ul li{flex:none}}@media print{.livepill{display:none}}';document.head.appendChild(css);
     }
   }catch(e){}
 })();
