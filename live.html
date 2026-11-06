@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Wo ist Lasse? – Live-Karte</title>
-<meta name="description" content="Live-Karte: Wichtel Lasse fährt in der Nacht auf den 30. November in zwei Stunden vom Nordpol nach Volketswil.">
+<meta name="description" content="Live-Karte: Hier siehst du, wo Wichtel Lasse gerade ist.">
 <meta name="theme-color" content="#070d1f">
 <meta property="og:title" content="Wo ist Lasse? – Live-Karte">
-<meta property="og:description" content="Live-Karte: Wichtel Lasse fährt in der Nacht auf den 30. November in zwei Stunden vom Nordpol nach Volketswil.">
+<meta property="og:description" content="Live-Karte: Hier siehst du, wo Wichtel Lasse gerade ist.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://images.unsplash.com/photo-1771230341444-0cd96608f17c?w=1200&q=75&auto=format&fit=crop">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%85%3C/text%3E%3C/svg%3E">
@@ -26,20 +26,19 @@
   <div class="wrap" style="max-width:900px">
     <div class="kicker reveal">Live</div>
     <h2 class="reveal">Wo ist Lasse gerade?</h2>
-    <p class="lead reveal">In der Nacht auf den 30. November startet Lasse um 0:00 Uhr im Wichteldorf am Nordpol. Der Wichtelchauffeur braucht zwei Stunden bis nach Volketswil. Diese Karte zeigt, wo das Wichtelmobil gerade ist.</p>
+    <p class="lead reveal">Hier siehst du live, wo Lasse gerade ist. Mal ist er unterwegs, mal zu Hause, manchmal im Laden und ab und zu im Schulhaus. Schau einfach öfter vorbei.</p>
     <div class="live-wrap" style="margin-top:22px">
-      <div class="mapbox reveal"><canvas id="map" width="900" height="1000" aria-label="Karte mit der Fahrt von Lasse vom Nordpol nach Volketswil"></canvas><div class="badge wait" id="badge"><i></i><span id="bt">…</span></div></div>
-      <div class="bar" aria-hidden="true"><div id="pb"></div></div>
+      <div class="mapbox reveal"><canvas id="map" width="900" height="1000" aria-label="Live-Karte mit dem Standort von Lasse"></canvas><div class="badge wait" id="badge"><i></i><span id="bt">…</span></div></div>
       <div class="hud">
-        <div class="m"><small>Status</small><b id="hs">…</b></div>
+        <div class="m"><small>Status</small><b id="hs" style="font-size:1.05rem">…</b></div>
+        <div class="m"><small>Ort</small><b id="ho" style="font-size:1.05rem">…</b></div>
         <div class="m"><small>Breite</small><b id="hlat">…</b></div>
         <div class="m"><small>Länge</small><b id="hlon">…</b></div>
         <div class="m"><small>Tempo</small><b id="hv">…</b></div>
-        <div class="m"><small>Noch bis Ziel</small><b id="hd">…</b></div>
-        <div class="m"><small id="hts">Ankunft</small><b id="ht">…</b></div>
+        <div class="m"><small>Heute schon</small><b id="hh" style="font-size:1.3rem">…</b></div>
       </div>
-      <div class="panel reveal"><h3>📻 Funk vom Wichtelmobil</h3><div class="radio" id="radio"></div></div>
-      <p class="note reveal">Vor der Abfahrt wartet Lasse im Wichteldorf und packt. Die Karte rechnet nach deiner Gerätezeit in Zürcher Zeit, also stimmt sie nur, wenn deine Uhr richtig geht. Von Volketswil nenne ich nur den Ort, mehr nicht.</p>
+      <div class="panel reveal"><h3>📻 Funk &amp; Neuigkeiten</h3><div class="radio" id="radio"></div></div>
+      <p class="note reveal">Die Karte rechnet nach der Uhr deines Geräts in Zürcher Zeit. Geht sie falsch, zeigt sie Lasse am falschen Ort.</p>
     </div>
   </div>
 </section>
@@ -53,11 +52,8 @@
 (function(){
 const {$,$$,clamp,lerp,ease,reduce,setSteps,sceneScale}=window.L;
 
-const START=Date.parse('2026-11-30T00:00:00+01:00'),DUR=7200000;
-const LAT0=90,LAT1=47.39,LON=8.69,LATMIN=34;
-const KM=(LAT0-LAT1)*111.2;
-const cv=$('#map'),c=cv.getContext('2d');
-const S=900,SH=1000,cx0=S/2,cy0=70,R=1078;
+const T0=+atob('MTc5NTk5MzIwMDAwMA=='),MOVE=6000000;
+const LAT0=90,LON=8.69,LATMIN=34,S=900,SH=1000,cx0=450,cy0=70,R=1078;
 const pr=(lat,lon)=>{const r=(90-lat)/(90-LATMIN)*R,a=(lon-LON)*Math.PI/180;return [cx0+r*Math.sin(a),cy0+r*Math.cos(a)];};
 const LAND=[
 [[-9,38],[-9,43],[-2,43.5],[-1.5,46],[-4.5,48.3],[-1.5,48.7],[1.5,50.9],[4,51.5],[5,53.3],[8,53.8],[8.3,55.5],[8.1,56.8],[10.6,57.7],[10.5,56],[9.8,54.8],[11,54],[14,54.2],[18,54.7],[21,55.2],[21,57],[24,57.3],[23.5,59],[28,59.5],[30,60],[23,60],[21.5,61],[21.5,63],[25,65],[21,65.5],[17,62.5],[18.5,60],[16.5,57],[13,55.5],[11,58.5],[8,58],[5.5,59],[5,62],[8,63.5],[11,64.5],[14,67.5],[18,69.5],[23,70.8],[29,71],[33,69.5],[41,67],[44,68],[53,68.5],[60,69.5],[68,69],[73,72],[80,73],[87,75],[100,77.7],[113,74],[130,71],[150,71],[170,70],[180,68.5],[180,40],[100,40],[60,40],[40,40],[30,41],[26,40.5],[24,38],[20,40],[16,38],[12,42],[8,44],[3,43],[-2,37]],
@@ -68,61 +64,139 @@ const LAND=[
 [[11,79],[17,80],[27,80.2],[25,78],[18,76.7],[13,78]],
 [[-168,66],[-156,71],[-140,69.5],[-125,69.5],[-110,68],[-95,69],[-90,73],[-80,73],[-82,66],[-90,64],[-94,59],[-85,55],[-80,52],[-78,58],[-70,59],[-62,57],[-56,52],[-60,47],[-66,44],[-70,41.5],[-76,39],[-80,34],[-100,30],[-120,34],[-125,40],[-124,48],[-135,58],[-150,60],[-165,60]]
 ];
-const CITIES=[['Oslo',59.9,10.7],['Hamburg',53.55,10],['Tromsø',69.65,18.96],['Trondheim',63.4,10.4],['Reykjavik',64.1,-21.9]];
-const WP=[[82,'Packeis'],[75,'Grönlandsee'],[68,'Nordmeer'],[62,'Norwegen'],[58,'Skagerrak'],[55,'Dänemark'],[52,'Norddeutschland'],[49.5,'Rhein-Main']];
-const LOG=[[0,'Abfahrt im Wichteldorf. Der Wichtelchauffeur zählt rückwärts, die anderen Wichtel singen schon.'],[22,'Unter uns liegt Packeis nördlich von Spitzbergen. Alle Nasen kleben am Fenster.'],[42,'Grönlandsee. Der Chauffeur reicht heissen Kakao nach hinten.'],[62,'Norwegen kommt in Sicht, die Küste liegt im Mondlicht.'],[79,'Fjorde! Einer der Wichtel ruft: «Ich sehe Lichter!»'],[90,'Skagerrak. Ich suche meine Mütze. Sie sitzt auf meinem Kopf.'],[99,'Dänemark. Im Wagen wird es ruhig, die ersten schlafen schon.'],[107,'Norddeutschland. Die Strassen sind leer, der Chauffeur summt.'],[114,'Gleich geschafft: erst der Rhein, dann die Schweiz, dann das Zürcher Oberland.'],[120,'Angekommen in Volketswil. Leise sein, alle schlafen. Gute Nacht und bis morgen früh!']];
+const ST=[
+{n:'Wichteldorf',lat:90,lon:15.63,stop:0,m:'Der Motor brummt. Der Wichtelchauffeur zählt rückwärts, und die anderen Wichtel singen schon.'},
+{n:'Spitzbergen',lat:78.22,lon:15.63,stop:8,m:'Erste Pause auf Spitzbergen. Der Chauffeur prüft die Kufen, wir strecken die Beine im Schnee.'},
+{n:'Tromsø',lat:69.65,lon:18.96,stop:20,m:'Tromsø! Kakaopause. Über uns tanzt das Nordlicht, alle Nasen kleben am Fenster.'},
+{n:'Oslo',lat:59.91,lon:10.75,stop:15,m:'Oslo. Der Chauffeur tankt, ein Wichtel kauft Zimtschnecken, und ich suche meine Mütze. Sie sitzt auf meinem Kopf.'},
+{n:'Hamburg',lat:53.55,lon:10.0,stop:12,m:'Hamburg. Der Hafen glitzert. Kurz die Beine vertreten, dann geht es weiter.'},
+{n:'Frankfurt',lat:50.11,lon:8.68,stop:25,m:'Frankfurt. Lange Pause: Die meisten Wichtel schlafen schon, der Chauffeur trinkt Tee.'},
+{n:'Volketswil',lat:47.39,lon:8.69,stop:0,m:'Angekommen. Leise sein, alle schlafen. Gute Nacht!'}];
+const hav=(a,b)=>{const r=Math.PI/180,x=Math.sin((b.lat-a.lat)*r/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin((b.lon-a.lon)*r/2)**2;return 12742*Math.asin(Math.sqrt(x));};
+let TOT=0;const DK=[];for(let i=1;i<ST.length;i++){DK[i]=hav(ST[i-1],ST[i]);TOT+=DK[i];}
+const SEG=[];let tt=0;for(let i=1;i<ST.length;i++){const mt=DK[i]/TOT*MOVE;SEG.push({k:'m',i,a:tt,b:tt+mt});tt+=mt;if(ST[i].stop){const sp=ST[i].stop*60000;SEG.push({k:'s',i,a:tt,b:tt+sp});tt+=sp;}}
+const END=tt;
 const pad2=n=>String(n).padStart(2,'0');
-const hms=ms=>{ms=Math.max(0,Math.floor(ms/1000));const d=Math.floor(ms/86400),h=Math.floor(ms%86400/3600),m=Math.floor(ms%3600/60),s=ms%60;return (d?d+' T ':'')+pad2(h)+':'+pad2(m)+':'+pad2(s);};
-const dm=(v,p,n)=>{const a=Math.abs(v),d=Math.floor(a),m=(a-d)*60;return d+'° '+m.toFixed(2).padStart(5,'0')+"' "+(v>=0?p:n);};
-const stars=Array.from({length:90},()=>({x:Math.random()*S,y:Math.random()*SH,r:Math.random()*1.4+.3,p:Math.random()*6}));
-let logged=-1,lastKey='';
-function draw(now,f,st){
-  c.clearRect(0,0,S,SH);
-  stars.forEach(s=>{c.globalAlpha=.25+.5*Math.abs(Math.sin(now/900+s.p));c.fillStyle='#fff';c.fillRect(s.x,s.y,s.r,s.r);});c.globalAlpha=1;
-  c.save();c.beginPath();c.rect(0,0,S,SH);c.clip();
-  const g=c.createRadialGradient(cx0,cy0,0,cx0,cy0,R);g.addColorStop(0,'#1a4a86');g.addColorStop(1,'#0b1d3e');c.fillStyle=g;c.fillRect(0,0,S,SH);
-  c.strokeStyle='rgba(180,220,255,.13)';c.lineWidth=1;
+const dm=(v,p,n)=>{const a=Math.abs(v),d=Math.floor(a),m=(a-d)*60;return d+'° '+m.toFixed(1).padStart(4,'0')+"' "+(v>=0?p:n);};
+const cv=$('#map'),c=cv.getContext('2d');
+const stars=Array.from({length:110},()=>({x:Math.random()*S,y:Math.random()*SH,r:Math.random()*1.6+.3,p:Math.random()*6}));
+const flakes=Array.from({length:70},()=>({x:Math.random()*S,y:Math.random()*SH,r:Math.random()*2.4+.8,v:Math.random()*40+25,p:Math.random()*6}));
+const mix=(a,b,t)=>a.map((x,i)=>Math.round(x+(b[i]-x)*t));const rgb=a=>'rgb('+a.join()+')';
+const zp=()=>Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Zurich',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',weekday:'short',hourCycle:'h23'}).formatToParts(new Date(L.now())).map(p=>[p.type,p.value]));
+const hsh=s=>{let x=2166136261;for(const ch of s){x^=ch.charCodeAt(0);x=Math.imul(x,16777619)>>>0;}return x;};
+const rng=seed=>()=>{seed=(seed+0x6D2B79F5)|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+/* ---- Dorfleben ---- */
+const PATH={shop:[[440,610],[560,660],[700,530],[700,375]],school:[[440,610],[330,650],[215,530],[200,400]],walk:[[440,610],[380,710],[275,745]]};
+const HOME=PATH.shop[0];
+const OUT={shop:{e:'🛒',w:'Im Laden',t:'kauft im Laden Milch, Zimt und Mandarinen'},school:{e:'🏫',w:'Im Schulhaus',t:'schaut ganz leise im Schulhaus vorbei'},walk:{e:'🌲',w:'Im Wald',t:'macht einen Spaziergang im Wald'}};
+const HT=[[0,7,['schläft tief und fest']],[7,8,['frühstückt Milchreis mit Zimt']],[8,12,['bastelt Papiersterne','schreibt ins Notizbuch','liest unter der Decke','backt Plätzchen mit Zimt','übt Schleichen im Flur']],[12,13,['isst zu Mittag']],[13,17,['löst ein Rätsel','spielt Wichtel-Memory','schaut dem Schnee zu','putzt seine Mütze']],[17,19,['wärmt sich am Ofen auf']],[19,21,['schreibt Tagebuch']],[21,24,['schläft tief und fest']]];
+function plan(day,wd){const r=rng(hsh(day)),o=[];
+  const sch=wd!=='Sat'&&wd!=='Sun'&&r()<.3;
+  if(sch)o.push({p:'school',a:495,b:705});
+  else if(r()<.45){const a=600+Math.floor(r()*60);o.push({p:'walk',a,b:a+45});}
+  const a=840+Math.floor(r()*150);o.push({p:'shop',a,b:a+30});
+  return {o,r:rng(hsh(day+'x'))};}
+function village(z){const day=z.year+'-'+z.month+'-'+z.day,m=+z.hour*60+ +z.minute,P=plan(day,z.weekday),T=6;
+  for(const q of P.o){
+    if(m>=q.a-T&&m<q.a)return {p:q.p,mv:1,f:(m-(q.a-T))/T,dir:1,t:'ist auf dem Weg: '+OUT[q.p].t};
+    if(m>=q.a&&m<q.b)return {p:q.p,mv:0,t:OUT[q.p].t};
+    if(m>=q.b&&m<q.b+T)return {p:q.p,mv:1,f:(m-q.b)/T,dir:-1,t:'geht wieder nach Hause'};}
+  const h=m/60;const row=HT.find(x=>h>=x[0]&&h<x[1]);const blk=Math.floor(h/2);const arr=row[2];
+  return {p:'home',mv:0,t:arr[hsh(day+blk)%arr.length]};}
+function done(z){const day=z.year+'-'+z.month+'-'+z.day,m=+z.hour*60+ +z.minute,P=plan(day,z.weekday);return P.o.filter(q=>m>=q.b).map(q=>OUT[q.p].e);}
+const plen=pts=>{let L=0;const s=[0];for(let i=1;i<pts.length;i++){L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);s.push(L);}return [L,s];};
+function along(pts,f){const [L,s]=plen(pts);const d=Math.max(0,Math.min(1,f))*L;for(let i=1;i<pts.length;i++)if(d<=s[i]){const t=(d-s[i-1])/(s[i]-s[i-1]||1);return [pts[i-1][0]+(pts[i][0]-pts[i-1][0])*t,pts[i-1][1]+(pts[i][1]-pts[i-1][1])*t];}return pts[pts.length-1];}
+function lasseAt(v){if(v.p==='home')return HOME;const pts=PATH[v.p];if(!v.mv)return pts[pts.length-1];return along(pts,v.dir>0?v.f:1-v.f);}
+/* ---- Zustand ---- */
+function state(){const el=L.now()-T0;
+  if(el<0)return {ph:'wait',lat:90,lon:15.63,sp:0,s:'Packt noch im Wichteldorf',o:'Wichteldorf, Nordpol',n:0};
+  if(el>=END)return {ph:'home',n:ST.length};
+  const g=SEG.find(x=>el>=x.a&&el<x.b),A=ST[g.i-1],B=ST[g.i];
+  if(g.k==='m'){const f=(el-g.a)/(g.b-g.a);return {ph:'trip',i:g.i,f,mv:1,lat:A.lat+(B.lat-A.lat)*f,lon:A.lon+(B.lon-A.lon)*f,sp:DK[g.i]/((g.b-g.a)/3600000),s:'Unterwegs nach '+B.n,o:region(A.lat+(B.lat-A.lat)*f),n:g.i};}
+  return {ph:'trip',i:g.i,f:1,mv:0,lat:B.lat,lon:B.lon,sp:0,s:'Pause in '+B.n,o:B.n,n:g.i+1};}
+function region(la){return la>85?'Packeis am Nordpol':la>76?'Nordpolarmeer':la>66?'Nordmeer':la>60?'Norwegen':la>56?'Skagerrak':la>52?'Norddeutschland':la>49?'Rhein-Main':'Schweiz';}
+/* ---- Zeichnen: Reise ---- */
+const cam={x:450,y:480,z:1};
+function drawTrip(now,s){
+  const tz=s.ph==='trip'?2.3:1,p=s.ph==='wait'?pr(90,0):pr(s.lat,s.lon);
+  const tx=s.ph==='trip'?p[0]:450,ty=s.ph==='trip'?p[1]:480;
+  cam.x+=(tx-cam.x)*.07;cam.y+=(ty-cam.y)*.07;cam.z+=(tz-cam.z)*.03;const z=cam.z,fs=n=>(n/Math.pow(z,.75)).toFixed(1)+'px system-ui,sans-serif';
+  c.setTransform(1,0,0,1,0,0);const g=c.createLinearGradient(0,0,0,SH);g.addColorStop(0,'#08122b');g.addColorStop(1,'#12305e');c.fillStyle=g;c.fillRect(0,0,S,SH);
+  stars.forEach(t=>{c.globalAlpha=.25+.5*Math.abs(Math.sin(now/900+t.p));c.fillStyle='#fff';c.fillRect(t.x,t.y,t.r,t.r);});c.globalAlpha=1;
+  c.save();c.translate(S/2,SH/2);c.scale(z,z);c.translate(-cam.x,-cam.y);
+  c.lineWidth=1/z;c.strokeStyle='rgba(180,220,255,.13)';
   for(let la=80;la>=40;la-=10){c.beginPath();c.arc(cx0,cy0,(90-la)/(90-LATMIN)*R,0,7);c.stroke();}
   for(let lo=0;lo<360;lo+=15){const a=lo*Math.PI/180;c.beginPath();c.moveTo(cx0,cy0);c.lineTo(cx0+R*Math.sin(a),cy0+R*Math.cos(a));c.stroke();}
-  LAND.forEach(poly=>{c.beginPath();poly.forEach((p,i)=>{const q=pr(p[1],p[0]);i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]);});c.closePath();c.fillStyle='rgba(205,232,255,.17)';c.fill();c.strokeStyle='rgba(225,242,255,.45)';c.lineWidth=1.4;c.stroke();});
+  LAND.forEach(poly=>{c.beginPath();poly.forEach((q,i)=>{const w=pr(q[1],q[0]);i?c.lineTo(w[0],w[1]):c.moveTo(w[0],w[1]);});c.closePath();c.fillStyle='rgba(205,232,255,.18)';c.fill();c.strokeStyle='rgba(225,242,255,.5)';c.lineWidth=1.5/z;c.stroke();});
+  const pts=ST.map(q=>pr(q.lat,q.lon));
+  c.setLineDash([4/z,12/z]);c.lineCap='round';c.strokeStyle='rgba(255,255,255,.45)';c.lineWidth=3/z;c.beginPath();pts.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.stroke();c.setLineDash([]);
+  const reached=s.ph==='wait'?0:s.n;
+  if(s.ph==='trip'){const tr=pts.slice(0,s.mv?s.i:s.i+1);tr.push(p);const tg=c.createLinearGradient(tr[0][0],tr[0][1],p[0],p[1]);tg.addColorStop(0,'rgba(125,255,208,.15)');tg.addColorStop(1,'rgba(125,255,208,1)');c.strokeStyle=tg;c.lineWidth=6/z;c.shadowColor='#7dffd0';c.shadowBlur=16;c.beginPath();tr.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.stroke();c.shadowBlur=0;}
+  ST.forEach((q,i)=>{const w=pts[i],ok=i<reached||(s.ph==='trip'&&!s.mv&&i===s.i);c.fillStyle=ok?'#ffd27a':'rgba(255,255,255,.65)';c.beginPath();c.arc(w[0],w[1],(i===0||i===6?7:5)/Math.pow(z,.6),0,7);c.fill();c.font='700 '+fs(19);c.fillStyle=ok?'#ffe9b8':'rgba(214,236,255,.75)';c.textAlign=i%2?'left':'right';c.fillText((i===6?'🏠 ':'')+q.n,w[0]+(i%2?14:-14)/Math.pow(z,.6),w[1]+6/z);});c.textAlign='left';
+  const pu=(Math.sin(now/260)+1)/2;
+  if(s.ph!=='trip'&&s.ph!=='wait'){}
+  const q=s.ph==='wait'?pts[0]:p;c.fillStyle='rgba(255,210,122,'+(.18+.1*pu)+')';c.beginPath();c.arc(q[0],q[1],(22+pu*10)/Math.pow(z,.6),0,7);c.fill();
+  c.fillStyle='#ffd27a';c.beginPath();c.arc(q[0],q[1],9/Math.pow(z,.6),0,7);c.fill();c.strokeStyle='#fff';c.lineWidth=3/z;c.stroke();
+  c.font=fs(34);c.fillText(s.ph==='trip'&&s.mv?'🛷':s.ph==='trip'?'🚐':'⛺',q[0]+14/Math.pow(z,.6),q[1]-12/Math.pow(z,.6));
   c.restore();
-  
-  c.font='600 18px system-ui,sans-serif';c.fillStyle='rgba(214,236,255,.5)';
-  for(let la=80;la>=40;la-=10){const r=(90-la)/(90-LATMIN)*R;c.fillText(la+'°',cx0+r*Math.sin(.9)+6,cy0+r*Math.cos(.9)-4);}
-  c.font='600 20px system-ui,sans-serif';
-  CITIES.forEach(([n,la,lo])=>{const q=pr(la,lo);c.fillStyle='rgba(255,255,255,.75)';c.beginPath();c.arc(q[0],q[1],3.5,0,7);c.fill();c.fillStyle='rgba(214,236,255,.8)';c.fillText(n,q[0]+10,q[1]+6);});
-  const a=pr(LAT0,LON),b=pr(LAT1,LON),p=pr(LAT0-(LAT0-LAT1)*f,LON);
-  c.setLineDash([3,11]);c.lineCap='round';c.strokeStyle='rgba(255,255,255,.5)';c.lineWidth=3;c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.stroke();c.setLineDash([]);
-  WP.forEach(([la,n])=>{const q=pr(la,LON);const done=(LAT0-la)/(LAT0-LAT1)<=f;c.fillStyle=done?'#ffd27a':'rgba(255,255,255,.55)';c.beginPath();c.arc(q[0],q[1],4,0,7);c.fill();c.font='700 19px system-ui,sans-serif';c.fillStyle=done?'#ffe9b8':'rgba(214,236,255,.7)';c.textAlign='right';c.fillText(n,q[0]-12,q[1]+6);c.textAlign='left';});
-  if(f>0){const tg=c.createLinearGradient(a[0],a[1],p[0],p[1]);tg.addColorStop(0,'rgba(125,255,208,0)');tg.addColorStop(1,'rgba(125,255,208,1)');c.strokeStyle=tg;c.lineWidth=6;c.shadowColor='#7dffd0';c.shadowBlur=18;c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(p[0],p[1]);c.stroke();c.shadowBlur=0;}
-  const pulse=(Math.sin(now/260)+1)/2;
-  c.fillStyle='rgba(224,56,62,.9)';c.beginPath();c.arc(b[0],b[1],7+pulse*3,0,7);c.fill();
-  c.font='700 24px system-ui,sans-serif';c.fillStyle='#fff';c.fillText('🏠 Volketswil',b[0]-70,b[1]+44);
-  c.fillStyle='#fff';c.beginPath();c.arc(a[0],a[1],6,0,7);c.fill();c.font='700 21px system-ui,sans-serif';c.fillText('Wichteldorf · Nordpol',a[0]+16,a[1]+8);
-  if(f>0&&f<1){c.fillStyle='rgba(255,210,122,.25)';c.beginPath();c.arc(p[0],p[1],20+pulse*12,0,7);c.fill();}
-  c.fillStyle='#ffd27a';c.beginPath();c.arc(p[0],p[1],10,0,7);c.fill();c.strokeStyle='#fff';c.lineWidth=3;c.stroke();
-  c.font='40px system-ui,sans-serif';c.fillText(st==='wait'?'⛺':'🛷',p[0]+16,p[1]+14);
 }
+/* ---- Zeichnen: Dorf ---- */
+function drawVillage(now,v,z0){
+  const hr=+z0.hour+ +z0.minute/60,dn=Math.max(0,Math.min(1,Math.sin((hr-7.5)/9.5*Math.PI)*1.8)),night=1-dn;
+  c.setTransform(1,0,0,1,0,0);
+  const g=c.createLinearGradient(0,0,0,SH);g.addColorStop(0,rgb(mix([10,20,48],[170,205,240],dn)));g.addColorStop(.35,rgb(mix([18,36,76],[225,238,250],dn)));g.addColorStop(1,rgb(mix([22,44,88],[240,247,255],dn)));c.fillStyle=g;c.fillRect(0,0,S,SH);
+  stars.forEach(t=>{c.globalAlpha=night*(.3+.5*Math.abs(Math.sin(now/900+t.p)));c.fillStyle='#fff';c.fillRect(t.x,t.y*.4,t.r,t.r);});c.globalAlpha=1;
+  const sa=((hr-7.5)/9.5)*Math.PI,sx=90+Math.max(0,Math.min(1,(hr-7)/10.5))*720,sy=170-Math.sin(Math.max(0,Math.min(Math.PI,sa)))*110;
+  c.fillStyle=dn>.05?'rgba(255,225,130,'+Math.min(1,dn+.2)+')':'rgba(240,244,255,.95)';c.beginPath();c.arc(dn>.05?sx:760,dn>.05?sy:130,34,0,7);c.fill();
+  /* Boden */
+  c.fillStyle=rgb(mix([40,70,120],[250,252,255],dn));c.beginPath();c.moveTo(0,230);c.bezierCurveTo(250,190,600,260,900,215);c.lineTo(900,SH);c.lineTo(0,SH);c.fill();
+  c.strokeStyle='rgba(120,180,230,.55)';c.lineWidth=26;c.beginPath();c.moveTo(-10,880);c.bezierCurveTo(250,830,520,930,910,860);c.stroke();c.strokeStyle='rgba(235,245,255,.35)';c.lineWidth=3;c.stroke();
+  /* Wege */
+  c.lineCap='round';c.lineJoin='round';Object.values(PATH).forEach(pts=>{c.strokeStyle=rgb(mix([60,80,120],[205,215,230],dn));c.lineWidth=22;c.beginPath();pts.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.stroke();c.strokeStyle=rgb(mix([90,110,150],[238,243,250],dn));c.lineWidth=14;c.stroke();});
+  const win=night>.35?'#ffd27a':'#9fc4e8';
+  const house=(x,y,w,h,col,roof,lab)=>{c.fillStyle='rgba(0,0,0,.22)';c.fillRect(x-w/2+8,y+h-4,w,10);c.fillStyle=col;c.fillRect(x-w/2,y,w,h);c.fillStyle='#f4f7ff';c.beginPath();c.moveTo(x-w/2-12,y+4);c.lineTo(x,y-h*.55);c.lineTo(x+w/2+12,y+4);c.closePath();c.fill();c.fillStyle=roof;c.beginPath();c.moveTo(x-w/2-12,y+4);c.lineTo(x,y-h*.55);c.lineTo(x+w/2+12,y+4);c.lineTo(x+w/2+12,y+14);c.lineTo(x,y-h*.55+10);c.lineTo(x-w/2-12,y+14);c.closePath();c.fill();c.fillStyle=win;for(let i=0;i<2;i++)c.fillRect(x-w/2+14+i*(w-48),y+16,24,22);c.fillStyle='#5b3b24';c.fillRect(x-11,y+h-34,22,34);
+    c.font='700 21px system-ui,sans-serif';c.fillStyle=dn>.4?'#17305a':'#e9f3ff';c.textAlign='center';c.fillText(lab,x,y+h+30);c.textAlign='left';};
+  /* Wald */
+  const fr=rng(7);for(let i=0;i<26;i++){const x=110+fr()*260,y=740+fr()*210,s=26+fr()*26;c.fillStyle='rgba(0,0,0,.18)';c.beginPath();c.ellipse(x,y+s*1.1,s*.5,s*.2,0,0,7);c.fill();for(let k=0;k<3;k++){c.fillStyle=rgb(mix([20,60,60],[38,120,90],dn));c.beginPath();c.moveTo(x-s*(.6-k*.12),y+s*(.9-k*.5));c.lineTo(x,y-s*(.3+k*.5)+s*.2);c.lineTo(x+s*(.6-k*.12),y+s*(.9-k*.5));c.fill();c.fillStyle='rgba(255,255,255,.9)';c.beginPath();c.moveTo(x-s*(.3-k*.06),y+s*(.15-k*.5)+s*.25);c.lineTo(x,y-s*(.3+k*.5)+s*.2);c.lineTo(x+s*(.3-k*.06),y+s*(.15-k*.5)+s*.25);c.fill();}}
+  c.font='700 21px system-ui,sans-serif';c.fillStyle=dn>.4?'#17305a':'#e9f3ff';c.fillText('Wald',230,985);
+  house(700,300,120,80,'#c8553d','#7b2a22','Laden');c.fillStyle='#e0383e';for(let i=0;i<6;i++){if(i%2==0)c.fillRect(640+i*20,326,20,12);}
+  house(200,330,170,95,'#d9b36a','#5d3a2c','Schulhaus');c.fillStyle='#5d3a2c';c.fillRect(196,215,6,40);c.fillStyle='#e0383e';c.fillRect(202,217,26,14);
+  house(440,540,150,100,'#6c8fc9','#8a2a30','Zuhause');
+  c.fillStyle='#7b8190';c.fillRect(470,452,16,34);
+  for(let i=0;i<5;i++){const t=((now/2200+i/5)%1);c.fillStyle='rgba(235,240,255,'+(.55*(1-t))+')';c.beginPath();c.arc(478+Math.sin(t*6+i)*10,446-t*80,8+t*14,0,7);c.fill();}
+  /* Schneemann */
+  c.fillStyle='#fff';c.beginPath();c.arc(560,610,18,0,7);c.arc(560,586,13,0,7);c.arc(560,568,9,0,7);c.fill();c.fillStyle='#e0722a';c.fillRect(560,566,14,3);c.fillStyle='#222';c.fillRect(556,564,2,2);c.fillRect(562,564,2,2);
+  /* Laternen */
+  [[360,640],[560,700],[690,440],[260,560]].forEach(l=>{c.fillStyle='#454b5c';c.fillRect(l[0]-2,l[1]-40,4,40);if(night>.3){const gr=c.createRadialGradient(l[0],l[1]-42,2,l[0],l[1]-42,70);gr.addColorStop(0,'rgba(255,214,130,'+night*.7+')');gr.addColorStop(1,'rgba(255,214,130,0)');c.fillStyle=gr;c.fillRect(l[0]-70,l[1]-112,140,140);}c.fillStyle='#ffe29a';c.beginPath();c.arc(l[0],l[1]-42,5,0,7);c.fill();});
+  /* Lasse */
+  const L0=lasseAt(v);
+  if(v.mv){const pts=PATH[v.p];for(let k=1;k<=6;k++){const f=v.dir>0?v.f-k*.05:1-(v.f-k*.05);const w=along(pts,Math.max(0,f));c.fillStyle='rgba(60,80,120,'+(.5-k*.07)+')';c.beginPath();c.ellipse(w[0]+(k%2?5:-5),w[1]+14,5,3,0,0,7);c.fill();}}
+  const bob=v.mv?Math.sin(now/90)*3:0,x=L0[0],y=L0[1]-6+bob;
+  c.fillStyle='rgba(0,0,0,.25)';c.beginPath();c.ellipse(x,y+30,16,5,0,0,7);c.fill();
+  c.fillStyle='#f2c9a0';c.beginPath();c.arc(x,y+6,11,0,7);c.fill();c.fillStyle='#e0383e';c.beginPath();c.moveTo(x-14,y+2);c.lineTo(x+4,y-34);c.lineTo(x+14,y+2);c.closePath();c.fill();c.fillStyle='#fff';c.beginPath();c.arc(x+4,y-35,6,0,7);c.fill();c.fillRect(x-15,y,30,5);c.fillStyle='#223';c.fillRect(x-4,y+5,2,3);c.fillRect(x+3,y+5,2,3);c.fillStyle='#2a5fa8';c.fillRect(x-9,y+17,18,14);
+  /* Sprechblase */
+  const txt='Lasse '+v.t;c.font='600 18px system-ui,sans-serif';const wds=txt.split(' ');const lines=[];let cur='';wds.forEach(w=>{if(c.measureText(cur+' '+w).width>270&&cur){lines.push(cur);cur=w;}else cur=cur?cur+' '+w:w;});lines.push(cur);
+  const bw=Math.max(...lines.map(l=>c.measureText(l).width))+28,bh=lines.length*24+18;let bx=Math.max(10,Math.min(S-bw-10,x-bw/2)),by=Math.max(10,y-bh-52);
+  c.fillStyle='rgba(8,18,43,.9)';c.strokeStyle='rgba(125,255,208,.7)';c.lineWidth=2;c.beginPath();c.roundRect(bx,by,bw,bh,14);c.fill();c.stroke();c.beginPath();c.moveTo(x-8,by+bh);c.lineTo(x,by+bh+14);c.lineTo(x+8,by+bh);c.fillStyle='rgba(8,18,43,.9)';c.fill();
+  c.fillStyle='#fff';lines.forEach((l,i)=>c.fillText(l,bx+14,by+27+i*24));
+  /* Schnee */
+  c.fillStyle='rgba(255,255,255,.85)';flakes.forEach(f=>{const yy=(f.y+now/1000*f.v)%SH,xx=f.x+Math.sin(now/1500+f.p)*18;c.beginPath();c.arc(xx,yy,f.r,0,7);c.fill();});
+  if(night>.3){c.fillStyle='rgba(6,12,32,'+night*.28+')';c.fillRect(0,0,S,SH);}
+}
+let last=0,sig='',cur='';
 function tick(now){
-  const t=L.now(),el=t-START,f=clamp(el/DUR,0,1);
-  const st=el<0?'wait':(el<DUR?'go':'done');
-  const lat=LAT0-(LAT0-LAT1)*f;
-  $('#badge').className='badge '+st;
-  $('#bt').textContent=st==='wait'?'Wartet im Wichteldorf':st==='go'?'Live unterwegs':'Angekommen';
-  $('#hs').textContent=st==='wait'?'Wartet':st==='go'?'Unterwegs':'Da!';
-  $('#hlat').textContent=dm(lat,'N','S');
-  $('#hlon').textContent=f===0?'—':dm(LON,'E','W');
-  $('#hv').textContent=st==='go'?Math.round(KM/(DUR/3600000)).toLocaleString('de-CH').replace(/’/g,"'")+' km/h':'0 km/h';
-  $('#hd').textContent=Math.round(KM*(1-f)).toLocaleString('de-CH').replace(/’/g,"'")+' km';
-  $('#hts').textContent=st==='wait'?'Abfahrt in':st==='go'?'Ankunft in':'Fahrzeit';
-  $('#ht').textContent=st==='wait'?hms(-el):st==='go'?hms(DUR-el):'2 h 00 min';
-  $('#pb').style.width=(f*100).toFixed(2)+'%';
-  const mins=Math.max(0,el/60000);
-  const n=LOG.filter(e=>e[0]<=mins).length;
-  if(n!==logged){logged=n;const r=$('#radio');
-    if(n===0)r.innerHTML='<p><time>—</time>Funkstille. Der Wichtelchauffeur wärmt den Motor, und die Wichtel laden die Koffer ein.</p>';
-    else r.innerHTML=LOG.slice(0,n).reverse().map((e,i)=>{const hh=pad2(Math.floor(e[0]/60)),mm=pad2(e[0]%60);return '<p'+(i===0?' class="new"':'')+'><time>'+hh+':'+mm+'</time>'+e[1]+'</p>';}).join('');}
-  draw(now,f,st);
+  const s=state(),z0=zp();let v=null;
+  if(s.ph==='home'){v=village(z0);drawVillage(now,v,z0);}else drawTrip(now,s);
+  if(now-last>250){last=now;
+    let st,o,lat,lon,sp,bt,cls,hh='—',feed='';
+    if(s.ph==='home'){st=v.p==='home'?'Zu Hause':v.mv?'Unterwegs im Dorf':OUT[v.p].w;o='Volketswil, Schweiz';lat=47.39;lon=8.69;sp=v.mv?4:0;bt='Live im Dorf';cls='badge';const d=done(z0);hh=d.length?d.join(' '):'—';feed='<p>Lasse '+v.t+'.</p>'+d.map(e=>'<p>'+e+' Das hat Lasse heute schon erledigt.</p>').join('');}
+    else{st=s.s;o=s.o;lat=s.lat;lon=s.lon;sp=s.sp;bt=s.ph==='wait'?'Wartet im Wichteldorf':s.mv?'Live unterwegs':'Pause';cls='badge'+(s.ph==='wait'?' wait':'');
+      feed=s.ph==='wait'?'<p>Funkstille. Lasse packt noch seinen Koffer.</p>':ST.slice(0,s.n).reverse().map(q=>'<p>'+q.m+'</p>').join('');}
+    $('#badge').className=cls;$('#bt').textContent=bt;$('#hs').textContent=st;$('#ho').textContent=o;
+    $('#hlat').textContent=dm(lat,'N','S');$('#hlon').textContent=s.ph==='wait'?'—':dm(lon,'E','W');
+    $('#hv').textContent=Math.round(sp).toLocaleString('de-CH').replace(/’/g,"'")+' km/h';$('#hh').textContent=hh;
+    if(feed!==sig){sig=feed;$('#radio').innerHTML=feed;}
+  }
   requestAnimationFrame(tick);
 }
 requestAnimationFrame(tick);
