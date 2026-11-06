@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wichtelschule & Rätsel – Wichtel Lasse</title>
+<meta name="description" content="Lasses Zeugnis zum Umdrehen, drei Rätsel und eine Geheimschrift zum Ausprobieren.">
+<meta name="theme-color" content="#070d1f">
+<meta property="og:title" content="Wichtelschule & Rätsel – Wichtel Lasse">
+<meta property="og:description" content="Lasses Zeugnis zum Umdrehen, drei Rätsel und eine Geheimschrift zum Ausprobieren.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://images.unsplash.com/photo-1638359664216-34607c9b0d3b?w=1200&q=75&auto=format&fit=crop">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%85%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="progress" id="progress"></div>
+<header class="nav">
+<a class="brand" href="index.html">Wichtel <span>Lasse</span></a>
+<ul><li><a class="l" href="index.html">Start</a></li><li><a class="l" href="steckbrief.html">Steckbrief</a></li><li><a class="l" href="milchreis.html">Milchreis</a></li><li><a class="l cur" href="schule.html">Schule</a></li><li><a class="l" href="spiele.html">Spiele</a></li><li><a class="l" href="kalender.html">Kalender</a></li><li><a class="l" href="tagebuch.html">Tagebuch</a></li><li><a class="l" href="kontakt.html">Kontakt</a></li></ul>
+</header>
+<noscript><div class="ns"><h1 style="color:#fff">Wichtel Lasse</h1><p>Diese Seite braucht JavaScript, damit der Schnee fällt und alles sich bewegt. Schalte es ein, dann klappt es!</p></div></noscript>
+<main>
+<section class="pad page-top">
+<div class="wrap">
+<div class="kicker reveal">Wichtelschule</div>
+<h2 class="reveal">Wichtel zu sein will gelernt sein</h2>
+<p class="lead reveal">In der Wichtelschule lernen wir, leise zu schleichen, Geschenke blitzschnell zu verstecken und die verrücktesten Wichtelstreiche zu erfinden. Dieses Jahr war sie sooo streng, mit Hausaufgaben und schwierigen Prüfungen. Ich habe alles bestanden, und hier ist der Beweis. Tippe aufs Zeugnis!</p>
+<div style="margin-top:40px" class="reveal">
+<div class="flip" id="flip" role="button" tabindex="0" aria-label="Zeugnis umdrehen">
+<div class="flip-in">
+<div class="face front"><h3>Wichtelschule<br>Wichteldorf</h3><div class="seal">🎓</div><p>Abschlusszeugnis</p><p style="opacity:.85">für Wichtel <b>Lasse</b></p></div>
+<div class="face back">
+<h3>Zeugnis</h3>
+<table>
+<tr><td>Mützenkunde</td><td>6</td></tr>
+<tr><td>Leise Schleichen</td><td>4.5 (Schuh-Unfall)</td></tr>
+<tr><td>Schneeball-Physik</td><td>5</td></tr>
+<tr><td>Lichterketten entknoten</td><td>4 (übt noch!)</td></tr>
+<tr><td>Milchreis kochen</td><td>6</td></tr>
+<tr><td>Briefe schreiben</td><td>6</td></tr>
+<tr><td>Nicht erwischt werden</td><td>5.5</td></tr>
+</table>
+<p style="margin-top:10px;font-size:.9rem"><i>Bemerkung: Lasse ist herzlich, humorvoll und ein bisschen tollpatschig. In der Schleichprüfung ist er über seinen eigenen Schuh gestolpert und kopfüber in eine Kiste voller Weihnachtsglitzer gefallen. Bestanden hat er trotzdem, sogar die grosse Abschlussprüfung.</i></p>
+<div class="stamp">BESTANDEN</div>
+</div>
+</div>
+</div>
+<div class="hint">Noten wie in der Schweiz: 6 ist die beste Note.</div>
+</div>
+</div>
+</section>
+<section class="pad" id="raetsel">
+<div class="wrap">
+<div class="kicker reveal">Rätselecke</div>
+<h2 class="reveal">Knacke meine Rätsel</h2>
+<div class="puz">
+<div class="panel reveal">
+<h3>Drei Wichtelrätsel</h3>
+<div class="riddle"><div>Ich falle vom Himmel, tue mir aber nie weh. Wer bin ich?</div><button>Lösung zeigen</button><div class="ans">Der Schnee ❄️</div></div>
+<div class="riddle"><div>Was wird nasser, je mehr es trocknet?</div><button>Lösung zeigen</button><div class="ans">Ein Handtuch 🧺</div></div>
+<div class="riddle"><div>Ich trage einen Zipfel, bin rot und sitze auf dem Kopf. Was bin ich?</div><button>Lösung zeigen</button><div class="ans">Eine Wichtelmütze 🎅</div></div>
+</div>
+<div class="panel reveal">
+<h3>Die Wichtelschrift</h3>
+<p style="opacity:.88">Jeder Buchstabe rutscht ein Stück im Alphabet weiter: A wird B, B wird C. Probiere es aus!</p>
+<div class="toggle"><button id="enc" class="on">Verschlüsseln</button><button id="dec">Entschlüsseln</button></div>
+<textarea id="codeIn" rows="3" placeholder="Schreibe hier deine Botschaft …">Lasse</textarea>
+<div class="code-out" id="codeOut" aria-live="polite"></div>
+<p style="margin-top:10px;font-size:.85rem;opacity:.7">Tipp: Entschlüssle diese Botschaft: <b>Gjoe njdi jn Tdiofflo!</b></p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<footer>
+<div class="big">Verschneite Grüsse aus dem Wichteldorf ❄️</div>
+<p>Dein Wichtel Lasse · Nordpolstrasse 1 · Wichteldorf, Nordpol</p>
+<p class="credit">Fotos: <a href="https://unsplash.com" rel="noopener">Unsplash</a> (freie Lizenz). Lasse und sein Dorf sind eine erfundene Weihnachtsgeschichte.</p>
+</footer>
+<script src="common.js"></script>
+<script>
+(function(){
+const {$,$$,clamp,lerp,ease,reduce,setSteps,sceneScale}=window.L;
+const flip=$('#flip');const tog=()=>flip.classList.toggle('on');
+flip.addEventListener('click',tog);
+flip.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tog();}});
+$$('.riddle button').forEach(b=>b.addEventListener('click',()=>{const r=b.closest('.riddle');r.classList.toggle('open');b.textContent=r.classList.contains('open')?'Lösung verstecken':'Lösung zeigen';}));
+let mode=1;
+function shift(str,k){return str.replace(/[A-Za-z]/g,c=>{const b=c<='Z'?65:97;return String.fromCharCode((c.charCodeAt(0)-b+k+26)%26+b);});}
+function codeUpd(){$('#codeOut').textContent=shift($('#codeIn').value,mode)||'…';}
+$('#codeIn').addEventListener('input',codeUpd);
+$('#enc').onclick=()=>{mode=1;$('#enc').classList.add('on');$('#dec').classList.remove('on');codeUpd();};
+$('#dec').onclick=()=>{mode=-1;$('#dec').classList.add('on');$('#enc').classList.remove('on');codeUpd();};
+codeUpd();
+})();
+</script>
+</body>
+</html>

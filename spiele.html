@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spiele – Wichtel Lasse</title>
+<meta name="description" content="Schneeflocken fangen und Wichtel-Memory: zwei Spiele aus dem Wichteldorf.">
+<meta name="theme-color" content="#070d1f">
+<meta property="og:title" content="Spiele – Wichtel Lasse">
+<meta property="og:description" content="Schneeflocken fangen und Wichtel-Memory: zwei Spiele aus dem Wichteldorf.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://images.unsplash.com/photo-1637545205226-d29d26d163e3?w=1200&q=75&auto=format&fit=crop">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%85%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="progress" id="progress"></div>
+<header class="nav">
+<a class="brand" href="index.html">Wichtel <span>Lasse</span></a>
+<ul><li><a class="l" href="index.html">Start</a></li><li><a class="l" href="steckbrief.html">Steckbrief</a></li><li><a class="l" href="milchreis.html">Milchreis</a></li><li><a class="l" href="schule.html">Schule</a></li><li><a class="l cur" href="spiele.html">Spiele</a></li><li><a class="l" href="kalender.html">Kalender</a></li><li><a class="l" href="tagebuch.html">Tagebuch</a></li><li><a class="l" href="kontakt.html">Kontakt</a></li></ul>
+</header>
+<noscript><div class="ns"><h1 style="color:#fff">Wichtel Lasse</h1><p>Diese Seite braucht JavaScript, damit der Schnee fällt und alles sich bewegt. Schalte es ein, dann klappt es!</p></div></noscript>
+<main>
+<section class="pad page-top">
+<div class="wrap">
+<div class="kicker reveal">Spiele</div>
+<h2 class="reveal">Spiel mit mir</h2>
+<p class="lead reveal">Zwei kleine Spiele aus dem Wichteldorf. Das Memory geht mit Tippen oder Klicken, bei den Schneeflocken musst du schnell sein.</p>
+<div class="games">
+<div class="panel reveal">
+<h3>❄️ Schneeflocken fangen</h3>
+<p style="opacity:.88">Tippe so viele Schneeflocken wie möglich in 30 Sekunden. Goldene Sterne geben Bonuspunkte, aber die dunklen Eisklumpen kosten Punkte!</p>
+<div class="hud"><span>Punkte: <b id="sc">0</b></span><span>Zeit: <b id="tl">30</b></span><span>Rekord: <b id="bs">0</b></span></div>
+<canvas class="game-canvas" id="gc" width="360" height="480"></canvas>
+<button class="btn" id="gstart" style="margin-top:10px">Spiel starten</button>
+<div class="msg" id="gmsg" aria-live="polite"></div>
+</div>
+<div class="panel reveal">
+<h3>🎅 Wichtel-Memory</h3>
+<p style="opacity:.88">Finde alle acht Paare mit möglichst wenig Zügen.</p>
+<div class="hud"><span>Züge: <b id="mv">0</b></span><span>Paare: <b id="pr">0</b>/8</span></div>
+<div class="mem" id="mem"></div>
+<button class="btn" id="mnew" style="margin-top:12px">Neu mischen</button>
+<div class="msg" id="mmsg" aria-live="polite"></div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<footer>
+<div class="big">Verschneite Grüsse aus dem Wichteldorf ❄️</div>
+<p>Dein Wichtel Lasse · Nordpolstrasse 1 · Wichteldorf, Nordpol</p>
+<p class="credit">Fotos: <a href="https://unsplash.com" rel="noopener">Unsplash</a> (freie Lizenz). Lasse und sein Dorf sind eine erfundene Weihnachtsgeschichte.</p>
+</footer>
+<script src="common.js"></script>
+<script>
+(function(){
+const {$,$$,clamp,lerp,ease,reduce,setSteps,sceneScale}=window.L;
+/* Memory */
+const emo=['🎅','🧦','🍚','🦊','🐿️','🐧','🎁','⭐'];let first=null,lock=false,moves=0,pairs=0;
+function mem(){
+const d=[...emo,...emo].sort(()=>Math.random()-.5);moves=0;pairs=0;first=null;lock=false;
+$('#mv').textContent=0;$('#pr').textContent=0;$('#mmsg').textContent='';
+$('#mem').innerHTML=d.map((e,i)=>`<button class="mcard" data-e="${e}" aria-label="Karte ${i+1}"><span class="in"><span class="a">❄</span><span class="b">${e}</span></span></button>`).join('');
+}
+$('#mem').addEventListener('click',ev=>{
+const c=ev.target.closest('.mcard');if(!c||lock||c.classList.contains('up')||c.classList.contains('ok'))return;
+c.classList.add('up');
+if(!first){first=c;return;}
+moves++;$('#mv').textContent=moves;lock=true;
+if(first.dataset.e===c.dataset.e){first.classList.replace('up','ok');c.classList.replace('up','ok');pairs++;$('#pr').textContent=pairs;first=null;lock=false;
+if(pairs===8)$('#mmsg').textContent=moves<=12?`Super! Nur ${moves} Züge, das ist Wichtel-Meisterklasse!`:`Geschafft in ${moves} Zügen. Beim nächsten Mal noch schneller?`;}
+else{const a=first;first=null;setTimeout(()=>{a.classList.remove('up');c.classList.remove('up');lock=false;},800);}
+});
+$('#mnew').onclick=mem;mem();
+/* Schneeflocken */
+const cv=$('#gc'),g=cv.getContext('2d');let items=[],score=0,time=30,run=false,last=0,spawn=0,tid=null,raf=null,best=0;
+try{best=+localStorage.getItem('wl_best')||0;}catch(e){}$('#bs').textContent=best;
+function start(){items=[];score=0;time=30;run=true;last=performance.now();spawn=0;$('#sc').textContent=0;$('#tl').textContent=30;$('#gmsg').textContent='';$('#gstart').textContent='Neu starten';
+clearInterval(tid);tid=setInterval(()=>{time--;$('#tl').textContent=time;if(time<=0)end();},1000);cancelAnimationFrame(raf);raf=requestAnimationFrame(loop);}
+function end(){run=false;clearInterval(tid);
+$('#gmsg').textContent=`Zeit um! Du hast ${score} Punkte.`+(score>best?' Neuer Rekord!':'');
+if(score>best){best=score;$('#bs').textContent=best;try{localStorage.setItem('wl_best',best);}catch(e){}}}
+function loop(t){
+const dt=Math.min(.05,(t-last)/1000);last=t;spawn-=dt;
+if(run&&spawn<=0){spawn=.45-Math.min(.25,(30-time)*.008);const r=Math.random();items.push({x:20+Math.random()*320,y:-20,v:70+Math.random()*80+(30-time)*3,k:r<.12?'star':r<.26?'ice':'flake',r:r<.12?16:14});}
+g.clearRect(0,0,360,480);
+items.forEach(i=>{i.y+=i.v*dt;g.save();g.translate(i.x,i.y);
+if(i.k==='flake'){g.strokeStyle='#fff';g.lineWidth=2.2;g.lineCap='round';for(let a=0;a<3;a++){g.rotate(Math.PI/3);g.beginPath();g.moveTo(-i.r,0);g.lineTo(i.r,0);g.stroke();}}
+else if(i.k==='star'){g.fillStyle='#ffd27a';g.shadowColor='#ffd27a';g.shadowBlur=14;g.beginPath();for(let a=0;a<10;a++){const R=a%2?7:i.r;g.lineTo(Math.cos(a*Math.PI/5-Math.PI/2)*R,Math.sin(a*Math.PI/5-Math.PI/2)*R);}g.closePath();g.fill();}
+else{g.fillStyle='#3c4b6b';g.beginPath();g.arc(0,0,i.r,0,6.3);g.fill();g.fillStyle='#667a9f';g.beginPath();g.arc(-4,-4,4,0,6.3);g.fill();}
+g.restore();});
+items=items.filter(i=>i.y<500);
+if(run)raf=requestAnimationFrame(loop);
+}
+function hit(ev){
+if(!run)return;const r=cv.getBoundingClientRect();const x=(ev.clientX-r.left)*360/r.width,y=(ev.clientY-r.top)*480/r.height;
+for(let k=items.length-1;k>=0;k--){const i=items[k];if(Math.hypot(i.x-x,i.y-y)<i.r+14){score+=i.k==='flake'?1:i.k==='star'?5:-3;score=Math.max(0,score);$('#sc').textContent=score;items.splice(k,1);break;}}
+}
+cv.addEventListener('pointerdown',hit);
+$('#gstart').onclick=start;
+g.fillStyle='#fff';g.font='20px sans-serif';g.textAlign='center';g.fillText('Drücke «Spiel starten»',180,240);
+})();
+</script>
+</body>
+</html>

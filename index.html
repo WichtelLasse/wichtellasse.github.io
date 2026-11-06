@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wichtel Lasse – Nordpolstrasse 1, Wichteldorf</title>
+<meta name="description" content="Willkommen im Wichteldorf am Nordpol: Lasses Haus in 3D, sein Lieblingsessen Milchreis, Spiele, Rätsel und mehr.">
+<meta name="theme-color" content="#070d1f">
+<meta property="og:title" content="Wichtel Lasse – Nordpolstrasse 1, Wichteldorf">
+<meta property="og:description" content="Willkommen im Wichteldorf am Nordpol: Lasses Haus in 3D, sein Lieblingsessen Milchreis, Spiele, Rätsel und mehr.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://images.unsplash.com/photo-1604608672516-f1b9b1d37076?w=1200&q=75&auto=format&fit=crop">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%85%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="progress" id="progress"></div>
+<header class="nav">
+<a class="brand" href="index.html">Wichtel <span>Lasse</span></a>
+<ul><li><a class="l cur" href="index.html">Start</a></li><li><a class="l" href="steckbrief.html">Steckbrief</a></li><li><a class="l" href="milchreis.html">Milchreis</a></li><li><a class="l" href="schule.html">Schule</a></li><li><a class="l" href="spiele.html">Spiele</a></li><li><a class="l" href="kalender.html">Kalender</a></li><li><a class="l" href="tagebuch.html">Tagebuch</a></li><li><a class="l" href="kontakt.html">Kontakt</a></li></ul>
+</header>
+<noscript><div class="ns"><h1 style="color:#fff">Wichtel Lasse</h1><p>Diese Seite braucht JavaScript, damit der Schnee fällt und alles sich bewegt. Schalte es ein, dann klappt es!</p></div></noscript>
+<main>
+<section class="photo-hero">
+<div class="bg" data-par="0.25" style="background-image:url(https://images.unsplash.com/photo-1604608672516-f1b9b1d37076?w=1600&q=75&auto=format&fit=crop),linear-gradient(#0b1633,#16305f)"></div>
+<div class="hero-inner">
+<div class="hat-wrap" id="hatWrap" aria-hidden="true">
+<div class="hat" id="hat"><div class="cone"></div><div class="shade"></div><div class="band"></div><div class="pom"></div></div>
+</div>
+<h1 class="title"><span class="w" aria-label="Wichtel"></span><span class="w" aria-label="Lasse"></span></h1>
+<p class="tag">Ein kleiner Wichtel vom Nordpol, der gern Schlitten fährt, Mützen verliert und Milchreis über alles liebt.</p>
+<div class="addr">📍 <span><b>Nordpolstrasse 1</b> · Wichteldorf · Nordpol</span></div>
+<div class="addr">⏳ <span>Noch <b data-cd="2026-12-24T00:00:00+01:00" data-fmt="d">…</b> Tage bis Weihnachten</span></div>
+<a class="cta" href="#haus">Komm in mein Zuhause ↓</a>
+</div>
+</section><section class="stage" id="haus" data-stage="house">
+<div class="pin">
+<div class="stage-title"><div class="kicker">Mein Zuhause</div><h2>Nordpolstrasse 1</h2></div>
+<div class="scene-box">
+<div class="house-sc" id="house">
+<div class="f snow-ground"></div>
+<div class="f wall back"></div>
+<div class="f wall left side"></div>
+<div class="f gable left"></div>
+<div class="f wall right side"></div>
+<div class="f gable right"></div>
+<div class="f roof back"></div>
+<div class="f wall front">
+<div class="sign">LASSE</div>
+<div class="win a"></div><div class="win b"></div>
+<div class="door"><div class="star">1</div></div>
+</div>
+<div class="f roof front"></div>
+<div class="tree" style="left:210px;top:-10px;transform:translate3d(0,32px,60px)"></div>
+<div class="tree" style="left:-300px;top:-6px;transform:translate3d(0,32px,-40px) scale(1.2)"></div>
+<div class="tree" style="left:240px;top:6px;transform:translate3d(0,40px,-120px) scale(.8)"></div>
+<div class="lamp" style="left:-160px;top:70px;transform:translateZ(120px)"></div>
+<div class="lamp" style="left:150px;top:78px;transform:translateZ(130px);animation-delay:.5s"></div>
+</div>
+</div>
+<div class="caption" id="capHouse">
+<div class="step on"><h3>Hier wohne ich!</h3><p>Ein kleines Holzhaus mit rotem Dach im Wichteldorf am Nordpol. Die Hausnummer ist die 1, also das erste Haus an der Nordpolstrasse. Scrolle, dann drehe ich es für dich.</p></div>
+<div class="step"><h3>Von hinten sieht es auch gut aus</h3><p>Hinter dem Haus ist Platz für Holz und meinen Schlitten. Drinnen wird viel gekocht, das Lieblingsessen steht auf der Milchreis-Seite.</p></div>
+<div class="step"><h3>Abends gehen die Lichter an</h3><p>Wenn es dunkel wird, leuchten die Fenster warm. Von weitem sieht man sie schon über den Schnee.</p></div>
+</div>
+</div>
+</section><section class="pad">
+<div class="wrap">
+<div class="kicker reveal">Willkommen</div>
+<h2 class="reveal">Das Wichteldorf</h2>
+<p class="lead reveal">Ganz oben am Nordpol, wo im Winter die Polarlichter tanzen, liegt unser Wichteldorf. Die Häuser sind aus Holz, die Dächer voller Schnee, und in den Fenstern brennt abends Licht. Meine Adresse kannst du dir merken:</p>
+<div class="reveal"><div class="sign3d"><small>WICHTELDORF · NORDPOL</small><strong>Nordpolstrasse 1</strong></div></div>
+<div class="strip" id="strip">
+<figure class="reveal"><img loading="lazy" src="https://images.unsplash.com/photo-1709113494980-cad2d0fe1fc7?w=900&q=75&auto=format&fit=crop" alt="Holzhütte im Schnee mit Licht im Fenster und Polarlicht"><figcaption>Abends brennt Licht im Fenster</figcaption></figure>
+<figure class="reveal"><img loading="lazy" src="https://images.unsplash.com/photo-1643611657752-fb0ce6989d88?w=900&q=75&auto=format&fit=crop" alt="Hütte unter grünem Polarlicht"><figcaption>Polarlicht über dem Dach</figcaption></figure>
+<figure class="reveal"><img loading="lazy" src="https://images.unsplash.com/photo-1771230341444-0cd96608f17c?w=900&q=75&auto=format&fit=crop" alt="Verschneite Holzhütte im Wald"><figcaption>Das Haus meines Nachbarn</figcaption></figure>
+</div>
+<div class="kicker reveal" style="margin-top:70px">Entdecke mehr</div>
+<div class="teasers">
+<a class="teaser reveal" href="steckbrief.html"><img loading="lazy" src="https://images.unsplash.com/photo-1551415923-a2297c7fda79?w=700&q=75&auto=format&fit=crop" alt=""><div><h3>Steckbrief &amp; Reise</h3><span>Wer ich bin und wo ich Ferien mache</span></div></a>
+<a class="teaser reveal" href="milchreis.html"><img loading="lazy" src="https://images.unsplash.com/photo-1665529555367-8a4672d97641?w=700&q=75&auto=format&fit=crop" alt=""><div><h3>Mein Milchreis</h3><span>Lieblingsessen mit Rezept zum Nachkochen</span></div></a>
+<a class="teaser reveal" href="schule.html"><img loading="lazy" src="https://images.unsplash.com/photo-1638359664216-34607c9b0d3b?w=700&q=75&auto=format&fit=crop" alt=""><div><h3>Wichtelschule</h3><span>Zeugnis, Rätsel und Geheimschrift</span></div></a>
+<a class="teaser reveal" href="spiele.html"><img loading="lazy" src="https://images.unsplash.com/photo-1637545205226-d29d26d163e3?w=700&q=75&auto=format&fit=crop" alt=""><div><h3>Spiele</h3><span>Schneeflocken fangen und Memory</span></div></a>
+</div>
+</div>
+</section>
+</main>
+<footer>
+<div class="big">Verschneite Grüsse aus dem Wichteldorf ❄️</div>
+<p>Dein Wichtel Lasse · Nordpolstrasse 1 · Wichteldorf, Nordpol</p>
+<p class="credit">Fotos: <a href="https://unsplash.com" rel="noopener">Unsplash</a> (freie Lizenz). Lasse und sein Dorf sind eine erfundene Weihnachtsgeschichte.</p>
+</footer>
+<script src="common.js"></script>
+<script>
+(function(){
+const {$,$$,clamp,lerp,ease,reduce,setSteps,sceneScale}=window.L;
+const house=$('#house'),houseSt=$('[data-stage=house]'),capHouse=$$('#capHouse .step');
+function updHouse(p){
+const ry=lerp(-30,330,p);
+house.style.transform=`translateY(40px) scale(${sceneScale()*1.05}) rotateX(${-14+Math.sin(p*6.28)*3}deg) rotateY(${ry}deg)`;
+const glow=clamp((p-.6)/.3);
+$$('.win',house).forEach(w=>w.style.setProperty('--glow',glow));
+setSteps(capHouse,p<.34?0:p<.67?1:2);
+}
+L.stages([{el:houseSt,fn:updHouse}]);
+})();
+</script>
+</body>
+</html>

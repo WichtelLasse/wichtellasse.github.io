@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Milchreis – Lasses Lieblingsessen mit Rezept</title>
+<meta name="description" content="Wichtel Lasses Lieblingsessen: cremiger Milchreis mit Zimt und Zucker. Mit Schritt-für-Schritt-Rezept, Portionsrechner und Rühr-Timer.">
+<meta name="theme-color" content="#070d1f">
+<meta property="og:title" content="Milchreis – Lasses Lieblingsessen mit Rezept">
+<meta property="og:description" content="Wichtel Lasses Lieblingsessen: cremiger Milchreis mit Zimt und Zucker. Mit Schritt-für-Schritt-Rezept, Portionsrechner und Rühr-Timer.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://images.unsplash.com/photo-1665529555367-8a4672d97641?w=1200&q=75&auto=format&fit=crop">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%85%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="progress" id="progress"></div>
+<header class="nav">
+<a class="brand" href="index.html">Wichtel <span>Lasse</span></a>
+<ul><li><a class="l" href="index.html">Start</a></li><li><a class="l" href="steckbrief.html">Steckbrief</a></li><li><a class="l cur" href="milchreis.html">Milchreis</a></li><li><a class="l" href="schule.html">Schule</a></li><li><a class="l" href="spiele.html">Spiele</a></li><li><a class="l" href="kalender.html">Kalender</a></li><li><a class="l" href="tagebuch.html">Tagebuch</a></li><li><a class="l" href="kontakt.html">Kontakt</a></li></ul>
+</header>
+<noscript><div class="ns"><h1 style="color:#fff">Wichtel Lasse</h1><p>Diese Seite braucht JavaScript, damit der Schnee fällt und alles sich bewegt. Schalte es ein, dann klappt es!</p></div></noscript>
+<main>
+<section class="photo-hero short">
+<div class="bg" data-par="0.2" style="background-image:url(https://images.unsplash.com/photo-1665529555367-8a4672d97641?w=1600&q=75&auto=format&fit=crop),linear-gradient(#0b1633,#16305f)"></div>
+<div class="hero-inner" style="display:grid;gap:14px;justify-items:center">
+<div class="kicker">Lasses Lieblingsessen</div>
+<h1 class="title" style="font-size:clamp(3rem,12vw,7.5rem)"><span class="w" aria-label="Milchreis"></span></h1>
+<p class="tag">Cremig, warm und mit Zimt und Zucker. Wenn es draussen schneit, gibt es für mich nichts Besseres.</p>
+<a class="cta" href="#rezept">Direkt zum Rezept ↓</a>
+</div>
+</section><section class="stage" id="mrstage" data-stage="mr" style="height:380vh">
+<div class="pin">
+<div class="stage-title"><div class="kicker">So entsteht er</div><h2>Vom Topf in die Schüssel</h2></div>
+<div class="scene-box" style="padding-top:110px">
+<div class="mr-scene" id="mrscene">
+<div class="steam" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="mr-frame" id="mrframe">
+<div class="ph" id="ph1" style="background-image:url(https://images.unsplash.com/photo-1665529545347-8eac2abf7f41?w=1200&q=75&auto=format&fit=crop),linear-gradient(#2a3b66,#16305f)"></div>
+<div class="ph" id="ph2" style="background-image:url(https://images.unsplash.com/photo-1665529555367-8a4672d97641?w=1200&q=75&auto=format&fit=crop),linear-gradient(#2a3b66,#16305f);opacity:0"></div>
+</div>
+<span class="mr-chip" style="left:-4%;top:12%">🥛 1 Liter Milch</span>
+<span class="mr-chip" style="right:-4%;top:24%">🍚 250 g Milchreis</span>
+<span class="mr-chip" style="left:-2%;top:46%">🍬 Zucker &amp; Salz</span>
+<span class="mr-chip" style="right:-2%;top:58%">🌿 Vanille</span>
+<span class="mr-chip" style="left:2%;top:76%">🧈 Butter</span>
+<span class="mr-chip" style="right:2%;top:86%">🪵 Zimt</span>
+</div>
+</div>
+<div class="caption" id="capMr">
+<div class="step on"><h3>Alles bereitstellen</h3><p>Scrolle, dann siehst du, was in den Topf kommt. Das Rezept mit Mengen steht weiter unten.</p></div>
+<div class="step"><h3>Milch aufkochen</h3><p>Milch mit Zucker, Salz und Vanille aufkochen. Aufpassen: Milch steigt schnell über!</p></div>
+<div class="step"><h3>Reis einrühren und quellen lassen</h3><p>Hitze runter, immer wieder rühren. Nach etwa 30 Minuten ist der Reis weich und cremig.</p></div>
+<div class="step"><h3>Zimt und Zucker drüber</h3><p>Butterklecks in die Mitte, Zimt-Zucker darüber. Fertig ist Lasses Lieblingsessen.</p></div>
+</div>
+</div>
+</section><section class="pad" id="rezept" style="padding-top:20px">
+<div class="wrap">
+<div class="kicker reveal">Zum Nachkochen</div>
+<h2 class="reveal">Das Rezept</h2>
+<p class="lead reveal">Klassischer Milchreis mit Zimt und Zucker für 4 Portionen. Er ist einfach, braucht aber etwas Geduld und regelmässiges Rühren. Bitte frag einen Erwachsenen, ob er dir am Herd hilft: Der Topf und die heisse Milch sind gefährlich.</p>
+<div class="recipe">
+<div class="panel reveal">
+<h3>Zutaten</h3>
+<div class="servings"><button id="minus" aria-label="Weniger Portionen">−</button><div><b id="srv">4</b> Portionen</div><button id="plus" aria-label="Mehr Portionen">+</button></div>
+<ul class="ingl" id="ingl"></ul>
+<p style="margin-top:12px;font-size:.88rem;opacity:.7">Tippe auf eine Zutat, wenn du sie bereitgestellt hast.</p>
+</div>
+<div class="panel reveal">
+<h3>So wird's gemacht</h3>
+<ol class="steps">
+<li><div><b>Milch aufkochen.</b> Milch, Zucker, Salz und Vanillezucker in einen grossen Topf mit dickem Boden geben und unter Rühren aufkochen. Der Topf muss gross sein, sonst kocht die Milch über.</div></li>
+<li><div><b>Reis einrühren.</b> Den Milchreis in die kochende Milch geben und einmal gut umrühren. Den Reis vorher nicht waschen, sonst geht die Stärke verloren, die den Reis cremig macht.</div></li>
+<li><div><b>Quellen lassen.</b> Hitze auf die kleinste Stufe stellen, Deckel leicht schräg auflegen und etwa 30 bis 35 Minuten quellen lassen. Alle paar Minuten den Boden abkratzen, damit nichts anbrennt.</div></li>
+<li><div><b>Cremig machen.</b> Wenn der Reis weich ist und die Milch fast aufgesogen, die Butter einrühren. Der Reis dickt beim Abkühlen noch nach. Ist er zu fest, einen Schuss Milch dazugeben.</div></li>
+<li><div><b>Anrichten.</b> Zimt und Zucker mischen. Milchreis in Schüsseln füllen, Butterklecks in die Mitte setzen und Zimt-Zucker grosszügig darüber streuen.</div></li>
+</ol>
+<div class="timer"><div class="t" id="tm">30:00</div><button class="btn" id="tstart">Rühr-Timer starten</button><button class="btn" id="treset" style="background:#ffffff22;color:#fff">Zurücksetzen</button><div class="m" id="tmsg" aria-live="polite"></div></div>
+<div class="note"><b>Tipp von Lasse:</b> Wer keine Kuhmilch verträgt, nimmt Hafer- oder Sojadrink. Dann rühren und Zucker nach Geschmack anpassen. Und bei Allergien immer die Zutatenliste prüfen.</div>
+</div>
+</div>
+<div class="kicker reveal" style="margin-top:60px">Wusstest du schon?</div>
+<div class="fun">
+<div class="reveal"><b>Reis mit Milch gibt es weltweit.</b>Ob als Risgrød, Arroz con leche oder Rice Pudding: Fast überall kennt man eine Version davon.</div>
+<div class="reveal"><b>Das Geheimnis ist die Geduld.</b>Je kleiner die Hitze und je öfter man rührt, desto cremiger wird er.</div>
+<div class="reveal"><b>Lasses Variante.</b>Zimt und Zucker, ein Butterklecks und dazu eine Tasse warmer Tee.</div>
+</div>
+</div>
+</section>
+</main>
+<footer>
+<div class="big">Verschneite Grüsse aus dem Wichteldorf ❄️</div>
+<p>Dein Wichtel Lasse · Nordpolstrasse 1 · Wichteldorf, Nordpol</p>
+<p class="credit">Fotos: <a href="https://unsplash.com" rel="noopener">Unsplash</a> (freie Lizenz). Lasse und sein Dorf sind eine erfundene Weihnachtsgeschichte.</p>
+</footer>
+<script src="common.js"></script>
+<script>
+(function(){
+const {$,$$,clamp,lerp,ease,reduce,setSteps,sceneScale}=window.L;
+const frame=$('#mrframe'),ph2=$('#ph2'),chips=$$('.mr-chip'),capMr=$$('#capMr .step');
+function updMr(p){
+const e=ease(clamp(p/.9));
+const sc=Math.min(1.1,innerWidth/640);
+frame.style.transform=`scale(${sc}) rotateY(${lerp(-26,10,e)}deg) rotateX(${lerp(14,-4,e)}deg) translateZ(${lerp(-120,40,e)}px)`;
+ph2.style.opacity=clamp((p-.5)/.15);
+chips.forEach((c,i)=>c.classList.toggle('on',p>0.05+i*0.12));
+setSteps(capMr,p<.25?0:p<.5?1:p<.75?2:3);
+}
+L.stages([{el:$('[data-stage=mr]'),fn:updMr}]);
+const base=[['Milchreis (Rundkornreis)',250,'g'],['Vollmilch',1000,'ml'],['Zucker',3,'EL'],['Vanillezucker',1,'Päckchen'],['Salz',1,'Prise'],['Butter',1,'EL'],['Zucker für den Zimt-Zucker',3,'EL'],['Zimt',2,'TL']];
+let srv=4;
+function fmt(n){const r=Math.round(n*2)/2;return Number.isInteger(r)?String(r):String(r).replace('.',',');}
+function render(){
+$('#srv').textContent=srv;const f=srv/4;
+const done=$$('#ingl li.done').map(l=>l.dataset.n);
+$('#ingl').innerHTML=base.map(([n,a,u])=>{
+let amt=a*f;
+let txt;
+if(u==='Prise')txt='1 Prise';
+else if(u==='g'||u==='ml')txt=`${Math.round(amt/10)*10} ${u}`;
+else if(u==='Päckchen')txt=`${fmt(amt)} ${amt>1?'Päckchen':'Päckchen'}`;
+else txt=`${fmt(amt)} ${u}`;
+return `<li data-n="${n}" class="${done.includes(n)?'done':''}"><span><b>${txt}</b> ${n}</span></li>`;
+}).join('');
+}
+$('#ingl').addEventListener('click',e=>{const li=e.target.closest('li');if(li)li.classList.toggle('done');});
+$('#minus').onclick=()=>{srv=Math.max(2,srv-2);render();};
+$('#plus').onclick=()=>{srv=Math.min(12,srv+2);render();};
+render();
+/* Timer */
+let left=1800,iv=null;
+function show(){const m=Math.floor(left/60),s=left%60;$('#tm').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');}
+const tips=['Jetzt kräftig rühren und den Boden abkratzen!','Weiter so, der Reis wird schon cremig.','Noch mal rühren, nichts soll anbrennen.','Fast geschafft. Probier ein Reiskorn: Es soll weich sein.'];
+$('#tstart').onclick=()=>{
+if(iv){clearInterval(iv);iv=null;$('#tstart').textContent='Weiter';return;}
+$('#tstart').textContent='Pause';
+iv=setInterval(()=>{left--;show();
+if(left%120===0&&left>0)$('#tmsg').textContent=tips[(1800-left)/120%tips.length|0];
+if(left<=0){clearInterval(iv);iv=null;$('#tmsg').textContent='Fertig! Butter einrühren und anrichten. Guten Appetit!';$('#tstart').textContent='Start';}
+},1000);
+};
+$('#treset').onclick=()=>{clearInterval(iv);iv=null;left=1800;show();$('#tmsg').textContent='';$('#tstart').textContent='Rühr-Timer starten';};
+show();
+})();
+</script>
+</body>
+</html>
