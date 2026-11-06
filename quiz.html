@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wichtel-Quiz – Wichtel Lasse</title>
+<meta name="description" content="Sieben Fragen rund um Nordpol, Schnee und Wichtel.">
+<meta name="theme-color" content="#070d1f">
+<meta property="og:title" content="Wichtel-Quiz – Wichtel Lasse">
+<meta property="og:description" content="Sieben Fragen rund um Nordpol, Schnee und Wichtel.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://images.unsplash.com/photo-1771230341444-0cd96608f17c?w=1200&q=75&auto=format&fit=crop">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%85%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="progress" id="progress"></div>
+<header class="nav">
+  <a class="brand" href="index.html">Wichtel <span>Lasse</span></a>
+  <ul><li><a class="l" href="index.html">Start</a></li><li><a class="l" href="steckbrief.html">Steckbrief</a></li><li><a class="l" href="milchreis.html">Milchreis</a></li><li><a class="l" href="schule.html">Schule</a></li><li><a class="l" href="spiele.html">Spiele</a></li><li><a class="l" href="kalender.html">Kalender</a></li><li><a class="l" href="tagebuch.html">Tagebuch</a></li><li><a class="l" href="kontakt.html">Kontakt</a></li></ul>
+</header>
+<noscript><div class="ns"><h1 style="color:#fff">Wichtel Lasse</h1><p>Diese Seite braucht JavaScript, damit der Schnee fällt und alles sich bewegt. Schalte es ein, dann klappt es!</p></div></noscript>
+<main>
+<link rel="stylesheet" href="extra.css"><section class="pad page-top">
+  <div class="wrap" style="max-width:760px">
+    <div class="kicker reveal">Quiz</div>
+    <h2 class="reveal">Das Wichtel-Quiz</h2>
+    <p class="lead reveal">Sieben Fragen rund um Nordpol, Schnee und Wichtel. Wie viele weisst du?</p>
+    <div class="panel reveal" style="margin-top:20px" id="qb"></div>
+  </div>
+</section>
+</main>
+<footer>
+  <div class="big">Verschneite Grüsse aus dem Wichteldorf ❄️</div>
+  <p>Dein Wichtel Lasse · Nordpolstrasse 1 · Wichteldorf, Nordpol</p>
+</footer>
+<script src="common.js"></script>
+<script>
+(function(){
+const {$,$$,clamp,lerp,ease,reduce,setSteps,sceneScale}=window.L;
+
+const Q=[
+['Wie viele Arme hat eine Schneeflocke normalerweise?',['4','6','8'],1,'Sechs. Wegen der Form der Eiskristalle.'],
+['Was liegt unter dem Nordpol?',['Festes Land','Treibendes Meereis über dem Meer','Ein grosser Berg'],1,'Der Nordpol liegt mitten im Nordpolarmeer auf treibendem Eis.'],
+['Bei welchem Tier tragen auch die Weibchen ein Geweih?',['Hirsch','Reh','Rentier'],2,'Beim Rentier. Bei allen anderen Hirschen sind es nur die Männchen.'],
+['Wie viele Kerzen brennen am zweiten Advent?',['1','2','3'],1,'Zwei. Jeden Sonntag kommt eine dazu.'],
+['Wie heisst Lasses Lieblingsessen?',['Pizza','Milchreis','Raclette'],1,'Milchreis, am liebsten mit Zimt und Zucker.'],
+['Wie nennt man die Zeit, in der die Sonne am Pol monatelang nicht aufgeht?',['Polarnacht','Nachtschicht','Dunkelferien'],0,'Polarnacht. Am Pol dauert sie etwa ein halbes Jahr.'],
+['Was ist die beste Schweizer Schulnote?',['1','6','10'],1,'Die 6. Die 1 ist die schlechteste.']
+];
+let i=0,sc=0;const box=$('#qb');
+function show(){
+  if(i>=Q.length){const m=sc>=7?'Wichtel-Meister! Alles richtig.':sc>=5?'Sehr gut, du bist fast ein Wichtel.':sc>=3?'Gar nicht schlecht. Probier es nochmal!':'Das wird schon. Wichtel üben auch jeden Tag.';
+    box.innerHTML='<div style="text-align:center"><div class="big-score">'+sc+' / '+Q.length+'</div><p class="lead" style="margin:10px auto">'+m+'</p><button class="btn" id="again">Nochmal spielen</button></div>';$('#again').onclick=()=>{i=0;sc=0;show();};return;}
+  const q=Q[i];
+  box.innerHTML='<div class="qbar">'+Q.map((_,k)=>'<i class="'+(k<=i?'on':'')+'"></i>').join('')+'</div><h3>'+(i+1)+'. '+q[0]+'</h3>'+q[1].map((o,k)=>'<button class="qopt" data-k="'+k+'">'+o+'</button>').join('')+'<p id="ex" style="margin-top:14px;min-height:3em"></p><button class="btn" id="nx" style="display:none">Weiter</button>';
+  $$('.qopt',box).forEach(b=>b.onclick=()=>{const k=+b.dataset.k;$$('.qopt',box).forEach(x=>{x.disabled=true;if(+x.dataset.k===q[2])x.classList.add('ok');});if(k===q[2])sc++;else b.classList.add('no');$('#ex').textContent=(k===q[2]?'Richtig! ':'Knapp daneben. ')+q[3];const n=$('#nx');n.style.display='';n.textContent=i===Q.length-1?'Ergebnis':'Weiter';n.onclick=()=>{i++;show();};});
+}
+show();
+
+})();
+</script>
+</body>
+</html>

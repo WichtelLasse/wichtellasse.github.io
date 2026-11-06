@@ -1,0 +1,41 @@
+.live-wrap{display:grid;gap:22px}
+.mapbox{position:relative;border:1px solid var(--line);border-radius:28px;overflow:hidden;background:radial-gradient(circle at 50% 40%,#12305e 0,#0a1530 70%);box-shadow:0 30px 80px #0008,inset 0 0 80px #4fa3ff22}
+#map{display:block;width:100%;height:auto;aspect-ratio:9/10;max-height:84vh}
+.badge{position:absolute;left:14px;top:14px;display:flex;gap:8px;align-items:center;padding:8px 14px;border-radius:999px;background:#070d1fcc;border:1px solid var(--line);font-weight:800;font-size:.92rem;backdrop-filter:blur(6px)}
+.badge i{width:10px;height:10px;border-radius:50%;background:var(--mint);box-shadow:0 0 0 0 #7dffd0aa;animation:pulse 1.6s infinite}
+.badge.wait i{background:var(--gold);animation:none}
+.badge.done i{background:var(--red);animation:none}
+@keyframes pulse{70%{box-shadow:0 0 0 12px #7dffd000}100%{box-shadow:0 0 0 0 #7dffd000}}
+.hud{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.hud .m{padding:14px 16px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(160deg,#ffffff14,#ffffff05)}
+.hud .m small{display:block;opacity:.65;font-size:.74rem;letter-spacing:.08em;text-transform:uppercase}
+.hud .m b{display:block;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:1.25rem;color:var(--snow);margin-top:2px;font-variant-numeric:tabular-nums}
+.bar{height:12px;border-radius:99px;background:#ffffff18;overflow:hidden;border:1px solid var(--line)}
+.bar>div{height:100%;width:0;background:linear-gradient(90deg,var(--mint),var(--gold),var(--red));border-radius:99px}
+.radio{display:grid;gap:8px;margin-top:6px;max-height:380px;overflow:auto}
+.radio p{padding:10px 14px;border-radius:14px;background:#ffffff0c;border:1px solid var(--line);font-size:.95rem}
+.radio p time{display:inline-block;min-width:3.4em;color:var(--gold);font-family:ui-monospace,Menlo,monospace;font-weight:700}
+.radio p.new{animation:pop .6s}
+@keyframes pop{from{transform:translateY(8px);opacity:0}}
+.cert{max-width:760px;margin:26px auto 0;padding:34px clamp(18px,5vw,48px);color:#3b2a14;border-radius:10px;background:radial-gradient(circle at 20% 0,#fff8e6,#f1e0b4);border:10px double #b8893b;box-shadow:0 30px 70px #0009;text-align:center;position:relative}
+.cert h3{font-family:var(--display);font-size:clamp(1.6rem,5vw,2.4rem);color:#7b1d21;letter-spacing:.04em}
+.cert .nm{font-family:var(--display);font-size:clamp(1.7rem,6vw,2.7rem);color:#241705;border-bottom:2px dotted #b8893b;display:inline-block;padding:0 14px;margin:8px 0 14px;word-break:break-word}
+.cert table{width:100%;margin:14px 0;border-collapse:collapse;text-align:left;font-size:1rem}
+.cert td{padding:7px 4px;border-bottom:1px solid #b8893b55}
+.cert td:last-child{text-align:right;font-weight:800;color:#7b1d21;white-space:nowrap}
+.cert .sig{margin-top:18px;font-family:var(--display);font-style:italic}
+.cert .seal{position:absolute;right:18px;bottom:16px;width:74px;height:74px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ef5a60,#9d1d24);box-shadow:0 6px 14px #0006;display:grid;place-items:center;font-size:2rem;transform:rotate(-12deg)}
+.field{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.field input{flex:1 1 220px;padding:12px 16px;border-radius:999px;border:1px solid var(--line);background:#ffffff12;color:var(--snow);font:inherit;font-size:1rem}
+.field input::placeholder{color:#d6ecffa0}
+.qopt{display:block;width:100%;text-align:left;margin-top:10px;padding:13px 16px;border-radius:16px;border:1px solid var(--line);background:#ffffff0d;color:var(--ice);font:inherit;cursor:pointer;transition:.2s}
+.qopt:hover:not(:disabled){background:#ffffff1a;transform:translateX(4px)}
+.qopt.ok{background:#1f8a5b66;border-color:var(--mint)}
+.qopt.no{background:#a8222a66;border-color:var(--red)}
+.qbar{display:flex;gap:6px;margin:6px 0 14px}
+.qbar i{flex:1;height:6px;border-radius:9px;background:#ffffff22}
+.qbar i.on{background:var(--gold)}
+.big-score{font-family:var(--display);font-size:clamp(2.4rem,9vw,4.4rem);color:var(--gold)}
+.sec-tx{width:100%;min-height:110px;margin-top:10px;padding:14px 16px;border-radius:18px;border:1px solid var(--line);background:#ffffff10;color:var(--snow);font:inherit;resize:vertical}
+.out{margin-top:12px;padding:16px;border-radius:18px;background:#7dffd014;border:1px solid #7dffd055;font-family:ui-monospace,Menlo,monospace;min-height:56px;word-break:break-word;color:var(--snow)}
+@media print{body *{visibility:hidden}.cert,.cert *{visibility:visible}.cert{position:absolute;left:0;top:0;width:100%;box-shadow:none}canvas#sky{display:none}}

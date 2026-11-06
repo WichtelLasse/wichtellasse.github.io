@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Geheimzimmer – Wichtel Lasse</title>
+<meta name="description" content="Wichtel-Geheimschrift zum Ver- und Entschlüsseln.">
+<meta name="theme-color" content="#070d1f">
+<meta property="og:title" content="Geheimzimmer – Wichtel Lasse">
+<meta property="og:description" content="Wichtel-Geheimschrift zum Ver- und Entschlüsseln.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://images.unsplash.com/photo-1643611657752-fb0ce6989d88?w=1200&q=75&auto=format&fit=crop">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%85%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="progress" id="progress"></div>
+<header class="nav">
+  <a class="brand" href="index.html">Wichtel <span>Lasse</span></a>
+  <ul><li><a class="l" href="index.html">Start</a></li><li><a class="l" href="steckbrief.html">Steckbrief</a></li><li><a class="l" href="milchreis.html">Milchreis</a></li><li><a class="l" href="schule.html">Schule</a></li><li><a class="l" href="spiele.html">Spiele</a></li><li><a class="l" href="kalender.html">Kalender</a></li><li><a class="l" href="tagebuch.html">Tagebuch</a></li><li><a class="l" href="kontakt.html">Kontakt</a></li></ul>
+</header>
+<noscript><div class="ns"><h1 style="color:#fff">Wichtel Lasse</h1><p>Diese Seite braucht JavaScript, damit der Schnee fällt und alles sich bewegt. Schalte es ein, dann klappt es!</p></div></noscript>
+<main>
+<link rel="stylesheet" href="extra.css"><section class="pad page-top">
+  <div class="wrap" style="max-width:720px">
+    <div class="kicker reveal">Geheim</div>
+    <h2 class="reveal">Wichtel-Geheimschrift</h2>
+    <div id="lock" class="panel reveal" style="margin-top:20px"><p>Diese Seite ist verschlossen. Sag das geheime Wort, das dir Lasse verraten hat.</p><div class="field"><input id="pw" placeholder="Geheimes Wort" autocomplete="off"><button class="btn" id="op">Öffnen</button></div><p id="er" class="hint"></p></div>
+    <div id="inner" style="display:none"><p class="lead reveal in">Willkommen im Geheimzimmer! Hier kannst du Nachrichten in Wichtelschrift verschlüsseln und lesen. Jeder Buchstabe rutscht ein Stück im Alphabet weiter, genau wie bei meinem Rätsel im Kalender.</p>
+      <div class="panel" style="margin-top:20px"><div class="field"><label style="display:flex;gap:8px;align-items:center">Verschiebung <input id="sh" type="number" min="1" max="25" value="1" style="flex:0 0 90px;padding:8px 12px"></label><button class="btn" id="enc">Verschlüsseln</button><button class="btn" id="dec">Entschlüsseln</button></div>
+      <textarea class="sec-tx" id="tx" placeholder="Schreibe hier deinen Text"></textarea><div class="out" id="res">Hier erscheint das Ergebnis.</div></div></div>
+  </div>
+</section>
+</main>
+<footer>
+  <div class="big">Verschneite Grüsse aus dem Wichteldorf ❄️</div>
+  <p>Dein Wichtel Lasse · Nordpolstrasse 1 · Wichteldorf, Nordpol</p>
+</footer>
+<script src="common.js"></script>
+<script>
+(function(){
+const {$,$$,clamp,lerp,ease,reduce,setSteps,sceneScale}=window.L;
+
+const HASH='e8298542358283d3f0957aefe5a81a246b3adf1abdd00dfb5b7f64bb0ba29296';
+const sha=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+async function open(){const v=$('#pw').value.trim().toLowerCase();let ok=false;try{ok=(await sha(v))===HASH;}catch(e){}
+  if(ok){$('#lock').style.display='none';$('#inner').style.display='';try{sessionStorage.setItem('wl_geheim','1');}catch(e){}}else{$('#er').textContent='Das war leider nicht das richtige Wort. Frag Lasse in einer Mail.';}}
+$('#op').onclick=open;$('#pw').addEventListener('keydown',e=>{if(e.key==='Enter')open();});
+try{if(sessionStorage.getItem('wl_geheim')==='1'){$('#lock').style.display='none';$('#inner').style.display='';}}catch(e){}
+const rot=(s,k)=>s.replace(/[a-zäöüA-ZÄÖÜ]/g,ch=>{const base=ch<='Z'?65:97;const m={'ä':'a','ö':'o','ü':'u','Ä':'A','Ö':'O','Ü':'U'};const q=m[ch]||ch;return String.fromCharCode((q.charCodeAt(0)-(q<='Z'?65:97)+k+26)%26+(q<='Z'?65:97));});
+$('#enc').onclick=()=>{const k=Math.max(1,Math.min(25,+$('#sh').value||1));$('#res').textContent=rot($('#tx').value,k)||'…';};
+$('#dec').onclick=()=>{const k=Math.max(1,Math.min(25,+$('#sh').value||1));$('#res').textContent=rot($('#tx').value,-k)||'…';};
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wo ist Lasse? – Live-Karte</title>
+<meta name="description" content="Live-Karte: Wichtel Lasse fährt in der Nacht auf den 30. November in zwei Stunden vom Nordpol nach Volketswil.">
+<meta name="theme-color" content="#070d1f">
+<meta property="og:title" content="Wo ist Lasse? – Live-Karte">
+<meta property="og:description" content="Live-Karte: Wichtel Lasse fährt in der Nacht auf den 30. November in zwei Stunden vom Nordpol nach Volketswil.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://images.unsplash.com/photo-1771230341444-0cd96608f17c?w=1200&q=75&auto=format&fit=crop">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%85%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="progress" id="progress"></div>
+<header class="nav">
+  <a class="brand" href="index.html">Wichtel <span>Lasse</span></a>
+  <ul><li><a class="l" href="index.html">Start</a></li><li><a class="l" href="steckbrief.html">Steckbrief</a></li><li><a class="l" href="milchreis.html">Milchreis</a></li><li><a class="l" href="schule.html">Schule</a></li><li><a class="l" href="spiele.html">Spiele</a></li><li><a class="l" href="kalender.html">Kalender</a></li><li><a class="l" href="tagebuch.html">Tagebuch</a></li><li><a class="l" href="kontakt.html">Kontakt</a></li></ul>
+</header>
+<noscript><div class="ns"><h1 style="color:#fff">Wichtel Lasse</h1><p>Diese Seite braucht JavaScript, damit der Schnee fällt und alles sich bewegt. Schalte es ein, dann klappt es!</p></div></noscript>
+<main>
+<link rel="stylesheet" href="extra.css"><section class="pad page-top">
+  <div class="wrap" style="max-width:900px">
+    <div class="kicker reveal">Live</div>
+    <h2 class="reveal">Wo ist Lasse gerade?</h2>
+    <p class="lead reveal">In der Nacht auf den 30. November startet Lasse um 0:00 Uhr im Wichteldorf am Nordpol. Der Wichtelchauffeur braucht zwei Stunden bis nach Volketswil. Diese Karte zeigt, wo das Wichtelmobil gerade ist.</p>
+    <div class="live-wrap" style="margin-top:22px">
+      <div class="mapbox reveal"><canvas id="map" width="900" height="1000" aria-label="Karte mit der Fahrt von Lasse vom Nordpol nach Volketswil"></canvas><div class="badge wait" id="badge"><i></i><span id="bt">…</span></div></div>
+      <div class="bar" aria-hidden="true"><div id="pb"></div></div>
+      <div class="hud">
+        <div class="m"><small>Status</small><b id="hs">…</b></div>
+        <div class="m"><small>Breite</small><b id="hlat">…</b></div>
+        <div class="m"><small>Länge</small><b id="hlon">…</b></div>
+        <div class="m"><small>Tempo</small><b id="hv">…</b></div>
+        <div class="m"><small>Noch bis Ziel</small><b id="hd">…</b></div>
+        <div class="m"><small id="hts">Ankunft</small><b id="ht">…</b></div>
+      </div>
+      <div class="panel reveal"><h3>📻 Funk vom Wichtelmobil</h3><div class="radio" id="radio"></div></div>
+      <p class="note reveal">Vor der Abfahrt wartet Lasse im Wichteldorf und packt. Die Karte rechnet nach deiner Gerätezeit in Zürcher Zeit, also stimmt sie nur, wenn deine Uhr richtig geht. Von Volketswil nenne ich nur den Ort, mehr nicht.</p>
+    </div>
+  </div>
+</section>
+</main>
+<footer>
+  <div class="big">Verschneite Grüsse aus dem Wichteldorf ❄️</div>
+  <p>Dein Wichtel Lasse · Nordpolstrasse 1 · Wichteldorf, Nordpol</p>
+</footer>
+<script src="common.js"></script>
+<script>
+(function(){
+const {$,$$,clamp,lerp,ease,reduce,setSteps,sceneScale}=window.L;
+
+const START=Date.parse('2026-11-30T00:00:00+01:00'),DUR=7200000;
+const LAT0=90,LAT1=47.39,LON=8.69,LATMIN=34;
+const KM=(LAT0-LAT1)*111.2;
+const cv=$('#map'),c=cv.getContext('2d');
+const S=900,SH=1000,cx0=S/2,cy0=70,R=1078;
+const pr=(lat,lon)=>{const r=(90-lat)/(90-LATMIN)*R,a=(lon-LON)*Math.PI/180;return [cx0+r*Math.sin(a),cy0+r*Math.cos(a)];};
+const LAND=[
+[[-9,38],[-9,43],[-2,43.5],[-1.5,46],[-4.5,48.3],[-1.5,48.7],[1.5,50.9],[4,51.5],[5,53.3],[8,53.8],[8.3,55.5],[8.1,56.8],[10.6,57.7],[10.5,56],[9.8,54.8],[11,54],[14,54.2],[18,54.7],[21,55.2],[21,57],[24,57.3],[23.5,59],[28,59.5],[30,60],[23,60],[21.5,61],[21.5,63],[25,65],[21,65.5],[17,62.5],[18.5,60],[16.5,57],[13,55.5],[11,58.5],[8,58],[5.5,59],[5,62],[8,63.5],[11,64.5],[14,67.5],[18,69.5],[23,70.8],[29,71],[33,69.5],[41,67],[44,68],[53,68.5],[60,69.5],[68,69],[73,72],[80,73],[87,75],[100,77.7],[113,74],[130,71],[150,71],[170,70],[180,68.5],[180,40],[100,40],[60,40],[40,40],[30,41],[26,40.5],[24,38],[20,40],[16,38],[12,42],[8,44],[3,43],[-2,37]],
+[[-5,50],[1.5,51],[1.7,52.8],[-0.5,54.5],[-2,56],[-2,57.6],[-4,58.6],[-6,57.5],[-5,55],[-3,54.5],[-4.5,53],[-5,51.7]],
+[[-10,52],[-6,52],[-6,54.5],[-8,55],[-10,54]],
+[[-24,65.5],[-22,66.4],[-16,66.5],[-13.5,65],[-15,64.2],[-19,63.4],[-22.5,63.8]],
+[[-73,78],[-60,82],[-30,83.5],[-20,81.5],[-18,76],[-22,70],[-32,68],[-40,65],[-43,60],[-50,62],[-53,67],[-55,71],[-62,76]],
+[[11,79],[17,80],[27,80.2],[25,78],[18,76.7],[13,78]],
+[[-168,66],[-156,71],[-140,69.5],[-125,69.5],[-110,68],[-95,69],[-90,73],[-80,73],[-82,66],[-90,64],[-94,59],[-85,55],[-80,52],[-78,58],[-70,59],[-62,57],[-56,52],[-60,47],[-66,44],[-70,41.5],[-76,39],[-80,34],[-100,30],[-120,34],[-125,40],[-124,48],[-135,58],[-150,60],[-165,60]]
+];
+const CITIES=[['Oslo',59.9,10.7],['Hamburg',53.55,10],['Tromsø',69.65,18.96],['Trondheim',63.4,10.4],['Reykjavik',64.1,-21.9]];
+const WP=[[82,'Packeis'],[75,'Grönlandsee'],[68,'Nordmeer'],[62,'Norwegen'],[58,'Skagerrak'],[55,'Dänemark'],[52,'Norddeutschland'],[49.5,'Rhein-Main']];
+const LOG=[[0,'Abfahrt im Wichteldorf. Der Wichtelchauffeur zählt rückwärts, die anderen Wichtel singen schon.'],[22,'Unter uns liegt Packeis nördlich von Spitzbergen. Alle Nasen kleben am Fenster.'],[42,'Grönlandsee. Der Chauffeur reicht heissen Kakao nach hinten.'],[62,'Norwegen kommt in Sicht, die Küste liegt im Mondlicht.'],[79,'Fjorde! Einer der Wichtel ruft: «Ich sehe Lichter!»'],[90,'Skagerrak. Ich suche meine Mütze. Sie sitzt auf meinem Kopf.'],[99,'Dänemark. Im Wagen wird es ruhig, die ersten schlafen schon.'],[107,'Norddeutschland. Die Strassen sind leer, der Chauffeur summt.'],[114,'Gleich geschafft: erst der Rhein, dann die Schweiz, dann das Zürcher Oberland.'],[120,'Angekommen in Volketswil. Leise sein, alle schlafen. Gute Nacht und bis morgen früh!']];
+const pad2=n=>String(n).padStart(2,'0');
+const hms=ms=>{ms=Math.max(0,Math.floor(ms/1000));const d=Math.floor(ms/86400),h=Math.floor(ms%86400/3600),m=Math.floor(ms%3600/60),s=ms%60;return (d?d+' T ':'')+pad2(h)+':'+pad2(m)+':'+pad2(s);};
+const dm=(v,p,n)=>{const a=Math.abs(v),d=Math.floor(a),m=(a-d)*60;return d+'° '+m.toFixed(2).padStart(5,'0')+"' "+(v>=0?p:n);};
+const stars=Array.from({length:90},()=>({x:Math.random()*S,y:Math.random()*SH,r:Math.random()*1.4+.3,p:Math.random()*6}));
+let logged=-1,lastKey='';
+function draw(now,f,st){
+  c.clearRect(0,0,S,SH);
+  stars.forEach(s=>{c.globalAlpha=.25+.5*Math.abs(Math.sin(now/900+s.p));c.fillStyle='#fff';c.fillRect(s.x,s.y,s.r,s.r);});c.globalAlpha=1;
+  c.save();c.beginPath();c.rect(0,0,S,SH);c.clip();
+  const g=c.createRadialGradient(cx0,cy0,0,cx0,cy0,R);g.addColorStop(0,'#1a4a86');g.addColorStop(1,'#0b1d3e');c.fillStyle=g;c.fillRect(0,0,S,SH);
+  c.strokeStyle='rgba(180,220,255,.13)';c.lineWidth=1;
+  for(let la=80;la>=40;la-=10){c.beginPath();c.arc(cx0,cy0,(90-la)/(90-LATMIN)*R,0,7);c.stroke();}
+  for(let lo=0;lo<360;lo+=15){const a=lo*Math.PI/180;c.beginPath();c.moveTo(cx0,cy0);c.lineTo(cx0+R*Math.sin(a),cy0+R*Math.cos(a));c.stroke();}
+  LAND.forEach(poly=>{c.beginPath();poly.forEach((p,i)=>{const q=pr(p[1],p[0]);i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]);});c.closePath();c.fillStyle='rgba(205,232,255,.17)';c.fill();c.strokeStyle='rgba(225,242,255,.45)';c.lineWidth=1.4;c.stroke();});
+  c.restore();
+  
+  c.font='600 18px system-ui,sans-serif';c.fillStyle='rgba(214,236,255,.5)';
+  for(let la=80;la>=40;la-=10){const r=(90-la)/(90-LATMIN)*R;c.fillText(la+'°',cx0+r*Math.sin(.9)+6,cy0+r*Math.cos(.9)-4);}
+  c.font='600 20px system-ui,sans-serif';
+  CITIES.forEach(([n,la,lo])=>{const q=pr(la,lo);c.fillStyle='rgba(255,255,255,.75)';c.beginPath();c.arc(q[0],q[1],3.5,0,7);c.fill();c.fillStyle='rgba(214,236,255,.8)';c.fillText(n,q[0]+10,q[1]+6);});
+  const a=pr(LAT0,LON),b=pr(LAT1,LON),p=pr(LAT0-(LAT0-LAT1)*f,LON);
+  c.setLineDash([3,11]);c.lineCap='round';c.strokeStyle='rgba(255,255,255,.5)';c.lineWidth=3;c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.stroke();c.setLineDash([]);
+  WP.forEach(([la,n])=>{const q=pr(la,LON);const done=(LAT0-la)/(LAT0-LAT1)<=f;c.fillStyle=done?'#ffd27a':'rgba(255,255,255,.55)';c.beginPath();c.arc(q[0],q[1],4,0,7);c.fill();c.font='700 19px system-ui,sans-serif';c.fillStyle=done?'#ffe9b8':'rgba(214,236,255,.7)';c.textAlign='right';c.fillText(n,q[0]-12,q[1]+6);c.textAlign='left';});
+  if(f>0){const tg=c.createLinearGradient(a[0],a[1],p[0],p[1]);tg.addColorStop(0,'rgba(125,255,208,0)');tg.addColorStop(1,'rgba(125,255,208,1)');c.strokeStyle=tg;c.lineWidth=6;c.shadowColor='#7dffd0';c.shadowBlur=18;c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(p[0],p[1]);c.stroke();c.shadowBlur=0;}
+  const pulse=(Math.sin(now/260)+1)/2;
+  c.fillStyle='rgba(224,56,62,.9)';c.beginPath();c.arc(b[0],b[1],7+pulse*3,0,7);c.fill();
+  c.font='700 24px system-ui,sans-serif';c.fillStyle='#fff';c.fillText('🏠 Volketswil',b[0]-70,b[1]+44);
+  c.fillStyle='#fff';c.beginPath();c.arc(a[0],a[1],6,0,7);c.fill();c.font='700 21px system-ui,sans-serif';c.fillText('Wichteldorf · Nordpol',a[0]+16,a[1]+8);
+  if(f>0&&f<1){c.fillStyle='rgba(255,210,122,.25)';c.beginPath();c.arc(p[0],p[1],20+pulse*12,0,7);c.fill();}
+  c.fillStyle='#ffd27a';c.beginPath();c.arc(p[0],p[1],10,0,7);c.fill();c.strokeStyle='#fff';c.lineWidth=3;c.stroke();
+  c.font='40px system-ui,sans-serif';c.fillText(st==='wait'?'⛺':'🛷',p[0]+16,p[1]+14);
+}
+function tick(now){
+  const t=L.now(),el=t-START,f=clamp(el/DUR,0,1);
+  const st=el<0?'wait':(el<DUR?'go':'done');
+  const lat=LAT0-(LAT0-LAT1)*f;
+  $('#badge').className='badge '+st;
+  $('#bt').textContent=st==='wait'?'Wartet im Wichteldorf':st==='go'?'Live unterwegs':'Angekommen';
+  $('#hs').textContent=st==='wait'?'Wartet':st==='go'?'Unterwegs':'Da!';
+  $('#hlat').textContent=dm(lat,'N','S');
+  $('#hlon').textContent=f===0?'—':dm(LON,'E','W');
+  $('#hv').textContent=st==='go'?Math.round(KM/(DUR/3600000)).toLocaleString('de-CH').replace(/’/g,"'")+' km/h':'0 km/h';
+  $('#hd').textContent=Math.round(KM*(1-f)).toLocaleString('de-CH').replace(/’/g,"'")+' km';
+  $('#hts').textContent=st==='wait'?'Abfahrt in':st==='go'?'Ankunft in':'Fahrzeit';
+  $('#ht').textContent=st==='wait'?hms(-el):st==='go'?hms(DUR-el):'2 h 00 min';
+  $('#pb').style.width=(f*100).toFixed(2)+'%';
+  const mins=Math.max(0,el/60000);
+  const n=LOG.filter(e=>e[0]<=mins).length;
+  if(n!==logged){logged=n;const r=$('#radio');
+    if(n===0)r.innerHTML='<p><time>—</time>Funkstille. Der Wichtelchauffeur wärmt den Motor, und die Wichtel laden die Koffer ein.</p>';
+    else r.innerHTML=LOG.slice(0,n).reverse().map((e,i)=>{const hh=pad2(Math.floor(e[0]/60)),mm=pad2(e[0]%60);return '<p'+(i===0?' class="new"':'')+'><time>'+hh+':'+mm+'</time>'+e[1]+'</p>';}).join('');}
+  draw(now,f,st);
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+
+})();
+</script>
+</body>
+</html>

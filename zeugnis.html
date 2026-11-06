@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dein Wichtel-Zeugnis – Wichtel Lasse</title>
+<meta name="description" content="Die Wichtelschule am Nordpol stellt dir ein Zeugnis aus.">
+<meta name="theme-color" content="#070d1f">
+<meta property="og:title" content="Dein Wichtel-Zeugnis – Wichtel Lasse">
+<meta property="og:description" content="Die Wichtelschule am Nordpol stellt dir ein Zeugnis aus.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://images.unsplash.com/photo-1771230341444-0cd96608f17c?w=1200&q=75&auto=format&fit=crop">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%85%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="progress" id="progress"></div>
+<header class="nav">
+  <a class="brand" href="index.html">Wichtel <span>Lasse</span></a>
+  <ul><li><a class="l" href="index.html">Start</a></li><li><a class="l" href="steckbrief.html">Steckbrief</a></li><li><a class="l" href="milchreis.html">Milchreis</a></li><li><a class="l" href="schule.html">Schule</a></li><li><a class="l" href="spiele.html">Spiele</a></li><li><a class="l" href="kalender.html">Kalender</a></li><li><a class="l" href="tagebuch.html">Tagebuch</a></li><li><a class="l" href="kontakt.html">Kontakt</a></li></ul>
+</header>
+<noscript><div class="ns"><h1 style="color:#fff">Wichtel Lasse</h1><p>Diese Seite braucht JavaScript, damit der Schnee fällt und alles sich bewegt. Schalte es ein, dann klappt es!</p></div></noscript>
+<main>
+<link rel="stylesheet" href="extra.css"><section class="pad page-top">
+  <div class="wrap" style="max-width:860px">
+    <div class="kicker reveal">Wichtelschule</div>
+    <h2 class="reveal">Dein Wichtel-Zeugnis</h2>
+    <p class="lead reveal">Schreib deinen Vornamen hinein, und die Wichtelschule am Nordpol stellt dir ein Zeugnis aus. Der Name bleibt auf deinem Gerät und wird nirgends gespeichert oder verschickt. In der Schweiz ist die 6 die beste Note.</p>
+    <div class="field reveal"><input id="nm" maxlength="24" placeholder="Dein Vorname" autocomplete="off"><button class="btn" id="go">Zeugnis ausstellen</button></div>
+    <div id="out"></div>
+  </div>
+</section>
+</main>
+<footer>
+  <div class="big">Verschneite Grüsse aus dem Wichteldorf ❄️</div>
+  <p>Dein Wichtel Lasse · Nordpolstrasse 1 · Wichteldorf, Nordpol</p>
+</footer>
+<script src="common.js"></script>
+<script>
+(function(){
+const {$,$$,clamp,lerp,ease,reduce,setSteps,sceneScale}=window.L;
+
+const SUBJ=['Schleichen und Anpirschen','Mützenkunde','Milchreis kochen','Schneeball-Zielwurf','Schlittenfahren','Geschenke einpacken','Rätsel lösen','Pünktlich aufstehen'];
+const REM=['Hat bei der Schleichprüfung kein einziges Mal geknarrt. Fast.','Trägt seine Mütze mit Haltung, auch bei Wind.','Der Milchreis war cremig, und es blieb sogar noch etwas übrig.','Trifft fast immer, ausser den Weihnachtsmann. Das ist Regel Nummer 1.','Kommt immer unten an, meistens auf den Schuhen.','Die Schleifen sitzen. Das Klebeband auch, überall.','Löst jedes Rätsel, sobald es einmal darüber geschlafen hat.'];
+const h=s=>{let x=2166136261;for(const ch of s.toLowerCase()){x^=ch.charCodeAt(0);x=Math.imul(x,16777619)>>>0;}return x;};
+const esc=s=>s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function make(){
+  const raw=$('#nm').value.trim().slice(0,24);if(!raw){$('#nm').focus();return;}
+  let x=h(raw);const rnd=()=>{x=Math.imul(x^x>>>15,2246822519)>>>0;x=(x^x>>>13)>>>0;return x;};
+  const rows=SUBJ.map(s=>{const g=[5,5.5,5.5,6,6][rnd()%5];return [s,g];});
+  const avg=rows.reduce((a,r)=>a+r[1],0)/rows.length;
+  const d=new Date(L.now()).toLocaleDateString('de-CH',{timeZone:'Europe/Zurich',day:'numeric',month:'long',year:'numeric'});
+  $('#out').innerHTML='<div class="cert reveal in"><div style="font-size:2.2rem">🎓</div><h3>Wichtelschule Nordpol</h3><p>Zeugnis für</p><div class="nm">'+esc(raw)+'</div><table>'+rows.map(r=>'<tr><td>'+r[0]+'</td><td>'+String(r[1]).replace('.',',')+'</td></tr>').join('')+'<tr><td><b>Durchschnitt</b></td><td>'+avg.toFixed(2).replace('.',',')+'</td></tr></table><p><i>'+REM[rnd()%REM.length]+'</i></p><p class="sig">Nordpol, '+d+'<br>Mit wichtigen Grüssen: Lasse, ehemaliger Klassenkamerad</p><div class="seal">🎅</div></div><p style="text-align:center;margin-top:16px"><button class="btn" onclick="window.print()">🖨️ Zeugnis drucken</button></p>';
+  $('#out').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
+}
+$('#go').addEventListener('click',make);$('#nm').addEventListener('keydown',e=>{if(e.key==='Enter')make();});
+
+})();
+</script>
+</body>
+</html>
