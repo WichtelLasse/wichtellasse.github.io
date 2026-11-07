@@ -54,6 +54,7 @@ $('#diary').innerHTML=vis.map((e,i)=>`<article class="entry reveal ${i===0?'new'
 const nx=E.find(e=>!shown(e));
 $('#dhint').textContent=nx?'Der nächste Eintrag erscheint am '+fd(nx.d)+' um 9 Uhr.':'Das war mein Tagebuch bis Weihnachten.';
 $$('.entry').forEach(el=>requestAnimationFrame(()=>el.classList.add('in')));
+const tot=E.length;$('#dhint').insertAdjacentHTML('afterend','<p class="hint" style="margin-top:6px">Eintrag '+vis.length+' von '+tot+' bis Weihnachten · <a class="l" href="live.html" style="text-decoration:underline">Was macht Lasse gerade? Zur Live-Karte →</a></p>');
 
 })();
 </script>
