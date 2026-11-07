@@ -38,7 +38,6 @@
         <div class="m"><small>Tempo</small><b id="hv">…</b></div>
         <div class="m"><small>Heute schon</small><b id="hh" style="font-size:1.3rem">…</b></div>
       </div>
-      <div class="panel reveal"><h3>📻 Lasses Tag bis jetzt</h3><div class="radio" id="radio"></div></div>
       <p class="note reveal">Die Karte rechnet nach der Uhr deines Geräts in Zürcher Zeit. Geht sie falsch, zeigt sie Lasse am falschen Ort.</p>
     </div>
   </div>
@@ -205,7 +204,7 @@ function drawVillage(now,v,z0){
 let last=0,sig='',cur='';
 function tick(now){
   const s=state(),z0=zp();let v=null;const pre=s.ph==='wait';
-  if(s.ph==='trip')drawTrip(now,s);else{v=village(z0,pre);drawVillage(now,v,z0);}
+  if(s.ph!=='home')drawTrip(now,s);if(s.ph!=='trip'){v=village(z0,pre);if(!pre)drawVillage(now,v,z0);}
   if(now-last>250){last=now;
     let st,o,lat,lon,sp,bt,cls,hh='—',feed='',dn='';
     if(s.ph==='trip'){st=s.s;o=s.o;lat=s.lat;lon=s.lon;sp=s.sp;bt=s.mv?'Live unterwegs':'Pause';cls='badge';dn='Lasse '+s.d;
@@ -219,7 +218,7 @@ function tick(now){
     $('#badge').className=cls;$('#bt').textContent=bt;$('#hs').textContent=st;$('#ho').textContent=o;$('#hd').textContent=dn;
     $('#hlat').textContent=dm(lat,'N','S');$('#hlon').textContent=pre?'—':dm(lon,'E','W');
     $('#hv').textContent=Math.round(sp).toLocaleString('de-CH').replace(/’/g,"'")+' km/h';$('#hh').textContent=hh;
-    if(feed!==sig){sig=feed;$('#radio').innerHTML=feed;}
+    
   }
   requestAnimationFrame(tick);
 }
