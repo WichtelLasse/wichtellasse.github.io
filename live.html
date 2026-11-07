@@ -26,10 +26,11 @@
   <div class="wrap" style="max-width:900px">
     <div class="kicker reveal">Live</div>
     <h2 class="reveal">Wo ist Lasse gerade?</h2>
-    <p class="lead reveal">Hier siehst du live, wo Lasse gerade ist. Mal ist er unterwegs, mal zu Hause, manchmal im Laden und ab und zu im Schulhaus. Schau einfach öfter vorbei.</p>
+    <p class="lead reveal">Hier siehst du live, wo Lasse gerade ist. Du siehst auch genau, was er in diesem Moment macht: packen, frühstücken, einkaufen, spazieren, Tagebuch schreiben. Schau einfach öfter vorbei.</p>
     <div class="live-wrap" style="margin-top:22px">
       <div class="mapbox reveal"><canvas id="map" width="900" height="1000" aria-label="Live-Karte mit dem Standort von Lasse"></canvas><div class="badge wait" id="badge"><i></i><span id="bt">…</span></div></div>
       <div class="hud">
+        <div class="m" style="grid-column:1/-1"><small>Lasse macht gerade</small><b id="hd" style="font-size:1.15rem;font-family:inherit;line-height:1.35">…</b></div>
         <div class="m"><small>Status</small><b id="hs" style="font-size:1.05rem">…</b></div>
         <div class="m"><small>Ort</small><b id="ho" style="font-size:1.05rem">…</b></div>
         <div class="m"><small>Breite</small><b id="hlat">…</b></div>
@@ -37,7 +38,7 @@
         <div class="m"><small>Tempo</small><b id="hv">…</b></div>
         <div class="m"><small>Heute schon</small><b id="hh" style="font-size:1.3rem">…</b></div>
       </div>
-      <div class="panel reveal"><h3>📻 Funk &amp; Neuigkeiten</h3><div class="radio" id="radio"></div></div>
+      <div class="panel reveal"><h3>📻 Lasses Tag bis jetzt</h3><div class="radio" id="radio"></div></div>
       <p class="note reveal">Die Karte rechnet nach der Uhr deines Geräts in Zürcher Zeit. Geht sie falsch, zeigt sie Lasse am falschen Ort.</p>
     </div>
   </div>
@@ -88,32 +89,50 @@ const rng=seed=>()=>{seed=(seed+0x6D2B79F5)|0;let t=Math.imul(seed^seed>>>15,1|s
 /* ---- Dorfleben ---- */
 const PATH={shop:[[440,610],[560,660],[700,530],[700,375]],school:[[440,610],[330,650],[215,530],[200,400]],walk:[[440,610],[380,710],[275,745]]};
 const HOME=PATH.shop[0];
-const OUT={shop:{e:'🛒',w:'Im Laden',t:'kauft im Laden Milch, Zimt und Mandarinen'},school:{e:'🏫',w:'Im Schulhaus',t:'schaut ganz leise im Schulhaus vorbei'},walk:{e:'🌲',w:'Im Wald',t:'macht einen Spaziergang im Wald'}};
-const HT=[[0,7,['schläft tief und fest']],[7,8,['frühstückt Milchreis mit Zimt']],[8,12,['bastelt Papiersterne','schreibt ins Notizbuch','liest unter der Decke','backt Plätzchen mit Zimt','übt Schleichen im Flur']],[12,13,['isst zu Mittag']],[13,17,['löst ein Rätsel','spielt Wichtel-Memory','schaut dem Schnee zu','putzt seine Mütze']],[17,19,['wärmt sich am Ofen auf']],[19,21,['schreibt Tagebuch']],[21,24,['schläft tief und fest']]];
+const OUTV={shop:{e:'🛒',w:'Im Laden',t:'kauft im Laden Milch, Zimt und Mandarinen'},school:{e:'🏫',w:'Im Schulhaus',t:'schaut ganz leise im Schulhaus vorbei'},walk:{e:'🌲',w:'Im Wald',t:'macht einen Spaziergang im Wald'}};
+const OUTP={shop:{e:'🛒',w:'Im Wichtel-Laden',t:'kauft im Wichtel-Laden Zimt, Mandarinen und Reiseproviant'},school:{e:'🏫',w:'In der Wichtelschule',t:'besucht seine alte Wichtelschule und winkt den Kleinen'},walk:{e:'🌲',w:'Im Tannenwald',t:'macht einen Spaziergang durch den Tannenwald'}};
+const SL=['schläft tief und fest'];
+const FAR=['plant die Reiseroute mit Franz am Computer','schreibt die Packliste ins Notizbuch','flickt seinen Reiseschal','poliert die Kufen vom Wichtelmobil','liest über die Schweiz','übt «Grüezi» und «Merci vielmal»','bastelt Papiersterne für den Koffer','studiert die Landkarte','backt Reiseplätzchen'];
+const NEAR=['legt die Winterkleider in den Koffer','packt den Koffer und prüft die Liste','packt Zimtplätzchen für unterwegs ein','kontrolliert die Taschenlampe','wiegt den Koffer, er ist zu schwer','verabschiedet sich von den Nachbarn','packt den Rucksack um','geht die Route noch einmal mit Franz durch'];
+function rows(pre,D){
+  if(!pre)return [[0,6.5,SL],[6.5,7,['wacht leise auf und streckt sich']],[7,8.25,['hört dem Frühstück im Haus zu und schmunzelt','schaut aus dem Fenster in den Schnee']],[8.25,12,['bastelt Papiersterne','schreibt ins Notizbuch','liest unter der Decke','übt Schleichen im Flur','zählt die Türchen am Adventskalender']],[12,13,['isst zu Mittag: Brot mit Käse']],[13,17.5,['löst ein Rätsel','spielt Wichtel-Memory','schaut dem Schnee zu','putzt seine Mütze']],[17.5,19,['ist beim Znacht im Haus dabei']],[19,20.5,['schreibt Tagebuch']],[20.5,21.5,['wärmt sich am Ofen auf','schaut dem Schnee vor dem Fenster zu']],[21.5,24,SL]];
+  const wake=['wacht auf und streckt sich','reibt sich die Augen und sucht seine Mütze'],br=['frühstückt Milchreis mit Zimt','trinkt warmen Kakao zum Frühstück'],lu=['isst zu Mittag: Kartoffelsuppe'];
+  if(D<=1)return [[0,6,['schläft unruhig, die Reise kribbelt im Bauch']],[6,7,wake],[7,7.75,br],[7.75,12,['packt die letzten Sachen in den Koffer','setzt sich auf den Koffer, damit er zugeht','hakt die Packliste Punkt für Punkt ab']],[12,13,lu],[13,16,['verabschiedet sich im Wichteldorf von seinen Freunden','umarmt die Nachbarn zum Abschied','winkt den Kleinen der Wichtelschule zu']],[16,17.5,['kontrolliert zum letzten Mal die Packliste']],[17.5,19.5,['isst mit den anderen Wichteln das Abschiedsessen']],[19.5,22,['sitzt aufgeregt auf dem Koffer','geht noch einmal die Route mit Franz durch','schaut aus dem Fenster und kann kaum still sitzen']],[22,23,['zieht Mütze, Schal und Stiefel an','trägt den Koffer zum Wichtelmobil']],[23,24,['steigt ins Wichtelmobil und schnallt sich an','winkt allen Wichteln zum Abschied','sagt dem Chauffeur: «Es kann losgehen!»']]];
+  const P=D>7?FAR:NEAR;
+  return [[0,6.5,['schläft tief und fest','träumt von Schnee und der langen Reise']],[6.5,7,wake],[7,7.75,br],[7.75,8.25,['putzt die Zähne und kämmt die Mützenquaste']],[8.25,12,P],[12,13,lu],[13,17.5,P],[17.5,19,['isst Znacht im Wichtelhaus','wärmt sich am Ofen auf']],[19,20.5,P],[20.5,21,['macht sich bettfertig und putzt die Zähne']],[21,24,SL]];}
 function plan(day,wd){const r=rng(hsh(day)),o=[];
   const sch=wd!=='Sat'&&wd!=='Sun'&&r()<.3;
   if(sch)o.push({p:'school',a:495,b:705});
-  else if(r()<.45){const a=600+Math.floor(r()*60);o.push({p:'walk',a,b:a+45});}
-  const a=840+Math.floor(r()*150);o.push({p:'shop',a,b:a+30});
+  else if(r()<.45){const a=600+Math.floor(r()*60);o.push({p:'walk',a,b:a+25+Math.floor(r()*6)});}
+  const a=840+Math.floor(r()*150);o.push({p:'shop',a,b:a+25+Math.floor(r()*6)});
   return {o,r:rng(hsh(day+'x'))};}
-function village(z){const day=z.year+'-'+z.month+'-'+z.day,m=+z.hour*60+ +z.minute,P=plan(day,z.weekday),T=6;
+function villageAt(day,m,P,pre,D){const OUT=pre?OUTP:OUTV,T=6;
   for(const q of P.o){
-    if(m>=q.a-T&&m<q.a)return {p:q.p,mv:1,f:(m-(q.a-T))/T,dir:1,t:'ist auf dem Weg: '+OUT[q.p].t};
-    if(m>=q.a&&m<q.b)return {p:q.p,mv:0,t:OUT[q.p].t};
-    if(m>=q.b&&m<q.b+T)return {p:q.p,mv:1,f:(m-q.b)/T,dir:-1,t:'geht wieder nach Hause'};}
-  const h=m/60;const row=HT.find(x=>h>=x[0]&&h<x[1]);const blk=Math.floor(h/2);const arr=row[2];
-  return {p:'home',mv:0,t:arr[hsh(day+blk)%arr.length]};}
-function done(z){const day=z.year+'-'+z.month+'-'+z.day,m=+z.hour*60+ +z.minute,P=plan(day,z.weekday);return P.o.filter(q=>m>=q.b).map(q=>OUT[q.p].e);}
+    if(m>=q.a-T&&m<q.a)return {p:q.p,mv:1,f:(m-(q.a-T))/T,dir:1,t:'ist auf dem Weg: '+OUT[q.p].t,pre};
+    if(m>=q.a&&m<q.b)return {p:q.p,mv:0,t:OUT[q.p].t,pre};
+    if(m>=q.b&&m<q.b+T)return {p:q.p,mv:1,f:(m-q.b)/T,dir:-1,t:'geht wieder nach Hause',pre};}
+  if(!pre&&day==='2026-11-30'&&m<195)return {p:'home',mv:0,t:'ist gerade angekommen und schleicht leise ins Haus',pre};
+  const h=m/60,row=rows(pre,D).find(x=>h>=x[0]&&h<x[1]),arr=row[2];
+  return {p:'home',mv:0,t:arr[hsh(day+Math.floor(m/30))%arr.length],pre};}
+const dayInfo=(z,pre)=>{const day=z.year+'-'+z.month+'-'+z.day,D=Math.round((Date.UTC(2026,10,30)-Date.UTC(+z.year,+z.month-1,+z.day))/864e5);return {day,D,P:plan(day,z.weekday),m:+z.hour*60+ +z.minute};};
+function village(z,pre){const i=dayInfo(z,pre);return villageAt(i.day,i.m,i.P,pre,i.D);}
+function done(z,pre){const i=dayInfo(z,pre),O=pre?OUTP:OUTV;return i.P.o.filter(q=>i.m>=q.b).map(q=>O[q.p].e);}
+let logKey='',logVal=[];
+function dayLog(z,pre){const i=dayInfo(z,pre),k=i.day+'#'+i.m+pre;if(k===logKey)return logVal;const o=[];let prev='';
+  for(let m=(!pre&&i.day==='2026-11-30'?180:0);m<=i.m;m++){const v=villageAt(i.day,m,i.P,pre,i.D);if(v.t!==prev){prev=v.t;o.push({tm:pad2(Math.floor(m/60))+':'+pad2(m%60),t:v.t});}}
+  logKey=k;logVal=o;return o;}
 const plen=pts=>{let L=0;const s=[0];for(let i=1;i<pts.length;i++){L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);s.push(L);}return [L,s];};
 function along(pts,f){const [L,s]=plen(pts);const d=Math.max(0,Math.min(1,f))*L;for(let i=1;i<pts.length;i++)if(d<=s[i]){const t=(d-s[i-1])/(s[i]-s[i-1]||1);return [pts[i-1][0]+(pts[i][0]-pts[i-1][0])*t,pts[i-1][1]+(pts[i][1]-pts[i-1][1])*t];}return pts[pts.length-1];}
 function lasseAt(v){if(v.p==='home')return HOME;const pts=PATH[v.p];if(!v.mv)return pts[pts.length-1];return along(pts,v.dir>0?v.f:1-v.f);}
 /* ---- Zustand ---- */
+const TMV=['schaut aus dem Fenster in die Nacht','zählt die Sterne über dem Wichtelmobil','kuschelt sich in die Decke','trinkt warmen Kakao aus der Thermoskanne','summt leise ein Weihnachtslied','prüft die Landkarte','sitzt vorne und schaut auf die Strasse','knabbert ein Zimtplätzchen','kontrolliert noch einmal den Koffer'];
+const TST=['','streckt die Beine im Schnee und prüft mit dem Chauffeur die Kufen','trinkt Kakao und staunt über das Nordlicht','kauft eine Zimtschnecke und sucht seine Mütze','vertritt sich am Hafen die Beine','döst im Wichtelmobil, der Chauffeur trinkt Tee'];
 function state(){const el=L.now()-T0;
   if(el<0)return {ph:'wait',lat:90,lon:15.63,sp:0,s:'Packt noch im Wichteldorf',o:'Wichteldorf, Nordpol',n:0};
   if(el>=END)return {ph:'home',n:ST.length};
   const g=SEG.find(x=>el>=x.a&&el<x.b),A=ST[g.i-1],B=ST[g.i];
-  if(g.k==='m'){const f=(el-g.a)/(g.b-g.a);return {ph:'trip',i:g.i,f,mv:1,lat:A.lat+(B.lat-A.lat)*f,lon:A.lon+(B.lon-A.lon)*f,sp:DK[g.i]/((g.b-g.a)/3600000),s:'Unterwegs nach '+B.n,o:region(A.lat+(B.lat-A.lat)*f),n:g.i};}
-  return {ph:'trip',i:g.i,f:1,mv:0,lat:B.lat,lon:B.lon,sp:0,s:'Pause in '+B.n,o:B.n,n:g.i+1};}
+  if(g.k==='m'){const f=(el-g.a)/(g.b-g.a);return {ph:'trip',i:g.i,f,mv:1,lat:A.lat+(B.lat-A.lat)*f,lon:A.lon+(B.lon-A.lon)*f,sp:DK[g.i]/((g.b-g.a)/3600000),s:'Unterwegs nach '+B.n,o:region(A.lat+(B.lat-A.lat)*f),n:g.i,d:TMV[hsh('m'+Math.floor(el/420000))%TMV.length]};}
+  return {ph:'trip',i:g.i,f:1,mv:0,lat:B.lat,lon:B.lon,sp:0,s:'Pause in '+B.n,o:B.n,n:g.i+1,d:TST[g.i]};}
 function region(la){return la>85?'Packeis am Nordpol':la>76?'Nordpolarmeer':la>66?'Nordmeer':la>60?'Norwegen':la>56?'Skagerrak':la>52?'Norddeutschland':la>49?'Rhein-Main':'Schweiz';}
 /* ---- Zeichnen: Reise ---- */
 const cam={x:450,y:480,z:1};
@@ -161,7 +180,7 @@ function drawVillage(now,v,z0){
   c.font='700 21px system-ui,sans-serif';c.fillStyle=dn>.4?'#17305a':'#e9f3ff';c.fillText('Wald',230,985);
   house(700,300,120,80,'#c8553d','#7b2a22','Laden');c.fillStyle='#e0383e';for(let i=0;i<6;i++){if(i%2==0)c.fillRect(640+i*20,326,20,12);}
   house(200,330,170,95,'#d9b36a','#5d3a2c','Schulhaus');c.fillStyle='#5d3a2c';c.fillRect(196,215,6,40);c.fillStyle='#e0383e';c.fillRect(202,217,26,14);
-  house(440,540,150,100,'#6c8fc9','#8a2a30','Zuhause');
+  house(440,540,150,100,'#6c8fc9','#8a2a30',v.pre?'Wichtelhaus':'Zuhause');
   c.fillStyle='#7b8190';c.fillRect(470,452,16,34);
   for(let i=0;i<5;i++){const t=((now/2200+i/5)%1);c.fillStyle='rgba(235,240,255,'+(.55*(1-t))+')';c.beginPath();c.arc(478+Math.sin(t*6+i)*10,446-t*80,8+t*14,0,7);c.fill();}
   /* Schneemann */
@@ -185,15 +204,20 @@ function drawVillage(now,v,z0){
 }
 let last=0,sig='',cur='';
 function tick(now){
-  const s=state(),z0=zp();let v=null;
-  if(s.ph==='home'){v=village(z0);drawVillage(now,v,z0);}else drawTrip(now,s);
+  const s=state(),z0=zp();let v=null;const pre=s.ph==='wait';
+  if(s.ph==='trip')drawTrip(now,s);else{v=village(z0,pre);drawVillage(now,v,z0);}
   if(now-last>250){last=now;
-    let st,o,lat,lon,sp,bt,cls,hh='—',feed='';
-    if(s.ph==='home'){st=v.p==='home'?'Zu Hause':v.mv?'Unterwegs im Dorf':OUT[v.p].w;o='Volketswil, Schweiz';lat=47.39;lon=8.69;sp=v.mv?4:0;bt='Live im Dorf';cls='badge';const d=done(z0);hh=d.length?d.join(' '):'—';feed='<p>Lasse '+v.t+'.</p>'+d.map(e=>'<p>'+e+' Das hat Lasse heute schon erledigt.</p>').join('');}
-    else{st=s.s;o=s.o;lat=s.lat;lon=s.lon;sp=s.sp;bt=s.ph==='wait'?'Wartet im Wichteldorf':s.mv?'Live unterwegs':'Pause';cls='badge'+(s.ph==='wait'?' wait':'');
-      feed=s.ph==='wait'?'<p>Funkstille. Lasse packt noch seinen Koffer.</p>':ST.slice(0,s.n).reverse().map(q=>'<p>'+q.m+'</p>').join('');}
-    $('#badge').className=cls;$('#bt').textContent=bt;$('#hs').textContent=st;$('#ho').textContent=o;
-    $('#hlat').textContent=dm(lat,'N','S');$('#hlon').textContent=s.ph==='wait'?'—':dm(lon,'E','W');
+    let st,o,lat,lon,sp,bt,cls,hh='—',feed='',dn='';
+    if(s.ph==='trip'){st=s.s;o=s.o;lat=s.lat;lon=s.lon;sp=s.sp;bt=s.mv?'Live unterwegs':'Pause';cls='badge';dn='Lasse '+s.d;
+      feed=ST.slice(0,s.n).reverse().map(q=>'<p>'+q.m+'</p>').join('');}
+    else{const O=pre?OUTP:OUTV,pl=pre?'Wichteldorf, Nordpol':'Volketswil, Schweiz';
+      st=pre?(v.p==='home'?'Im Wichteldorf':v.mv?'Unterwegs im Dorf':O[v.p].w):(v.p==='home'?'Zu Hause':v.mv?'Unterwegs im Dorf':O[v.p].w);
+      o=v.p==='home'?(pre?'Wichtelhaus, Wichteldorf':'Zu Hause, Volketswil'):(v.mv?'Auf dem Weg, ':'')+O[v.p].w+(pre?', Wichteldorf':', Volketswil');
+      lat=pre?90:47.39;lon=8.69;sp=v.mv?4:0;bt=pre?'Live im Wichteldorf':'Live im Dorf';cls='badge'+(pre?' wait':'');
+      const d=done(z0,pre);hh=d.length?d.join(' '):'—';dn='Lasse '+v.t;
+      feed=dayLog(z0,pre).slice().reverse().slice(0,12).map((e,i)=>'<p><time>'+e.tm+'</time>Lasse '+e.t+'.</p>').join('');}
+    $('#badge').className=cls;$('#bt').textContent=bt;$('#hs').textContent=st;$('#ho').textContent=o;$('#hd').textContent=dn;
+    $('#hlat').textContent=dm(lat,'N','S');$('#hlon').textContent=pre?'—':dm(lon,'E','W');
     $('#hv').textContent=Math.round(sp).toLocaleString('de-CH').replace(/’/g,"'")+' km/h';$('#hh').textContent=hh;
     if(feed!==sig){sig=feed;$('#radio').innerHTML=feed;}
   }
