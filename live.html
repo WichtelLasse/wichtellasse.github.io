@@ -128,7 +128,7 @@ const TMV=['schaut aus dem Fenster in die Nacht','zählt die Sterne über dem Wi
 const TST=['','streckt die Beine im Schnee und prüft mit dem Chauffeur die Kufen','trinkt Kakao und staunt über das Nordlicht','kauft eine Zimtschnecke und sucht seine Mütze','vertritt sich am Hafen die Beine','döst im Wichtelmobil, der Chauffeur trinkt Tee'];
 function state(){const el=L.now()-T0;
   if(el<0)return {ph:'wait',lat:90,lon:15.63,sp:0,s:'Packt noch im Wichteldorf',o:'Wichteldorf, Nordpol',n:0};
-  if(el>=END)return {ph:'home',n:ST.length};
+  if(el>=END)return {ph:'home',lat:47.39,lon:8.69,sp:0,n:ST.length};
   const g=SEG.find(x=>el>=x.a&&el<x.b),A=ST[g.i-1],B=ST[g.i];
   if(g.k==='m'){const f=(el-g.a)/(g.b-g.a);return {ph:'trip',i:g.i,f,mv:1,lat:A.lat+(B.lat-A.lat)*f,lon:A.lon+(B.lon-A.lon)*f,sp:DK[g.i]/((g.b-g.a)/3600000),s:'Unterwegs nach '+B.n,o:region(A.lat+(B.lat-A.lat)*f),n:g.i,d:TMV[hsh('m'+Math.floor(el/420000))%TMV.length]};}
   return {ph:'trip',i:g.i,f:1,mv:0,lat:B.lat,lon:B.lon,sp:0,s:'Pause in '+B.n,o:B.n,n:g.i+1,d:TST[g.i]};}
@@ -155,7 +155,7 @@ function drawTrip(now,s){
   if(s.ph!=='trip'&&s.ph!=='wait'){}
   const q=s.ph==='wait'?pts[0]:p;c.fillStyle='rgba(255,210,122,'+(.18+.1*pu)+')';c.beginPath();c.arc(q[0],q[1],(22+pu*10)/Math.pow(z,.6),0,7);c.fill();
   c.fillStyle='#ffd27a';c.beginPath();c.arc(q[0],q[1],9/Math.pow(z,.6),0,7);c.fill();c.strokeStyle='#fff';c.lineWidth=3/z;c.stroke();
-  c.font=fs(34);c.fillText(s.ph==='trip'&&s.mv?'🛷':s.ph==='trip'?'🚐':'⛺',q[0]+14/Math.pow(z,.6),q[1]-12/Math.pow(z,.6));
+  c.font=fs(34);c.fillText(s.ph==='trip'&&s.mv?'🛷':s.ph==='trip'?'🚐':s.ph==='home'?'🏠':'⛺',q[0]+14/Math.pow(z,.6),q[1]-12/Math.pow(z,.6));
   c.restore();
 }
 /* ---- Zeichnen: Dorf ---- */
@@ -204,7 +204,7 @@ function drawVillage(now,v,z0){
 let last=0,sig='',cur='';
 function tick(now){
   const s=state(),z0=zp();let v=null;const pre=s.ph==='wait';
-  if(s.ph!=='home')drawTrip(now,s);if(s.ph!=='trip'){v=village(z0,pre);if(!pre)drawVillage(now,v,z0);}
+  drawTrip(now,s);if(s.ph!=='trip')v=village(z0,pre);
   if(now-last>250){last=now;
     let st,o,lat,lon,sp,bt,cls,hh='—',feed='',dn='';
     if(s.ph==='trip'){st=s.s;o=s.o;lat=s.lat;lon=s.lon;sp=s.sp;bt=s.mv?'Live unterwegs':'Pause';cls='badge';dn='Lasse '+s.d;
