@@ -26,7 +26,7 @@
   <div class="wrap" style="max-width:900px">
     <div class="kicker reveal">Live</div>
     <h2 class="reveal">Wo ist Lasse gerade?</h2>
-    <p class="lead reveal">Hier siehst du live, wo Lasse gerade ist. Du siehst auch genau, was er in diesem Moment macht: packen, frühstücken, einkaufen, spazieren, Tagebuch schreiben. Schau einfach öfter vorbei.</p>
+    <p class="lead reveal">Hier siehst du live, wo Lasse gerade ist. Du siehst auch, was er gerade macht: in der Wichtel-Akademie sitzen, Rentiere füttern, unterwegs sein oder schlafen. Das Wetter bei ihm ist echt und kommt live aus dem Internet. Schau einfach öfter vorbei.</p>
     <div class="live-wrap" style="margin-top:22px">
       <div class="mapbox reveal"><canvas id="map" width="900" height="1000" aria-label="Live-Karte mit dem Standort von Lasse"></canvas><div class="badge wait" id="badge"><i></i><span id="bt">…</span></div></div>
       <div class="hud">
@@ -36,7 +36,8 @@
         <div class="m"><small>Breite</small><b id="hlat">…</b></div>
         <div class="m"><small>Länge</small><b id="hlon">…</b></div>
         <div class="m"><small>Tempo</small><b id="hv">…</b></div>
-        <div class="m"><small>Heute schon</small><b id="hh" style="font-size:1.3rem">…</b></div>
+        <div class="m" style="grid-column:1/-1"><small>Wetter bei Lasse</small><b id="hw" style="font-size:1.05rem;font-family:inherit">…</b></div>
+        <div class="m" style="grid-column:1/-1"><small>Znacht heute</small><b id="hf" style="font-size:1.05rem;font-family:inherit">…</b></div>
       </div>
       <p class="note reveal">Die Karte rechnet nach der Uhr deines Geräts in Zürcher Zeit. Geht sie falsch, zeigt sie Lasse am falschen Ort.</p>
     </div>
@@ -48,12 +49,11 @@
   <p>Dein Wichtel Lasse · Nordpolstrasse 1 · Wichteldorf, Nordpol</p>
 </footer>
 <script src="common.js"></script>
+<script src="tag.js"></script>
 <script>
 (function(){
-const {$,$$,clamp,lerp,ease,reduce,setSteps,sceneScale}=window.L;
-
-const T0=+atob('MTc5NTk5MzIwMDAwMA=='),MOVE=6000000;
-const LAT0=90,LON=8.69,LATMIN=34,S=900,SH=1000,cx0=450,cy0=70,R=1078;
+const {$}=window.L;const T=window.LT;
+const LATMIN=34,S=900,SH=1000,cx0=450,cy0=70,R=1078,LON=8.69;
 const pr=(lat,lon)=>{const r=(90-lat)/(90-LATMIN)*R,a=(lon-LON)*Math.PI/180;return [cx0+r*Math.sin(a),cy0+r*Math.cos(a)];};
 const LAND=[
 [[-9,38],[-9,43],[-2,43.5],[-1.5,46],[-4.5,48.3],[-1.5,48.7],[1.5,50.9],[4,51.5],[5,53.3],[8,53.8],[8.3,55.5],[8.1,56.8],[10.6,57.7],[10.5,56],[9.8,54.8],[11,54],[14,54.2],[18,54.7],[21,55.2],[21,57],[24,57.3],[23.5,59],[28,59.5],[30,60],[23,60],[21.5,61],[21.5,63],[25,65],[21,65.5],[17,62.5],[18.5,60],[16.5,57],[13,55.5],[11,58.5],[8,58],[5.5,59],[5,62],[8,63.5],[11,64.5],[14,67.5],[18,69.5],[23,70.8],[29,71],[33,69.5],[41,67],[44,68],[53,68.5],[60,69.5],[68,69],[73,72],[80,73],[87,75],[100,77.7],[113,74],[130,71],[150,71],[170,70],[180,68.5],[180,40],[100,40],[60,40],[40,40],[30,41],[26,40.5],[24,38],[20,40],[16,38],[12,42],[8,44],[3,43],[-2,37]],
@@ -64,80 +64,27 @@ const LAND=[
 [[11,79],[17,80],[27,80.2],[25,78],[18,76.7],[13,78]],
 [[-168,66],[-156,71],[-140,69.5],[-125,69.5],[-110,68],[-95,69],[-90,73],[-80,73],[-82,66],[-90,64],[-94,59],[-85,55],[-80,52],[-78,58],[-70,59],[-62,57],[-56,52],[-60,47],[-66,44],[-70,41.5],[-76,39],[-80,34],[-100,30],[-120,34],[-125,40],[-124,48],[-135,58],[-150,60],[-165,60]]
 ];
-const ST=[
-{n:'Wichteldorf',lat:90,lon:15.63,stop:0,m:'Der Motor brummt. Der Wichtelchauffeur zählt rückwärts, und die anderen Wichtel singen schon.'},
-{n:'Spitzbergen',lat:78.22,lon:15.63,stop:8,m:'Erste Pause auf Spitzbergen. Der Chauffeur prüft die Kufen, wir strecken die Beine im Schnee.'},
-{n:'Tromsø',lat:69.65,lon:18.96,stop:20,m:'Tromsø! Kakaopause. Über uns tanzt das Nordlicht, alle Nasen kleben am Fenster.'},
-{n:'Oslo',lat:59.91,lon:10.75,stop:15,m:'Oslo. Der Chauffeur tankt, ein Wichtel kauft Zimtschnecken, und ich suche meine Mütze. Sie sitzt auf meinem Kopf.'},
-{n:'Hamburg',lat:53.55,lon:10.0,stop:12,m:'Hamburg. Der Hafen glitzert. Kurz die Beine vertreten, dann geht es weiter.'},
-{n:'Frankfurt',lat:50.11,lon:8.68,stop:25,m:'Frankfurt. Lange Pause: Die meisten Wichtel schlafen schon, der Chauffeur trinkt Tee.'},
-{n:'Volketswil',lat:47.39,lon:8.69,stop:0,m:'Angekommen. Leise sein, alle schlafen. Gute Nacht!'}];
-const hav=(a,b)=>{const r=Math.PI/180,x=Math.sin((b.lat-a.lat)*r/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin((b.lon-a.lon)*r/2)**2;return 12742*Math.asin(Math.sqrt(x));};
-let TOT=0;const DK=[];for(let i=1;i<ST.length;i++){DK[i]=hav(ST[i-1],ST[i]);TOT+=DK[i];}
-const SEG=[];let tt=0;for(let i=1;i<ST.length;i++){const mt=DK[i]/TOT*MOVE;SEG.push({k:'m',i,a:tt,b:tt+mt});tt+=mt;if(ST[i].stop){const sp=ST[i].stop*60000;SEG.push({k:'s',i,a:tt,b:tt+sp});tt+=sp;}}
-const END=tt;
-const pad2=n=>String(n).padStart(2,'0');
-const dm=(v,p,n)=>{const a=Math.abs(v),d=Math.floor(a),m=(a-d)*60;return d+'° '+m.toFixed(1).padStart(4,'0')+"' "+(v>=0?p:n);};
+
+const LAND2=[
+[[-17,21],[-16,14],[-12,8],[-8,4.5],[-3,5],[2,6],[8,4.5],[9.5,3],[9,-1],[12,-5],[13.5,-11],[12,-17],[14.5,-23],[17,-29],[18.4,-34],[20,-34.8],[25,-34],[28,-32.5],[32.5,-28.5],[33,-25],[35.5,-24],[35,-19],[37,-17],[40.5,-15],[40.5,-10.5],[39.5,-6],[41,-1.5],[44,1.5],[48,5],[51,11.5],[43.5,11.5],[39,15.5],[37,20],[35,24],[33,28],[32,31],[25,31.5],[20,31],[15,32.5],[10.5,33.5],[10,37],[3,36.8],[-1,35.2],[-6,35.8],[-10,30],[-13,27.5]],
+[[32,31],[35,33],[36,36],[44,37],[48,30],[50,26.5],[56,26],[58.5,23.5],[59.5,22],[57,18.8],[52,16],[45,12.8],[43,13],[39,21],[35,28],[33,28]],
+[[40,40],[60,40],[100,40],[122,40],[122,30],[110,21],[106,10],[100,13],[98,16],[92,22],[88,22],[80,30],[70,30],[62,25],[57,26],[52,28],[48,30],[44,37]],
+[[68,23],[72,21],[77,8],[80,13],[80,16],[87,22],[90,22],[88,27],[80,30],[74,34],[70,30]],
+[[-80,9],[-77,8],[-72,12],[-62,10.5],[-52,5],[-50,0],[-44,-2.5],[-35,-5],[-35,-9],[-39,-13],[-40,-20],[-48,-25.5],[-53,-34],[-58,-38.5],[-65,-41],[-65,-47],[-69,-52],[-68,-55],[-72,-53],[-74,-46],[-73,-37],[-71,-29],[-70,-18],[-76,-14],[-81,-5],[-80,0],[-78,4]],
+[[114,-22],[122,-18],[130,-12],[137,-12],[142,-11],[146,-19],[153,-28],[150,-37],[141,-38],[135,-35],[129,-32],[115,-34]],
+[[-120,34],[-110,23],[-105,20],[-97,16],[-92,15],[-87,13],[-83,9],[-80,9],[-77,8],[-80,7],[-84,10],[-88,16],[-90,21],[-97,22],[-97,28],[-90,30],[-82,30],[-80,34],[-100,30]],
+[[-180,-78],[-160,-77],[-140,-75],[-120,-73],[-100,-73],[-80,-73],[-68,-68],[-60,-63.5],[-57,-63.5],[-62,-70],[-60,-77],[-40,-78],[-20,-73],[0,-70],[20,-70],[40,-69],[60,-67],[80,-67],[100,-66],[120,-66],[140,-66],[160,-70],[170,-72],[180,-78],[180,-90],[-180,-90]]
+];
 const cv=$('#map'),c=cv.getContext('2d');
-const stars=Array.from({length:110},()=>({x:Math.random()*S,y:Math.random()*SH,r:Math.random()*1.6+.3,p:Math.random()*6}));
-const flakes=Array.from({length:70},()=>({x:Math.random()*S,y:Math.random()*SH,r:Math.random()*2.4+.8,v:Math.random()*40+25,p:Math.random()*6}));
-const mix=(a,b,t)=>a.map((x,i)=>Math.round(x+(b[i]-x)*t));const rgb=a=>'rgb('+a.join()+')';
-const zp=()=>Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Zurich',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',weekday:'short',hourCycle:'h23'}).formatToParts(new Date(L.now())).map(p=>[p.type,p.value]));
-const hsh=s=>{let x=2166136261;for(const ch of s){x^=ch.charCodeAt(0);x=Math.imul(x,16777619)>>>0;}return x;};
-const rng=seed=>()=>{seed=(seed+0x6D2B79F5)|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
-/* ---- Dorfleben ---- */
-const PATH={shop:[[440,610],[560,660],[700,530],[700,375]],school:[[440,610],[330,650],[215,530],[200,400]],walk:[[440,610],[380,710],[275,745]]};
-const HOME=PATH.shop[0];
-const OUTV={shop:{e:'🛒',w:'Im Laden',t:'kauft im Laden Milch, Zimt und Mandarinen'},school:{e:'🏫',w:'Im Schulhaus',t:'schaut ganz leise im Schulhaus vorbei'},walk:{e:'🌲',w:'Im Wald',t:'macht einen Spaziergang im Wald'}};
-const OUTP={shop:{e:'🛒',w:'Im Wichtel-Laden',t:'kauft im Wichtel-Laden Zimt, Mandarinen und Reiseproviant'},school:{e:'🏫',w:'In der Wichtelschule',t:'besucht seine alte Wichtelschule und winkt den Kleinen'},walk:{e:'🌲',w:'Im Tannenwald',t:'macht einen Spaziergang durch den Tannenwald'}};
-const SL=['schläft tief und fest'];
-const FAR=['plant die Reiseroute mit Franz am Computer','schreibt die Packliste ins Notizbuch','flickt seinen Reiseschal','poliert die Kufen vom Wichtelmobil','liest über die Schweiz','übt «Grüezi» und «Merci vielmal»','bastelt Papiersterne für den Koffer','studiert die Landkarte','backt Reiseplätzchen'];
-const NEAR=['legt die Winterkleider in den Koffer','packt den Koffer und prüft die Liste','packt Zimtplätzchen für unterwegs ein','kontrolliert die Taschenlampe','wiegt den Koffer, er ist zu schwer','verabschiedet sich von den Nachbarn','packt den Rucksack um','geht die Route noch einmal mit Franz durch'];
-function rows(pre,D){
-  if(!pre)return [[0,6.5,SL],[6.5,7,['wacht leise auf und streckt sich']],[7,8.25,['hört dem Frühstück im Haus zu und schmunzelt','schaut aus dem Fenster in den Schnee']],[8.25,12,['bastelt Papiersterne','schreibt ins Notizbuch','liest unter der Decke','übt Schleichen im Flur','zählt die Türchen am Adventskalender']],[12,13,['isst zu Mittag: Brot mit Käse']],[13,17.5,['löst ein Rätsel','spielt Wichtel-Memory','schaut dem Schnee zu','putzt seine Mütze']],[17.5,19,['ist beim Znacht im Haus dabei']],[19,20.5,['schreibt Tagebuch']],[20.5,21.5,['wärmt sich am Ofen auf','schaut dem Schnee vor dem Fenster zu']],[21.5,24,SL]];
-  const wake=['wacht auf und streckt sich','reibt sich die Augen und sucht seine Mütze'],br=['frühstückt Milchreis mit Zimt','trinkt warmen Kakao zum Frühstück'],lu=['isst zu Mittag: Kartoffelsuppe'];
-  if(D<=1)return [[0,6,['schläft unruhig, die Reise kribbelt im Bauch']],[6,7,wake],[7,7.75,br],[7.75,12,['packt die letzten Sachen in den Koffer','setzt sich auf den Koffer, damit er zugeht','hakt die Packliste Punkt für Punkt ab']],[12,13,lu],[13,16,['verabschiedet sich im Wichteldorf von seinen Freunden','umarmt die Nachbarn zum Abschied','winkt den Kleinen der Wichtelschule zu']],[16,17.5,['kontrolliert zum letzten Mal die Packliste']],[17.5,19.5,['isst mit den anderen Wichteln das Abschiedsessen']],[19.5,22,['sitzt aufgeregt auf dem Koffer','geht noch einmal die Route mit Franz durch','schaut aus dem Fenster und kann kaum still sitzen']],[22,23,['zieht Mütze, Schal und Stiefel an','trägt den Koffer zum Wichtelmobil']],[23,24,['steigt ins Wichtelmobil und schnallt sich an','winkt allen Wichteln zum Abschied','sagt dem Chauffeur: «Es kann losgehen!»']]];
-  const P=D>7?FAR:NEAR;
-  return [[0,6.5,['schläft tief und fest','träumt von Schnee und der langen Reise']],[6.5,7,wake],[7,7.75,br],[7.75,8.25,['putzt die Zähne und kämmt die Mützenquaste']],[8.25,12,P],[12,13,lu],[13,17.5,P],[17.5,19,['isst Znacht im Wichtelhaus','wärmt sich am Ofen auf']],[19,20.5,P],[20.5,21,['macht sich bettfertig und putzt die Zähne']],[21,24,SL]];}
-function plan(day,wd){const r=rng(hsh(day)),o=[];
-  const sch=wd!=='Sat'&&wd!=='Sun'&&r()<.3;
-  if(sch)o.push({p:'school',a:495,b:705});
-  else if(r()<.45){const a=600+Math.floor(r()*60);o.push({p:'walk',a,b:a+25+Math.floor(r()*6)});}
-  const a=840+Math.floor(r()*150);o.push({p:'shop',a,b:a+25+Math.floor(r()*6)});
-  return {o,r:rng(hsh(day+'x'))};}
-function villageAt(day,m,P,pre,D){const OUT=pre?OUTP:OUTV,T=6;
-  for(const q of P.o){
-    if(m>=q.a-T&&m<q.a)return {p:q.p,mv:1,f:(m-(q.a-T))/T,dir:1,t:'ist auf dem Weg: '+OUT[q.p].t,pre};
-    if(m>=q.a&&m<q.b)return {p:q.p,mv:0,t:OUT[q.p].t,pre};
-    if(m>=q.b&&m<q.b+T)return {p:q.p,mv:1,f:(m-q.b)/T,dir:-1,t:'geht wieder nach Hause',pre};}
-  if(!pre&&day==='2026-11-30'&&m<195)return {p:'home',mv:0,t:'ist gerade angekommen und schleicht leise ins Haus',pre};
-  const h=m/60,row=rows(pre,D).find(x=>h>=x[0]&&h<x[1]),arr=row[2];
-  return {p:'home',mv:0,t:arr[hsh(day+Math.floor(m/30))%arr.length],pre};}
-const dayInfo=(z,pre)=>{const day=z.year+'-'+z.month+'-'+z.day,D=Math.round((Date.UTC(2026,10,30)-Date.UTC(+z.year,+z.month-1,+z.day))/864e5);return {day,D,P:plan(day,z.weekday),m:+z.hour*60+ +z.minute};};
-function village(z,pre){const i=dayInfo(z,pre);return villageAt(i.day,i.m,i.P,pre,i.D);}
-function done(z,pre){const i=dayInfo(z,pre),O=pre?OUTP:OUTV;return i.P.o.filter(q=>i.m>=q.b).map(q=>O[q.p].e);}
-let logKey='',logVal=[];
-function dayLog(z,pre){const i=dayInfo(z,pre),k=i.day+'#'+i.m+pre;if(k===logKey)return logVal;const o=[];let prev='';
-  for(let m=(!pre&&i.day==='2026-11-30'?180:0);m<=i.m;m++){const v=villageAt(i.day,m,i.P,pre,i.D);if(v.t!==prev){prev=v.t;o.push({tm:pad2(Math.floor(m/60))+':'+pad2(m%60),t:v.t});}}
-  logKey=k;logVal=o;return o;}
-const plen=pts=>{let L=0;const s=[0];for(let i=1;i<pts.length;i++){L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);s.push(L);}return [L,s];};
-function along(pts,f){const [L,s]=plen(pts);const d=Math.max(0,Math.min(1,f))*L;for(let i=1;i<pts.length;i++)if(d<=s[i]){const t=(d-s[i-1])/(s[i]-s[i-1]||1);return [pts[i-1][0]+(pts[i][0]-pts[i-1][0])*t,pts[i-1][1]+(pts[i][1]-pts[i-1][1])*t];}return pts[pts.length-1];}
-function lasseAt(v){if(v.p==='home')return HOME;const pts=PATH[v.p];if(!v.mv)return pts[pts.length-1];return along(pts,v.dir>0?v.f:1-v.f);}
-/* ---- Zustand ---- */
-const TMV=['schaut aus dem Fenster in die Nacht','zählt die Sterne über dem Wichtelmobil','kuschelt sich in die Decke','trinkt warmen Kakao aus der Thermoskanne','summt leise ein Weihnachtslied','prüft die Landkarte','sitzt vorne und schaut auf die Strasse','knabbert ein Zimtplätzchen','kontrolliert noch einmal den Koffer'];
-const TST=['','streckt die Beine im Schnee und prüft mit dem Chauffeur die Kufen','trinkt Kakao und staunt über das Nordlicht','kauft eine Zimtschnecke und sucht seine Mütze','vertritt sich am Hafen die Beine','döst im Wichtelmobil, der Chauffeur trinkt Tee'];
-function state(){const el=L.now()-T0;
-  if(el<0)return {ph:'wait',lat:90,lon:15.63,sp:0,s:'Packt noch im Wichteldorf',o:'Wichteldorf, Nordpol',n:0};
-  if(el>=END)return {ph:'home',lat:47.39,lon:8.69,sp:0,n:ST.length};
-  const g=SEG.find(x=>el>=x.a&&el<x.b),A=ST[g.i-1],B=ST[g.i];
-  if(g.k==='m'){const f=(el-g.a)/(g.b-g.a);return {ph:'trip',i:g.i,f,mv:1,lat:A.lat+(B.lat-A.lat)*f,lon:A.lon+(B.lon-A.lon)*f,sp:DK[g.i]/((g.b-g.a)/3600000),s:'Unterwegs nach '+B.n,o:region(A.lat+(B.lat-A.lat)*f),n:g.i,d:TMV[hsh('m'+Math.floor(el/420000))%TMV.length]};}
-  return {ph:'trip',i:g.i,f:1,mv:0,lat:B.lat,lon:B.lon,sp:0,s:'Pause in '+B.n,o:B.n,n:g.i+1,d:TST[g.i]};}
-function region(la){return la>85?'Packeis am Nordpol':la>76?'Nordpolarmeer':la>66?'Nordmeer':la>60?'Norwegen':la>56?'Skagerrak':la>52?'Norddeutschland':la>49?'Rhein-Main':'Schweiz';}
-/* ---- Zeichnen: Reise ---- */
+const stars=Array.from({length:130},()=>({x:Math.random()*S,y:Math.random()*SH,r:Math.random()*1.6+.3,p:Math.random()*6}));
+const dm=(v,p,n)=>{const a=Math.abs(v),d=Math.floor(a),m=(a-d)*60;return d+'° '+m.toFixed(1).padStart(4,'0')+"' "+(v>=0?p:n);};
+function region(la,lo){if(la<-60)return 'Antarktis';if(la<-35)return 'Südlicher Ozean';if(la<-20)return lo<25?'Südliches Afrika':'Südliches Afrika';if(la<5)return 'Ostafrika';if(la<22)return 'Sudan';if(la<32)return 'Ägypten';if(la<38)return 'Mittelmeer';if(la<46)return 'Italien';return la>85?'Packeis am Nordpol':la>76?'Nordpolarmeer':la>66?'Nordmeer':la>60?'Norwegen':la>56?'Skagerrak':la>52?'Norddeutschland':la>49?'Rhein-Main':'Schweiz';}
+
+/* ---------- Nordkarte ---------- */
 const cam={x:450,y:480,z:1};
-function drawTrip(now,s){
-  const tz=s.ph==='trip'?2.3:1,p=s.ph==='wait'?pr(90,0):pr(s.lat,s.lon);
-  const tx=s.ph==='trip'?p[0]:450,ty=s.ph==='trip'?p[1]:480;
+function drawNorth(now,s){
+  const trip=s.ph==='trip',p=pr(s.lat,s.lon);
+  const tz=trip?2.3:1,tx=trip?p[0]:450,ty=trip?p[1]:480;
   cam.x+=(tx-cam.x)*.07;cam.y+=(ty-cam.y)*.07;cam.z+=(tz-cam.z)*.03;const z=cam.z,fs=n=>(n/Math.pow(z,.75)).toFixed(1)+'px system-ui,sans-serif';
   c.setTransform(1,0,0,1,0,0);const g=c.createLinearGradient(0,0,0,SH);g.addColorStop(0,'#08122b');g.addColorStop(1,'#12305e');c.fillStyle=g;c.fillRect(0,0,S,SH);
   stars.forEach(t=>{c.globalAlpha=.25+.5*Math.abs(Math.sin(now/900+t.p));c.fillStyle='#fff';c.fillRect(t.x,t.y,t.r,t.r);});c.globalAlpha=1;
@@ -146,84 +93,88 @@ function drawTrip(now,s){
   for(let la=80;la>=40;la-=10){c.beginPath();c.arc(cx0,cy0,(90-la)/(90-LATMIN)*R,0,7);c.stroke();}
   for(let lo=0;lo<360;lo+=15){const a=lo*Math.PI/180;c.beginPath();c.moveTo(cx0,cy0);c.lineTo(cx0+R*Math.sin(a),cy0+R*Math.cos(a));c.stroke();}
   LAND.forEach(poly=>{c.beginPath();poly.forEach((q,i)=>{const w=pr(q[1],q[0]);i?c.lineTo(w[0],w[1]):c.moveTo(w[0],w[1]);});c.closePath();c.fillStyle='rgba(205,232,255,.18)';c.fill();c.strokeStyle='rgba(225,242,255,.5)';c.lineWidth=1.5/z;c.stroke();});
-  const pts=ST.map(q=>pr(q.lat,q.lon));
-  c.setLineDash([4/z,12/z]);c.lineCap='round';c.strokeStyle='rgba(255,255,255,.45)';c.lineWidth=3/z;c.beginPath();pts.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.stroke();c.setLineDash([]);
-  const reached=s.ph==='wait'?0:s.n;
-  if(s.ph==='trip'){const tr=pts.slice(0,s.mv?s.i:s.i+1);tr.push(p);const tg=c.createLinearGradient(tr[0][0],tr[0][1],p[0],p[1]);tg.addColorStop(0,'rgba(125,255,208,.15)');tg.addColorStop(1,'rgba(125,255,208,1)');c.strokeStyle=tg;c.lineWidth=6/z;c.shadowColor='#7dffd0';c.shadowBlur=16;c.beginPath();tr.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.stroke();c.shadowBlur=0;}
-  ST.forEach((q,i)=>{const w=pts[i],ok=i<reached||(s.ph==='trip'&&!s.mv&&i===s.i);c.fillStyle=ok?'#ffd27a':'rgba(255,255,255,.65)';c.beginPath();c.arc(w[0],w[1],(i===0||i===6?7:5)/Math.pow(z,.6),0,7);c.fill();c.font='700 '+fs(19);c.fillStyle=ok?'#ffe9b8':'rgba(214,236,255,.75)';c.textAlign=i%2?'left':'right';c.fillText((i===6?'🏠 ':'')+q.n,w[0]+(i%2?14:-14)/Math.pow(z,.6),w[1]+6/z);});c.textAlign='left';
+  const RN=T.RN,pts=RN.map(q=>pr(q.lat,q.lon));
+  c.setLineDash([4/z,12/z]);c.lineCap='round';c.strokeStyle='rgba(255,255,255,.4)';c.lineWidth=3/z;c.beginPath();pts.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.stroke();c.setLineDash([]);
+  let reach=new Set();
+  if(trip){const rp=s.R.map(q=>pr(q.lat,q.lon)),tr=rp.slice(0,s.mv?s.i:s.i+1);tr.push(p);s.R.slice(0,s.mv?s.i:s.i+1).forEach(q=>reach.add(q.n));
+    c.strokeStyle='rgba(125,255,208,.95)';c.lineWidth=6/z;c.shadowColor='#7dffd0';c.shadowBlur=16;c.beginPath();tr.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.stroke();c.shadowBlur=0;}
+  RN.forEach((q,i)=>{const w=pts[i],ok=reach.has(q.n)||(!trip&&((s.place==='vk'&&i===6)||(s.place!=='vk'&&i===0)));c.fillStyle=ok?'#ffd27a':'rgba(255,255,255,.65)';c.beginPath();c.arc(w[0],w[1],(i===0||i===6?7:5)/Math.pow(z,.6),0,7);c.fill();c.font='700 '+fs(19);c.fillStyle=ok?'#ffe9b8':'rgba(214,236,255,.75)';c.textAlign=i%2?'left':'right';c.fillText((i===6?'🏠 ':'')+q.n,w[0]+(i%2?14:-14)/Math.pow(z,.6),w[1]+6/z);});c.textAlign='left';
   const pu=(Math.sin(now/260)+1)/2;
-  if(s.ph!=='trip'&&s.ph!=='wait'){}
-  const q=s.ph==='wait'?pts[0]:p;c.fillStyle='rgba(255,210,122,'+(.18+.1*pu)+')';c.beginPath();c.arc(q[0],q[1],(22+pu*10)/Math.pow(z,.6),0,7);c.fill();
-  c.fillStyle='#ffd27a';c.beginPath();c.arc(q[0],q[1],9/Math.pow(z,.6),0,7);c.fill();c.strokeStyle='#fff';c.lineWidth=3/z;c.stroke();
-  c.font=fs(34);c.fillText(s.ph==='trip'&&s.mv?'🛷':s.ph==='trip'?'🚐':s.ph==='home'?'🏠':'⛺',q[0]+14/Math.pow(z,.6),q[1]-12/Math.pow(z,.6));
+  c.fillStyle='rgba(255,210,122,'+(.18+.1*pu)+')';c.beginPath();c.arc(p[0],p[1],(22+pu*10)/Math.pow(z,.6),0,7);c.fill();
+  c.fillStyle='#ffd27a';c.beginPath();c.arc(p[0],p[1],9/Math.pow(z,.6),0,7);c.fill();c.strokeStyle='#fff';c.lineWidth=3/z;c.stroke();
+  c.font=fs(34);c.fillText(trip?(s.mv?'🛷':'☕'):s.f==='sleep'?'💤':s.place==='vk'?'🚪':'🏡',p[0]+14/Math.pow(z,.6),p[1]-12/Math.pow(z,.6));
   c.restore();
 }
-/* ---- Zeichnen: Dorf ---- */
-function drawVillage(now,v,z0){
-  const hr=+z0.hour+ +z0.minute/60,dn=Math.max(0,Math.min(1,Math.sin((hr-7.5)/9.5*Math.PI)*1.8)),night=1-dn;
-  c.setTransform(1,0,0,1,0,0);
-  const g=c.createLinearGradient(0,0,0,SH);g.addColorStop(0,rgb(mix([10,20,48],[170,205,240],dn)));g.addColorStop(.35,rgb(mix([18,36,76],[225,238,250],dn)));g.addColorStop(1,rgb(mix([22,44,88],[240,247,255],dn)));c.fillStyle=g;c.fillRect(0,0,S,SH);
-  stars.forEach(t=>{c.globalAlpha=night*(.3+.5*Math.abs(Math.sin(now/900+t.p)));c.fillStyle='#fff';c.fillRect(t.x,t.y*.4,t.r,t.r);});c.globalAlpha=1;
-  const sa=((hr-7.5)/9.5)*Math.PI,sx=90+Math.max(0,Math.min(1,(hr-7)/10.5))*720,sy=170-Math.sin(Math.max(0,Math.min(Math.PI,sa)))*110;
-  c.fillStyle=dn>.05?'rgba(255,225,130,'+Math.min(1,dn+.2)+')':'rgba(240,244,255,.95)';c.beginPath();c.arc(dn>.05?sx:760,dn>.05?sy:130,34,0,7);c.fill();
-  /* Boden */
-  c.fillStyle=rgb(mix([40,70,120],[250,252,255],dn));c.beginPath();c.moveTo(0,230);c.bezierCurveTo(250,190,600,260,900,215);c.lineTo(900,SH);c.lineTo(0,SH);c.fill();
-  c.strokeStyle='rgba(120,180,230,.55)';c.lineWidth=26;c.beginPath();c.moveTo(-10,880);c.bezierCurveTo(250,830,520,930,910,860);c.stroke();c.strokeStyle='rgba(235,245,255,.35)';c.lineWidth=3;c.stroke();
-  /* Wege */
-  c.lineCap='round';c.lineJoin='round';Object.values(PATH).forEach(pts=>{c.strokeStyle=rgb(mix([60,80,120],[205,215,230],dn));c.lineWidth=22;c.beginPath();pts.forEach((q,i)=>i?c.lineTo(q[0],q[1]):c.moveTo(q[0],q[1]));c.stroke();c.strokeStyle=rgb(mix([90,110,150],[238,243,250],dn));c.lineWidth=14;c.stroke();});
-  const win=night>.35?'#ffd27a':'#9fc4e8';
-  const house=(x,y,w,h,col,roof,lab)=>{c.fillStyle='rgba(0,0,0,.22)';c.fillRect(x-w/2+8,y+h-4,w,10);c.fillStyle=col;c.fillRect(x-w/2,y,w,h);c.fillStyle='#f4f7ff';c.beginPath();c.moveTo(x-w/2-12,y+4);c.lineTo(x,y-h*.55);c.lineTo(x+w/2+12,y+4);c.closePath();c.fill();c.fillStyle=roof;c.beginPath();c.moveTo(x-w/2-12,y+4);c.lineTo(x,y-h*.55);c.lineTo(x+w/2+12,y+4);c.lineTo(x+w/2+12,y+14);c.lineTo(x,y-h*.55+10);c.lineTo(x-w/2-12,y+14);c.closePath();c.fill();c.fillStyle=win;for(let i=0;i<2;i++)c.fillRect(x-w/2+14+i*(w-48),y+16,24,22);c.fillStyle='#5b3b24';c.fillRect(x-11,y+h-34,22,34);
-    c.font='700 21px system-ui,sans-serif';c.fillStyle=dn>.4?'#17305a':'#e9f3ff';c.textAlign='center';c.fillText(lab,x,y+h+30);c.textAlign='left';};
-  /* Wald */
-  const fr=rng(7);for(let i=0;i<26;i++){const x=110+fr()*260,y=740+fr()*210,s=26+fr()*26;c.fillStyle='rgba(0,0,0,.18)';c.beginPath();c.ellipse(x,y+s*1.1,s*.5,s*.2,0,0,7);c.fill();for(let k=0;k<3;k++){c.fillStyle=rgb(mix([20,60,60],[38,120,90],dn));c.beginPath();c.moveTo(x-s*(.6-k*.12),y+s*(.9-k*.5));c.lineTo(x,y-s*(.3+k*.5)+s*.2);c.lineTo(x+s*(.6-k*.12),y+s*(.9-k*.5));c.fill();c.fillStyle='rgba(255,255,255,.9)';c.beginPath();c.moveTo(x-s*(.3-k*.06),y+s*(.15-k*.5)+s*.25);c.lineTo(x,y-s*(.3+k*.5)+s*.2);c.lineTo(x+s*(.3-k*.06),y+s*(.15-k*.5)+s*.25);c.fill();}}
-  c.font='700 21px system-ui,sans-serif';c.fillStyle=dn>.4?'#17305a':'#e9f3ff';c.fillText('Wald',230,985);
-  house(700,300,120,80,'#c8553d','#7b2a22','Laden');c.fillStyle='#e0383e';for(let i=0;i<6;i++){if(i%2==0)c.fillRect(640+i*20,326,20,12);}
-  house(200,330,170,95,'#d9b36a','#5d3a2c','Schulhaus');c.fillStyle='#5d3a2c';c.fillRect(196,215,6,40);c.fillStyle='#e0383e';c.fillRect(202,217,26,14);
-  house(440,540,150,100,'#6c8fc9','#8a2a30',v.pre?'Wichtelhaus':'Zuhause');
-  c.fillStyle='#7b8190';c.fillRect(470,452,16,34);
-  for(let i=0;i<5;i++){const t=((now/2200+i/5)%1);c.fillStyle='rgba(235,240,255,'+(.55*(1-t))+')';c.beginPath();c.arc(478+Math.sin(t*6+i)*10,446-t*80,8+t*14,0,7);c.fill();}
-  /* Schneemann */
-  c.fillStyle='#fff';c.beginPath();c.arc(560,610,18,0,7);c.arc(560,586,13,0,7);c.arc(560,568,9,0,7);c.fill();c.fillStyle='#e0722a';c.fillRect(560,566,14,3);c.fillStyle='#222';c.fillRect(556,564,2,2);c.fillRect(562,564,2,2);
-  /* Laternen */
-  [[360,640],[560,700],[690,440],[260,560]].forEach(l=>{c.fillStyle='#454b5c';c.fillRect(l[0]-2,l[1]-40,4,40);if(night>.3){const gr=c.createRadialGradient(l[0],l[1]-42,2,l[0],l[1]-42,70);gr.addColorStop(0,'rgba(255,214,130,'+night*.7+')');gr.addColorStop(1,'rgba(255,214,130,0)');c.fillStyle=gr;c.fillRect(l[0]-70,l[1]-112,140,140);}c.fillStyle='#ffe29a';c.beginPath();c.arc(l[0],l[1]-42,5,0,7);c.fill();});
-  /* Lasse */
-  const L0=lasseAt(v);
-  if(v.mv){const pts=PATH[v.p];for(let k=1;k<=6;k++){const f=v.dir>0?v.f-k*.05:1-(v.f-k*.05);const w=along(pts,Math.max(0,f));c.fillStyle='rgba(60,80,120,'+(.5-k*.07)+')';c.beginPath();c.ellipse(w[0]+(k%2?5:-5),w[1]+14,5,3,0,0,7);c.fill();}}
-  const bob=v.mv?Math.sin(now/90)*3:0,x=L0[0],y=L0[1]-6+bob;
-  c.fillStyle='rgba(0,0,0,.25)';c.beginPath();c.ellipse(x,y+30,16,5,0,0,7);c.fill();
-  c.fillStyle='#f2c9a0';c.beginPath();c.arc(x,y+6,11,0,7);c.fill();c.fillStyle='#e0383e';c.beginPath();c.moveTo(x-14,y+2);c.lineTo(x+4,y-34);c.lineTo(x+14,y+2);c.closePath();c.fill();c.fillStyle='#fff';c.beginPath();c.arc(x+4,y-35,6,0,7);c.fill();c.fillRect(x-15,y,30,5);c.fillStyle='#223';c.fillRect(x-4,y+5,2,3);c.fillRect(x+3,y+5,2,3);c.fillStyle='#2a5fa8';c.fillRect(x-9,y+17,18,14);
-  /* Sprechblase */
-  const txt='Lasse '+v.t;c.font='600 18px system-ui,sans-serif';const wds=txt.split(' ');const lines=[];let cur='';wds.forEach(w=>{if(c.measureText(cur+' '+w).width>270&&cur){lines.push(cur);cur=w;}else cur=cur?cur+' '+w:w;});lines.push(cur);
-  const bw=Math.max(...lines.map(l=>c.measureText(l).width))+28,bh=lines.length*24+18;let bx=Math.max(10,Math.min(S-bw-10,x-bw/2)),by=Math.max(10,y-bh-52);
-  c.fillStyle='rgba(8,18,43,.9)';c.strokeStyle='rgba(125,255,208,.7)';c.lineWidth=2;c.beginPath();c.roundRect(bx,by,bw,bh,14);c.fill();c.stroke();c.beginPath();c.moveTo(x-8,by+bh);c.lineTo(x,by+bh+14);c.lineTo(x+8,by+bh);c.fillStyle='rgba(8,18,43,.9)';c.fill();
-  c.fillStyle='#fff';lines.forEach((l,i)=>c.fillText(l,bx+14,by+27+i*24));
-  /* Schnee */
-  c.fillStyle='rgba(255,255,255,.85)';flakes.forEach(f=>{const yy=(f.y+now/1000*f.v)%SH,xx=f.x+Math.sin(now/1500+f.p)*18;c.beginPath();c.arc(xx,yy,f.r,0,7);c.fill();});
-  if(night>.3){c.fillStyle='rgba(6,12,32,'+night*.28+')';c.fillRect(0,0,S,SH);}
+
+/* ---------- Globus ---------- */
+const gc={lat:20,lon:20,r:380};const RAD=Math.PI/180;
+function proj(lat,lon){const la=lat*RAD,lo=(lon-gc.lon)*RAD,l0=gc.lat*RAD;
+  const cosc=Math.sin(l0)*Math.sin(la)+Math.cos(l0)*Math.cos(la)*Math.cos(lo);
+  let x=Math.cos(la)*Math.sin(lo),y=Math.cos(l0)*Math.sin(la)-Math.sin(l0)*Math.cos(la)*Math.cos(lo);
+  if(cosc<0){const n=Math.hypot(x,y)||1;x/=n;y/=n;}
+  return [S/2+x*gc.r,SH/2-y*gc.r,cosc>=0];}
+function routeLine(Rt,upto){const o=[];for(let i=1;i<Rt.length;i++){if(upto!=null&&i>upto)break;const A=Rt[i-1],B=Rt[i];for(let k=0;k<=24;k++){const f=k/24;o.push([A.lat+(B.lat-A.lat)*f,A.lon+(B.lon-A.lon)*f]);}}return o;}
+function strokePts(pts){let pen=false;c.beginPath();pts.forEach(q=>{const w=proj(q[0],q[1]);if(!w[2]){pen=false;return;}pen?c.lineTo(w[0],w[1]):c.moveTo(w[0],w[1]);pen=true;});c.stroke();}
+function drawGlobe(now,s){
+  let tl,tn;
+  if(s.ph==='trip'){tl=Math.max(-62,Math.min(55,s.lat));tn=s.lon;}else{tl=-62;tn=(now/1000*3)%360;}
+  const dl=((tn-gc.lon+540)%360)-180;gc.lon+=s.ph==='trip'?dl*.05:dl;gc.lat+=(tl-gc.lat)*.05;
+  c.setTransform(1,0,0,1,0,0);c.fillStyle='#050a1a';c.fillRect(0,0,S,SH);
+  stars.forEach(t=>{c.globalAlpha=.25+.5*Math.abs(Math.sin(now/900+t.p));c.fillStyle='#fff';c.fillRect(t.x,t.y,t.r,t.r);});c.globalAlpha=1;
+  const halo=c.createRadialGradient(S/2,SH/2,gc.r*.9,S/2,SH/2,gc.r*1.18);halo.addColorStop(0,'rgba(120,190,255,.35)');halo.addColorStop(1,'rgba(120,190,255,0)');c.fillStyle=halo;c.beginPath();c.arc(S/2,SH/2,gc.r*1.18,0,7);c.fill();
+  const og=c.createRadialGradient(S/2-gc.r*.35,SH/2-gc.r*.4,gc.r*.1,S/2,SH/2,gc.r);og.addColorStop(0,'#2f6fb3');og.addColorStop(1,'#0b2550');c.fillStyle=og;c.beginPath();c.arc(S/2,SH/2,gc.r,0,7);c.fill();
+  c.save();c.beginPath();c.arc(S/2,SH/2,gc.r,0,7);c.clip();
+  c.strokeStyle='rgba(180,220,255,.14)';c.lineWidth=1;
+  for(let la=-80;la<=80;la+=20){const p=[];for(let lo=-180;lo<=180;lo+=5)p.push([la,lo]);strokePts(p);}
+  for(let lo=-180;lo<180;lo+=30){const p=[];for(let la=-90;la<=90;la+=5)p.push([la,lo]);strokePts(p);}
+  [...LAND.map(p=>p.map(q=>[q[0],q[1]])),...LAND2].forEach((poly,pi)=>{const ws=poly.map(q=>proj(q[1],q[0]));if(!ws.some(w=>w[2]))return;c.beginPath();ws.forEach((w,i)=>i?c.lineTo(w[0],w[1]):c.moveTo(w[0],w[1]));c.closePath();c.fillStyle=pi===LAND.length+7?'rgba(245,250,255,.92)':'rgba(205,232,255,.33)';c.fill();c.strokeStyle='rgba(235,245,255,.6)';c.lineWidth=1.3;c.stroke();});
+  const shade=c.createRadialGradient(S/2-gc.r*.4,SH/2-gc.r*.45,gc.r*.2,S/2,SH/2,gc.r*1.02);shade.addColorStop(0,'rgba(255,255,255,.08)');shade.addColorStop(.7,'rgba(0,0,0,0)');shade.addColorStop(1,'rgba(0,0,20,.45)');c.fillStyle=shade;c.fillRect(0,0,S,SH);
+  const Rt=s.ph==='trip'?s.R:T.RS;
+  c.setLineDash([3,9]);c.strokeStyle='rgba(255,255,255,.55)';c.lineWidth=2.5;strokePts(routeLine(Rt));c.setLineDash([]);
+  if(s.ph==='trip'){const done=routeLine(Rt,s.mv?s.i-1:s.i);done.push([s.lat,s.lon]);c.strokeStyle='rgba(125,255,208,.95)';c.lineWidth=5;c.shadowColor='#7dffd0';c.shadowBlur=14;strokePts(done);c.shadowBlur=0;}
+  c.font='700 17px system-ui,sans-serif';
+  Rt.forEach((q,i)=>{const w=proj(q.lat,q.lon);if(!w[2])return;const ok=s.ph!=='trip'||i<(s.mv?s.i:s.i+1);c.fillStyle=ok?'#ffd27a':'rgba(255,255,255,.75)';c.beginPath();c.arc(w[0],w[1],5,0,7);c.fill();c.fillStyle=ok?'#ffe9b8':'rgba(225,240,255,.85)';c.fillText(q.n,w[0]+9,w[1]-7);});
+  const w=proj(s.lat,s.lon);if(w[2]){const pu=(Math.sin(now/260)+1)/2;c.fillStyle='rgba(255,210,122,'+(.2+.12*pu)+')';c.beginPath();c.arc(w[0],w[1],20+pu*9,0,7);c.fill();c.fillStyle='#ffd27a';c.beginPath();c.arc(w[0],w[1],8,0,7);c.fill();c.strokeStyle='#fff';c.lineWidth=3;c.stroke();
+    c.font='32px system-ui,sans-serif';c.fillText(s.ph==='trip'?(s.veh==='Pinguin-Express'?'🐧':s.mv?'🛷':'☕'):s.f==='sleep'?'💤':'🧊',w[0]+12,w[1]-12);}
+  c.restore();
 }
-let last=0,sig='',cur='';
+
+/* ---------- HUD ---------- */
+let wx=null,wxPlace='',wxBusy=false;
+async function loadWx(place){if(wxBusy||!place)return;wxBusy=true;const d=await T.weather(place);wxBusy=false;if(d){wx=d;wxPlace=place;}}
+function label(s){
+  if(s.ph==='trip')return s.mv?'Unterwegs nach '+s.to:'Pause in '+s.at;
+  if(s.f==='sleep')return s.place==='vk'?'Schläft hinter der Wichteltür':'Schläft';
+  if(s.ph==='vk')return s.f==='surp'?'Psst … geheime Mission':'Wach, alle anderen schlafen';
+  if(s.ph==='hol')return 'Weihnachtsferien am Nordpol';
+  if(s.ph==='sp')return 'Ferien am Südpol';
+  if(s.f==='l')return 'In der Wichtel-Akademie';
+  return s.w;}
+function place(s){
+  if(s.ph==='trip')return s.mv?region(s.lat,s.lon)+' ('+s.veh+')':s.at;
+  if(s.place==='vk')return s.w==='Volketswil'?'Volketswil, Schweiz':s.w+', Volketswil';
+  if(s.place==='sp')return s.w+', Antarktis';
+  return s.w+', Wichteldorf (Nordpol)';}
+let last=0;
 function tick(now){
-  const s=state(),z0=zp();let v=null;const pre=s.ph==='wait';
-  drawTrip(now,s);if(s.ph!=='trip')v=village(z0,pre);
-  if(now-last>250){last=now;
-    let st,o,lat,lon,sp,bt,cls,hh='—',feed='',dn='';
-    if(s.ph==='trip'){st=s.s;o=s.o;lat=s.lat;lon=s.lon;sp=s.sp;bt=s.mv?'Live unterwegs':'Pause';cls='badge';dn='Lasse '+s.d;
-      feed=ST.slice(0,s.n).reverse().map(q=>'<p>'+q.m+'</p>').join('');}
-    else{const O=pre?OUTP:OUTV,pl=pre?'Wichteldorf, Nordpol':'Volketswil, Schweiz';
-      st=pre?(v.p==='home'?'Im Wichteldorf':v.mv?'Unterwegs im Dorf':O[v.p].w):(v.p==='home'?'Zu Hause':v.mv?'Unterwegs im Dorf':O[v.p].w);
-      o=v.p==='home'?(pre?'Wichtelhaus, Wichteldorf':'Zu Hause, Volketswil'):(v.mv?'Auf dem Weg, ':'')+O[v.p].w+(pre?', Wichteldorf':', Volketswil');
-      lat=pre?90:47.39;lon=8.69;sp=v.mv?4:0;bt=pre?'Live im Wichteldorf':'Live im Dorf';cls='badge'+(pre?' wait':'');
-      const d=done(z0,pre);hh=d.length?d.join(' '):'—';dn='Lasse '+v.t;
-      feed=dayLog(z0,pre).slice().reverse().slice(0,12).map((e,i)=>'<p><time>'+e.tm+'</time>Lasse '+e.t+'.</p>').join('');}
-    $('#badge').className=cls;$('#bt').textContent=bt;$('#hs').textContent=st;$('#ho').textContent=o;$('#hd').textContent=dn;
-    $('#hlat').textContent=dm(lat,'N','S');$('#hlon').textContent=pre?'—':dm(lon,'E','W');
-    $('#hv').textContent=Math.round(sp).toLocaleString('de-CH').replace(/’/g,"'")+' km/h';$('#hh').textContent=hh;
-    
-  }
+  const ms=L.now();let s=T.now(ms);
+  if(!s)s={ph:'np',lat:90,lon:15.63,t:'…',w:'Wichteldorf',place:'np'};
+  const pl=s.ph==='trip'?'':s.place;if(pl&&(pl!==wxPlace)&&!wxBusy)loadWx(pl);
+  const sw=s.ph!=='trip'&&wx&&wxPlace===s.place?T.adjust(s,wx):s;
+  const globe=(s.ph==='trip'&&(s.trip==='s'||s.trip==='b'))||s.ph==='sp';
+  globe?drawGlobe(now,s):drawNorth(now,s);
+  if(now-last>300){last=now;
+    $('#hd').textContent='Lasse '+sw.t;$('#hs').textContent=label(sw);$('#ho').textContent=place(sw);
+    $('#hlat').textContent=dm(s.lat,'N','S');$('#hlon').textContent=dm(s.lon,'E','W');
+    $('#hv').textContent=Math.round(s.sp||0).toLocaleString('de-CH').replace(/’/g,"'")+' km/h';
+    $('#hw').textContent=s.ph==='trip'?'Unterwegs, kein Wetterbericht':(wx&&wxPlace===s.place?Math.round(wx.temp)+' °C, '+wx.txt+' · '+wx.n:'wird geladen …');
+    const day=T.dayStr(ms),F=T.food(day);$('#hf').textContent=s.ph==='trip'?'Proviant aus der Thermoskanne':F.zn;
+    $('#badge').className='badge'+(s.ph==='trip'?'':' wait');
+    $('#bt').textContent=s.ph==='trip'?(s.mv?'Live unterwegs':'Pause'):s.place==='vk'?'Live in Volketswil':s.place==='sp'?'Live am Südpol':'Live im Wichteldorf';}
   requestAnimationFrame(tick);
 }
+setInterval(()=>{wxPlace='';},15*60000);
 requestAnimationFrame(tick);
-
 })();
 </script>
 </body>
