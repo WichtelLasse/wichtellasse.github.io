@@ -12,6 +12,7 @@
 <meta property="og:image" content="https://images.unsplash.com/photo-1520084848344-f4c32b3f7b51?w=1200&q=75&auto=format&fit=crop">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%85%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="style.css">
+<style>.entry .post{background:rgba(255,210,122,.1);border-left:3px solid #ffd27a;padding:6px 10px;border-radius:6px}</style>
 </head>
 <body>
 <canvas id="sky" aria-hidden="true"></canvas>
@@ -58,7 +59,7 @@ const E2=[
 {d:"2026-11-24",t:"Wie Menschenkinder feiern",b:"In Menschenkunde haben wir gelernt, wie Menschenkinder Weihnachten feiern: mit Baum, Liedern, Guetzli und ganz viel Vorfreude. Ich habe die ganze Stunde an Volketswil gedacht. Am Nachmittag war Orientierungslauf im Dunkeln. Hier ist es ja immer dunkel, also war es einfach ein Orientierungslauf. Ich habe alle Posten gefunden. Auf dem Rückweg dann das Schulhaus nicht mehr."},
 {d:"2026-11-25",t:"Kurt",b:"Am freien Nachmittag habe ich meine Familie am anderen Ende vom Dorf besucht. Meine kleine Schwester Pia wollte wissen, ob Menschenkinder auch Mützen tragen. Ich habe gesagt: ja, aber nicht immer spitze. Danach habe ich die Eiszapfen am Dach gemessen. Der längste ist so lang wie ich. Ich habe ihn Kurt getauft. Am Abend hat Oma Flocke erzählt, wie das Wichtelmobil früher noch von Rentieren gezogen wurde."},
 {d:"2026-11-26",t:"Rückwärts",b:"Frau Pergament hat erzählt, wie das Wichtelmobil erfunden wurde. Ein Wichtel namens Ole wollte schneller beim Bäcker sein. Mehr steckt nicht dahinter. Danach haben wir rückwärts schleichen geübt. Ich bin rückwärts in Tobi geschlichen, und Tobi ist rückwärts in den Papierkorb geschlichen. In Kufen-Technik sagte Herr Kufenbrecht, ich lege mich zu früh in die Kurve. Stimmt. Ich lege mich gern früh hin."},
-{d:"2026-11-27",t:"Der Glücksknopf",b:"Mein letzter Akademie-Tag vor der Abreise. In Tarnen und Verstecken mussten wir so stillhalten wie eine Weihnachtskugel. Malin hat es eine ganze Stunde geschafft, ich nur bis zum Moment, als mir die Nase gejuckt hat. Frau Eisbeere hat mir Fernaufgaben mitgegeben, damit ich in der Schweiz nichts verlerne. Und Ida hat mir zum Abschied einen Glücksknopf geschenkt. Er steckt jetzt in meiner Manteltasche."},
+{d:"2026-11-27",t:"Der Glücksknopf",b:"Mein letzter Akademie-Tag vor der Abreise. In Tarnen und Verstecken mussten wir so stillhalten wie eine Weihnachtskugel. Malin hat es eine ganze Stunde geschafft, ich nur bis die Nase gejuckt hat. Frau Eisbeere hat mir Fernaufgaben mitgegeben. Ida hat mir zum Abschied einen Glücksknopf geschenkt. Und es gab das Zwischenzeugnis! Eine 6 in Rentierkunde, eine 4 in Lebkuchen-Chemie. Den Rest könnt ihr auf meiner Zeugnis-Seite nachschauen."},
 {d:"2026-11-28",t:"Blitz",b:"Zum letzten Mal Rentiere füttern vor der Reise. Das kleinste Rentier heisst Blitz, ist aber das langsamste von allen. Es hat mir in die Mütze geschnaubt. Ich nehme das als Abschiedsgruss. Am Nachmittag war Chorprobe, wir haben «Leise rieselt der Schnee» geübt, und ich habe ausnahmsweise leise gesungen. Mit Franz habe ich am Funkgerät die Route noch einmal durchgesprochen."},
 {d:"2026-11-29",t:"Erster Advent, letzter Abend",b:"Die erste Kerze hat gebrannt, und der Koffer ging zu, nachdem ich mich draufgesetzt habe. Ich habe mich von Ida, Tobi, Malin und Jari verabschiedet. Tobi hat gesagt, er werde mich überhaupt nicht vermissen, und dann lange auf seine Schuhe geschaut. Oma Flocke hat jetzt meinen Hausschlüssel. Beim Abschiedsessen gab es Milchreis, und um Mitternacht ist das Wichtelmobil losgefahren."},
 {d:"2026-11-30",t:"Angekommen!",b:"Um drei Uhr in der Nacht hat das Wichtelmobil ganz leise angehalten. Ich bin ins Haus geschlichen, aussen an der Wand entlang, wie ich es gelernt habe. Dann habe ich zum ersten Mal meine Wichteltür geöffnet. Mein Platz ist bereit, und er ist noch schöner, als ich gedacht habe. Ich habe einen winzigen Zettel an die Tür gehängt. Jetzt schlafe ich. Wichtel schlafen tagsüber, das ist so."},
@@ -147,6 +148,14 @@ function gen(d){const P=T.dayPlan(d),F=T.food(d),h=T.hsh(d);
   const a=pickN(act,3);if(a.length)b+=a.map(ich).join(' ')+' ';
   b+='Zum Znacht gab es '+F.zn+(F.milch?'. Mein Lieblingsessen!':'.');
   return {d,t:les.length?TIT[0]:TIT[1+h%(TIT.length-1)],b:b.replace(/: ([a-zäöü])/g,(m,c)=>': '+c)};}
+
+/* Post von meinem Brieffreund (nur Datum/Uhrzeit, kein Inhalt) */
+const PL={np:['Und dann das Schönste heute: Post von meinem Brieffreund! Ich habe den Brief gleich zweimal gelesen.','Franz hat mir eine Mail ausgedruckt. Von meinem Brieffreund! Ich habe vor Freude einen kleinen Hüpfer gemacht.','Heute kam wieder Post von meinem Brieffreund. Ich habe sie unter mein Kopfkissen gelegt, damit ich sicher nichts vergesse.','Eine Mail von meinem Brieffreund! Ich habe sofort angefangen, über meine Antwort nachzudenken.'],
+ vk:['Als ich um ein Uhr aufgewacht bin, war Post da, von meinem Brieffreund! Damit war die Nacht schon gerettet.','Heute Nacht habe ich zuerst meine Post gelesen. Mein Brieffreund hat geschrieben, und ich habe hinter meiner Tür leise gekichert.','Mein Brieffreund hat mir geschrieben! Ich habe die Mail im Schein meiner Taschenlampe gelesen.'],
+ hol:['Sogar in den Weihnachtsferien kam Post von meinem Brieffreund. Pia wollte wissen, wer mir so oft schreibt.','Eine Mail von meinem Brieffreund! Ich habe sie der ganzen Familie vorgelesen, nur die harmlosen Stellen.'],
+ sp:['Sogar bis zum Südpol hat es eine Mail von meinem Brieffreund geschafft. Die Forscher haben gestaunt.','Post von meinem Brieffreund! Ich habe sie den Pinguinen gezeigt. Pingo fand sie sehr spannend.','Franz hat mir eine Mail an die Station weitergeleitet. Von meinem Brieffreund! Mein Tag war gerettet.']};
+const RL='Und das Beste: Mein Rätsel wurde geknackt! Jemand hat «ein Handtuch» geschrieben. Richtig! Das hat nicht mal Tobi geschafft.';
+let POST={post:[],raetsel:null};
 const LAST=E2[E2.length-1].d;
 const zp=T.zParts(L.now()),today=zp.year+'-'+zp.month+'-'+zp.day,hour=+zp.hour;
 const add=(d,n)=>new Date(Date.parse(d+'T12:00:00Z')+n*864e5).toISOString().slice(0,10);
@@ -156,19 +165,27 @@ for(let d=add(LAST,1);d<=today;d=add(d,1))E.push(gen(d));
    (Lasse schreibt abends). In Volketswil schreibt er nachts, dann gleich am selben Morgen. */
 const pub=e=>{if(e.d<='2026-11-12')return e.d;const ph=T.dayPlan(e.d).ph;return (ph==='vk')?e.d:add(e.d,1);};
 const shown=e=>{const p=pub(e);return p<today||(p===today&&hour>=9);};
+const pubMs=e=>Date.parse(pub(e)+'T08:00:00Z');
+function addPost(list){list.forEach((e,i)=>{const prev=i>0?pubMs(list[i-1]):0,cur=pubMs(e);
+  const n=(POST.post||[]).filter(t=>{const m=Date.parse(t);return m>prev&&m<=cur&&e.d>='2026-11-13';}).length;
+  if(n){const ph=T.dayPlan(e.d).ph;const L2=PL[ph]||PL.np;e.b2=(n>1?'Gleich '+n+' Mails von meinem Brieffreund heute! ':'')+L2[T.hsh(e.d+'p')%L2.length];}
+  if(POST.raetsel){const m=Date.parse(POST.raetsel);if(m>prev&&m<=cur)e.b3=RL;}});}
 const vis=E.filter(shown).reverse();
 const mon=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 function fd(s){const [y,m,d]=s.split('-').map(Number);return d+'. '+mon[m-1]+' '+y;}
-$('#diary').innerHTML=vis.map((e,i)=>`<article class="entry reveal ${i===0?'new':''}"><div class="dt">${fd(e.d)}${i===0?' · neu':''}</div><h3>${e.t}</h3><p>${e.b}</p><p class="wx" data-d="${e.d}" style="opacity:.7;font-size:.9em;margin-top:6px"></p></article>`).join('');
+function render(){addPost(E);
+$('#diary').innerHTML=vis.map((e,i)=>`<article class="entry reveal ${i===0?'new':''}"><div class="dt">${fd(e.d)}${i===0?' · neu':''}</div><h3>${e.t}</h3><p>${e.b}</p>${e.b2?'<p class="post">✉️ '+e.b2+'</p>':''}${e.b3?'<p class="post">🧩 '+e.b3+'</p>':''}<p class="wx" data-d="${e.d}" style="opacity:.7;font-size:.9em;margin-top:6px"></p></article>`).join('');
+$$('.entry').forEach(el=>requestAnimationFrame(()=>el.classList.add('in')));}
+render();fetch('post.json?'+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{if(j){POST=j;render();loadWx();}}).catch(()=>{});
 const nx=E.find(e=>!shown(e));
 const nd=nx?pub(nx):add(today,hour>=9?1:0);
 $('#dhint').textContent='Der nächste Eintrag erscheint am '+fd(nd)+' um 9 Uhr.';
 $('#dhint').insertAdjacentHTML('afterend','<p class="hint" style="margin-top:6px"><a class="l" href="live.html" style="text-decoration:underline">Was macht Lasse gerade? Zur Live-Karte →</a></p>');
 $$('.entry').forEach(el=>requestAnimationFrame(()=>el.classList.add('in')));
 /* echtes Wetter vom Tag */
-(async()=>{const need={};$$('.wx').forEach(el=>{const d=el.dataset.d;if(d<'2026-11-13')return;const pl=T.placeOfDay(d);(need[pl]=need[pl]||[]).push(el);});
+const loadWx=async()=>{const need={};$$('.wx').forEach(el=>{const d=el.dataset.d;if(d<'2026-11-13')return;const pl=T.placeOfDay(d);(need[pl]=need[pl]||[]).push(el);});
   for(const pl in need){const w=await T.weather(pl);if(!w)continue;need[pl].forEach(el=>{const x=w.daily[el.dataset.d];if(!x)return;
-    el.textContent='Wetter an dem Tag in '+w.n+': '+Math.round(x.min)+' bis '+Math.round(x.max)+' °C, '+T.wxText(x.code,x.wind,x.max)+'.';});}})();
+    el.textContent='Wetter an dem Tag in '+w.n+': '+Math.round(x.min)+' bis '+Math.round(x.max)+' °C, '+T.wxText(x.code,x.wind,x.max)+'.';});}};loadWx();
 })();
 </script>
 </body>

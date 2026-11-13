@@ -32,6 +32,7 @@
       <div class="hud">
         <div class="m" style="grid-column:1/-1"><small>Lasse macht gerade</small><b id="hd" style="font-size:1.15rem;font-family:inherit;line-height:1.35">…</b></div>
         <div class="m"><small>Status</small><b id="hs" style="font-size:1.05rem">…</b></div>
+        <button id="hphoto" class="btn" type="button" hidden style="grid-column:1/-1">📷 Foto von diesem Halt ansehen</button>
         <div class="m"><small>Ort</small><b id="ho" style="font-size:1.05rem">…</b></div>
         <div class="m"><small>Breite</small><b id="hlat">…</b></div>
         <div class="m"><small>Länge</small><b id="hlon">…</b></div>
@@ -43,11 +44,29 @@
     </div>
   </div>
 </section>
+<section class="pad" style="padding-top:0"><div class="wrap">
+  <h3 style="margin:0 0 6px">Fotos von unterwegs</h3>
+  <div id="gal" class="gal"></div>
+</div></section>
 </main>
 <footer>
   <div class="big">Verschneite Grüsse aus dem Wichteldorf ❄️</div>
   <p>Dein Wichtel Lasse · Nordpolstrasse 1 · Wichteldorf, Nordpol</p>
 </footer>
+
+<div id="lb" hidden onclick="this.hidden=true"><figure><img alt="Foto von unterwegs"><p></p><small>Tippen zum Schliessen</small></figure></div>
+<style>
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.ph{position:relative;border:0;padding:0;border-radius:14px;overflow:hidden;cursor:pointer;background:#0b1530;aspect-ratio:4/3}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ph span{position:absolute;left:0;right:0;bottom:0;padding:6px 8px;font:600 .85rem system-ui,sans-serif;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.7));text-align:left}
+#lb{position:fixed;inset:0;z-index:100;background:rgba(3,6,16,.92);display:flex;align-items:center;justify-content:center;padding:16px}
+#lb[hidden]{display:none}
+#lb figure{margin:0;max-width:960px;width:100%;text-align:center;color:#fff}
+#lb img{width:100%;max-height:72vh;object-fit:contain;border-radius:12px}
+#lb p{font-size:1.1rem;margin:12px 0 4px}#lb small{opacity:.6}
+#hphoto{margin-top:8px}
+</style>
 <script src="common.js"></script>
 <script src="tag.js"></script>
 <script>
@@ -155,6 +174,29 @@ function place(s){
   if(s.place==='vk')return s.w==='Volketswil'?'Volketswil, Schweiz':s.w+', Volketswil';
   if(s.place==='sp')return s.w+', Antarktis';
   return s.w+', Wichteldorf (Nordpol)';}
+
+const PH={'Spitzbergen':['1526408191525-c7c3252dcfed','Spitzbergen: Hier laufen Eisbären herum. Ich bin schnell wieder eingestiegen.'],
+'Tromsø':['1443926818681-717d074a57af','Tromsø: Das Nordlicht hat für uns getanzt.'],
+'Oslo':['1756721124689-85244debea26','Oslo: Das Opernhaus sieht aus wie ein Eisberg.'],
+'Hamburg':['1576168418281-d25d3150fd72','Hamburg: Die Speicherstadt bei Nacht, ganz still.'],
+'Frankfurt':['1579549137122-65fb65c71cc1','Frankfurt: So hohe Häuser! Viel höher als jeder Wichtel.'],
+'Rom':['1725623903410-296fdc9e2ea8','Rom: Das Kolosseum leuchtet die ganze Nacht.'],
+'Kairo':['1524686975162-f6fb4d39759c','Kairo: Die Pyramiden. Älter als Oma Flocke, sagt der Chauffeur.'],
+'Khartum':['1454494506536-d188be3e41b5','Unterwegs nach Khartum: nur Sand, so weit man sieht.'],
+'Nairobi':['1768383910086-9ab03c45df6b','Kenia: Eine Giraffe hat mich angeschaut. Von oben, natürlich.'],
+'Kapstadt':['1672631604216-3a7d96d454bf','Kapstadt: Der Tafelberg ist wirklich flach wie ein Tisch.'],
+'Küste der Antarktis':['1603548746365-0c7a1583d826','Küste der Antarktis: Hier warten die Pinguine.'],
+'Pinguin-Rast':['1672275763057-f778cea3dc63','Pinguin-Rast: Zwei Pinguine besprechen die Route.'],
+'Südpol':['1515963763434-572a9708571f','Antarktis: Eis, so weit das Auge reicht.']};
+const IMG=(id,w)=>'https://images.unsplash.com/photo-'+id+'?w='+w+'&q=75&auto=format&fit=crop';
+function reached(ms){const out=[];T.TRIPS.forEach(([key,Tr])=>{Tr.S.forEach(g=>{if(g.k==='m'&&g.b<=ms){const n=Tr.R[g.i].n;if(PH[n])out.push({n,t:g.b,key});}});});
+  const seen=new Set();return out.sort((a,b)=>b.t-a.t).filter(x=>{const k=x.n;if(seen.has(k))return false;seen.add(k);return true;});}
+let galKey='';
+function gallery(ms){const R=reached(ms),key=R.map(x=>x.n).join(',');if(key===galKey)return;galKey=key;const g=$('#gal');if(!g)return;
+  if(!R.length){g.innerHTML='<p class="hint">Sobald Lasse unterwegs ist, kommen hier Fotos von jedem Zwischenhalt dazu.</p>';return;}
+  g.innerHTML=R.map(x=>'<button class="ph" data-n="'+x.n+'" type="button"><img loading="lazy" alt="'+x.n+'" src="'+IMG(PH[x.n][0],360)+'"><span>📷 '+x.n+'</span></button>').join('');}
+document.addEventListener('click',e=>{const b=e.target.closest('.ph,#hphoto');if(!b)return;const n=b.dataset.n;if(!PH[n])return;
+  const lb=$('#lb');lb.querySelector('img').src=IMG(PH[n][0],1400);lb.querySelector('p').textContent=PH[n][1];lb.hidden=false;});
 let last=0;
 function tick(now){
   const ms=L.now();let s=T.now(ms);
@@ -170,6 +212,7 @@ function tick(now){
     $('#hw').textContent=s.ph==='trip'?'Unterwegs, kein Wetterbericht':(wx&&wxPlace===s.place?Math.round(wx.temp)+' °C, '+wx.txt+' · '+wx.n:'wird geladen …');
     const day=T.dayStr(ms),F=T.food(day);$('#hf').textContent=s.ph==='trip'?'Proviant aus der Thermoskanne':F.zn;
     $('#badge').className='badge'+(s.ph==='trip'?'':' wait');
+    gallery(ms);const hp=$('#hphoto');if(hp){const atp=s.ph==='trip'&&!s.mv&&PH[s.at];hp.hidden=!atp;if(atp)hp.dataset.n=s.at;}
     $('#bt').textContent=s.ph==='trip'?(s.mv?'Live unterwegs':'Pause'):s.place==='vk'?'Live in Volketswil':s.place==='sp'?'Live am Südpol':'Live im Wichteldorf';}
   requestAnimationFrame(tick);
 }
