@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Werkstatt – Wichtel Lasse</title>
+<meta name="description" content="Das Wichteldorf in 3D, ein Rennen gegen Lasse, ein Glockenspiel und das Adventsrätsel.">
+<meta name="theme-color" content="#070d1f">
+<meta property="og:title" content="Spiele – Wichtel Lasse">
+<meta property="og:description" content="Das Wichteldorf in 3D, ein Rennen gegen Lasse, ein Glockenspiel und das Adventsrätsel.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://images.unsplash.com/photo-1637545205226-d29d26d163e3?w=1200&q=75&auto=format&fit=crop">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%85%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+<style>
+.tabs{display:flex;gap:8px;margin:26px 0 18px;flex-wrap:wrap}
+.tabs button{border:1px solid var(--line);background:#ffffff0d;color:var(--ice);padding:10px 18px;border-radius:999px;font:700 .95rem var(--font);cursor:pointer;transition:.2s}
+.tabs button[aria-selected=true]{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+.pane[hidden]{display:none}
+.stage{position:relative;max-width:460px;margin-inline:auto}
+.stage.wide{max-width:900px}
+.stage canvas{width:100%;display:block;border-radius:20px;border:1px solid var(--line);box-shadow:0 24px 60px #0008;touch-action:none;background:#0b1633}
+#v3{aspect-ratio:16/10;touch-action:none}
+#rc{aspect-ratio:9/14}
+.hudbar{position:absolute;top:10px;left:12px;right:12px;display:flex;justify-content:space-between;gap:6px;pointer-events:none;font-weight:800;text-shadow:0 2px 8px #000a}
+.pill{background:#0a122b99;border:1px solid #ffffff22;padding:4px 12px;border-radius:999px;backdrop-filter:blur(6px);font-size:.95rem}
+.ov{position:absolute;inset:0;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:24px;background:radial-gradient(circle at 50% 30%,#16305fdd,#070d1fee);transition:opacity .35s}
+.ov.hide{opacity:0;pointer-events:none}
+.ov h3{font-family:var(--display);font-size:2rem;color:#fff;line-height:1.1}.ov p{opacity:.9;max-width:30ch}
+.ov .big{font-size:3rem;font-weight:900;color:var(--gold);line-height:1}
+.ov .btn{margin-top:6px;padding:13px 30px;font-size:1.05rem}
+.keys{margin-top:12px;text-align:center;opacity:.75;font-size:.9rem}
+.tip3{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:#0a122bdd;border:1px solid var(--gold);padding:8px 16px;border-radius:14px;font-weight:700;pointer-events:none;opacity:0;transition:.25s;white-space:nowrap}
+.tip3.on{opacity:1}
+.ctl{position:absolute;right:12px;bottom:12px;display:flex;gap:8px}
+.ctl button{width:44px;height:44px;border-radius:50%;border:1px solid #ffffff33;background:#0a122bcc;color:#fff;font-size:20px;cursor:pointer}
+.bells{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;max-width:640px;margin:20px auto 0}
+.bell{aspect-ratio:.7;border:0;border-radius:16px 16px 40px 40px;cursor:pointer;font:800 1rem var(--font);color:#1a1200;position:relative;transition:transform .08s,box-shadow .2s;-webkit-tap-highlight-color:transparent;display:flex;align-items:flex-end;justify-content:center;padding-bottom:10px;box-shadow:0 6px 18px #0006}
+.bell.on{transform:translateY(5px) scale(.97);box-shadow:0 0 30px 6px #ffd27a99}
+.bell.next{outline:3px solid #fff;animation:pulse .8s infinite}
+@keyframes pulse{50%{outline-color:#ffd27a}}
+.orow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.orow .btn{margin:0}
+.omsg{text-align:center;min-height:1.6em;margin-top:12px;color:var(--mint);font-weight:800}
+.qgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px;max-width:640px;margin:0 auto 18px}
+.qd{aspect-ratio:1;border-radius:14px;border:1px solid var(--line);background:#ffffff0d;color:var(--ice);font:800 1.1rem var(--font);cursor:pointer;position:relative}
+.qd[disabled]{opacity:.35;cursor:not-allowed}
+.qd.ok{background:#1f6b46;border-color:#7dffd0}.qd.cur{outline:2px solid var(--gold)}
+.qbox{max-width:640px;margin:0 auto}
+.qbox input{width:100%;padding:12px 16px;border-radius:14px;border:1px solid var(--line);background:#ffffff12;color:#fff;font:600 1.05rem var(--font);margin-top:10px}
+.qmsg{min-height:1.6em;margin-top:10px;font-weight:800}
+</style>
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="progress" id="progress"></div>
+<header class="nav">
+<a class="brand" href="index.html">Wichtel <span>Lasse</span></a>
+<ul><li><a class="l" href="index.html">Start</a></li><li><a class="l" href="steckbrief.html">Steckbrief</a></li><li><a class="l" href="milchreis.html">Milchreis</a></li><li><a class="l" href="schule.html">Schule</a></li><li><a class="l" href="spiele.html">Spiele</a></li><li><a class="l cur" href="werkstatt.html">Werkstatt</a></li><li><a class="l" href="kalender.html">Kalender</a></li><li><a class="l" href="tagebuch.html">Tagebuch</a></li><li><a class="l" href="kontakt.html">Kontakt</a></li></ul>
+</header>
+<noscript><div class="ns"><h1 style="color:#fff">Wichtel Lasse</h1><p>Diese Seite braucht JavaScript, damit der Schnee fällt und alles sich bewegt. Schalte es ein, dann klappt es!</p></div></noscript>
+<main>
+<section class="pad page-top"><div class="wrap">
+<div class="kicker reveal">Wichtel-Werkstatt</div>
+<h2 class="reveal">Lasses Werkstatt</h2>
+<p class="lead reveal">Hier hat Lasse seine grössten Sachen untergebracht: das Wichteldorf in 3D, ein Rennen gegen ihn, ein Glockenspiel und das Adventsrätsel.</p>
+<div class="tabs" role="tablist">
+<button role="tab" aria-selected="true" data-p="dorf">🏘️ Wichteldorf 3D</button>
+<button role="tab" aria-selected="false" data-p="race">🏁 Rennen gegen Lasse</button>
+<button role="tab" aria-selected="false" data-p="orch">🔔 Orchester</button>
+<button role="tab" aria-selected="false" data-p="quest">🧩 Adventsrätsel</button>
+</div>
+
+<div class="pane" id="p-dorf"><div class="stage wide"><canvas id="v3" width="900" height="560"></canvas>
+<div class="hudbar"><span class="pill">🏘️ Wichteldorf</span></div>
+<div class="tip3" id="tip3"></div>
+<div class="ctl"><button id="dn" title="Tag und Nacht" aria-label="Tag und Nacht">🌙</button></div></div>
+<p class="keys">Ziehen: drehen · Zwei Finger oder Mausrad: zoomen · Haus antippen: Name</p>
+<div id="no3" class="keys" hidden>Das 3D-Dorf braucht WebGL. Probier es in Safari oder Chrome.</div></div>
+
+<div class="pane" id="p-race" hidden><div class="stage"><canvas id="rc" width="360" height="560"></canvas>
+<div class="hudbar"><span class="pill">🏁 <b id="r-d">0</b>/<span id="r-t">3000</span> m</span><span class="pill" id="r-v">⚡ 0</span><span class="pill">Runde <b id="r-l">1</b></span></div>
+<div class="ov" id="r-ov"><h3>Rennen gegen Lasse</h3><p>Wer zuerst im Ziel ist, gewinnt. Weiche aus, sammle Blitze. Lasse wird mit jedem Sieg schneller!</p><button class="btn" id="r-go">Auf die Plätze</button></div></div>
+<p class="keys">Handy: Finger links/rechts · Computer: ← → oder A D</p></div>
+
+<div class="pane" id="p-orch" hidden>
+<div class="bells" id="bells"></div>
+<div class="orow"><button class="btn" id="o-sn">Stille Nacht lernen</button><button class="btn" id="o-jb">Jingle Bells lernen</button><button class="btn" id="o-rec">⏺ Aufnehmen</button><button class="btn" id="o-play">▶ Abspielen</button></div>
+<div class="omsg" id="omsg"></div>
+<p class="keys">Tippen oder Tasten A S D F G H J K · im Lernmodus leuchtet die nächste Glocke</p></div>
+
+<div class="pane" id="p-quest" hidden><div class="qbox">
+<p class="lead" style="margin-bottom:14px">Ab dem 1. Dezember gibt es jeden Tag ein Rätsel von Lasse. Jedes Türchen geht erst an seinem Tag auf. Die Antwort ist immer ein Wort.</p>
+<div class="qgrid" id="qgrid"></div>
+<div class="panel" id="qpanel"><h3 id="qh">Wähle ein Türchen</h3><p id="qt"></p><input id="qin" type="text" placeholder="Deine Antwort" autocomplete="off" hidden><button class="btn" id="qb" hidden>Prüfen</button><div class="qmsg" id="qm"></div></div>
+</div></div>
+</div></section></main>
+<footer>
+<div class="big">Verschneite Grüsse aus dem Wichteldorf ❄️</div>
+<p>Dein Wichtel Lasse · Nordpolstrasse 1 · Wichteldorf, Nordpol</p>
+</footer>
+<script src="common.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="werk.js"></script>
+<script src="fx.js"></script>
+</body>
+</html>
