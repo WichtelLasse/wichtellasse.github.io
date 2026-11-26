@@ -63,25 +63,26 @@ const VK_TASK=[
 
 /* Kleine Überraschungen (Nacht dieses Datums, 1–5 Uhr) */
 const SURP={
-'2026-11-30':{t:'hängt einen winzigen Zettel an die Wichteltür',diy:'Wichteltür aufstellen (falls noch nicht) und einen winzigen Zettel daran kleben: «Bin angekommen! Psst … Lasse»'},
-'2026-12-02':{t:'streut ganz leise Mehl und hinterlässt Fussspuren',diy:'Mit dem Finger oder einem Wattestäbchen ein paar winzige Fussspuren aus Mehl vor die Wichteltür tupfen (ca. 30 cm Spur)'},
-'2026-12-04':{t:'schreibt einen Rätselbrief für Micha',diy:'Kleinen Brief an die Wichteltür legen: «Rätsel: Was wird nasser, je mehr es trocknet? Antwort an wichtel.lasse@hotmail.com – Lasse» (Lösung: ein Handtuch)'},
-'2026-12-06':{t:'legt etwas für den Samichlaustag vor die Tür',diy:'Samichlaus: 1 Mandarine, ein paar Nüsse und ein Stück Schoggi vor die Wichteltür legen'},
-'2026-12-09':{t:'baut etwas Kleines aus Zucker',diy:'Mini-Iglu aus ca. 10–15 Zuckerwürfeln vor die Wichteltür bauen'},
-'2026-12-11':{t:'holt sich einen Wachposten für die Nacht',diy:'Ein Kuscheltier oder eine Figur von Micha neben die Wichteltür setzen, als würde es Wache halten'},
-'2026-12-13':{t:'bastelt etwas für den dritten Advent',diy:'Einen Papierstern (gefaltet oder ausgeschnitten) an oder neben die Wichteltür legen'},
-'2026-12-16':{t:'baut einen kleinen Schneemann, der nicht schmilzt',diy:'Mini-Schneemann aus 3 Marshmallows (mit Zahnstocher zusammengesteckt) vor die Wichteltür stellen'},
-'2026-12-18':{t:'steckt ein Fähnchen auf',diy:'Fähnchen aus Zahnstocher und Papier vor die Tür: «Noch 6 Tage bis Weihnachten! – L.»'},
-'2026-12-20':{t:'legt eine süsse Spur für den vierten Advent',diy:'3 kleine Schoggistücke als Spur von der Wichteltür weg legen'},
-'2026-12-23':{t:'spielt einen kleinen Wichtelstreich',diy:'Die Schnürsenkel von Michas Schuhen locker zusammenknoten (Wichtelstreich)'},
-'2026-12-24':{t:'legt einen Abschiedsbrief hin',diy:'Abschiedsbrief und eine Zimtstange vor die Wichteltür: «Ich fahre heute zu meiner Familie an den Nordpol. Danke für den schönsten Platz der Welt. Frohe Weihnachten! Dein Lasse»'},
+'2026-11-30':{t:'holt sich zur Begrüssung einen Startsnack aus dem Süssigkeitenschrank',diy:'Ein paar Süssigkeiten aus dem Schrank nehmen, die Packung offen lassen und einen Mini-Zettel «Danke! Lasse» hinlegen'},
+'2026-12-01':{hint:'Deine Schuhe wurden versteckt! Folge den Zetteln, sie zeigen dir den Weg.',tease:'Ich habe schon eine Idee für meinen ersten Streich. Er hat mit Füssen zu tun.',t:'versteckt etwas und legt Zettel als Spur',diy:'Michas Schuhe (oder Hausschuhe) an einem Ort im Haus verstecken und eine Spur aus kleinen Zetteln («Warm… kalt…») bis dorthin legen'},
+'2026-12-03':{hint:'Geh mal aufs WC. Da hat jemand gebaut.',tease:'Nächste Nacht wird gebaut. Das Material ist weiss und weich.',t:'baut im WC etwas aus Klopapier',diy:'Aus Klopapier im WC etwas bauen (Tipi oder kleine Burg) und einen Zettel «Lasse war hier» dazulegen'},
+'2026-12-05':{hint:'Das Brünneli! Hat da jemand gebadet? Ich glaube, mit Enten.',tease:'Nächste Nacht gönne ich mir ein Bad. Mit Gesellschaft.',t:'nimmt ein Bad im Brünneli mit Enten',diy:'Im Brünneli oder in einer Schüssel Badeenten schwimmen lassen und ein Mini-Badetuch danebenlegen'},
+'2026-12-06':{hint:'Schau mal vor meine Wichteltür. Ich glaube, der Samichlaus war da!',tease:'',t:'stellt seine kleinen Wichtelstiefel vor die Tür und hofft auf den Samichlaus',diy:'Samichlaus: Lasses kleine Wichtelstiefel (oder zwei Mini-Socken) vor die Wichteltür stellen und mit Nüssen, kleinen Schoggistücken und einem Mandarinenschnitz füllen'},
+'2026-12-07':{hint:'Levins Samichlaussäckli sieht leichter aus als gestern. Zähl mal nach!',tease:'Nächste Nacht bin ich nochmal beim Samichlaus-Zeug. Es duftet zu gut.',t:'nimmt etwas aus Levins Samichlaussäckli',diy:'Aus Levins Samichlaussäckli ein paar Nüsse oder Schoggi nehmen und einen Mini-Zettel «Gemopst von Lasse. Sorry. Nicht sorry.» dazulegen'},
+'2026-12-09':{hint:'Es riecht nach Guetzli! Schau mal in die Küche.',tease:'Nächste Nacht fange ich an zu backen.',t:'backt in der Küche (ganz leise)',diy:'Etwas Mehl auf die Arbeitsfläche streuen, eine Schüssel hinstellen und ein paar Guetzli auf einem Teller zurücklassen'},
+'2026-12-11':{hint:'Schau mal auf die Switch 2. Sie ist noch warm! Wer hat gespielt?',tease:'Nächste Nacht ist Rennen angesagt. Gas geben!',t:'spielt Mario Kart World auf der Nintendo Switch 2',diy:'Switch 2 so hinstellen, als hätte jemand gespielt, Controller schräg legen und einen Mini-Zettel «Ich hab dich geschlagen! Lasse» dazu'},
+'2026-12-13':{hint:'Bei meiner Wichteltür liegt ein Päckli. Ist es überhaupt deins?',tease:'Nächste Nacht gibt es ein Päckli-Chaos.',t:'tauscht Michas Paket zum Spass aus',diy:'Ein Päckli von Micha durch ein anderes (eigenes Dummy-Päckli) austauschen, vor die Wichteltür legen und Zettel «Verwechselt! Ups. Wollte nur nachschauen. Lasse»'},
+'2026-12-15':{hint:'Schau mal ganz oben auf den Tannenbaum. Da sitzt jemand!',tease:'Nächste Nacht klettere ich ganz hoch hinauf.',t:'klettert auf den Tannenbaum',diy:'Eine Wichtelmütze oben auf die Spitze setzen, dazu den Zettel «Ich bin der Stern!», Lasses Mini-Schal um einen Ast und ein kleines Mini-Päckli unter den Baum'},
+'2026-12-17':{hint:'In deinem Zimmer steht etwas Neues. Lasse hat gebaut und will wissen, wie du es findest.',tease:'Nächste Nacht baue ich etwas ganz Besonderes für dich.',t:'baut etwas in Michas Zimmer und will eine Note',diy:'In Michas Zimmer etwas Kleines bauen, z. B. ein Mini-Zimmer oder ein Fort aus Büchern und Tuch auf dem Pult, dazu Zettel: «Wie findest du mein Werk? Note von 1 bis 6!»'},
+'2026-12-19':{hint:'Bevor du heute ein Ei isst: Schau es dir ganz genau an.',tease:'Nächste Nacht wird es kalt. Kühlschrank-kalt.',t:'schleicht zum Kühlschrank und kichert',diy:'Auf ein paar Eier im Kühlschrank mit Bleistift lustige Gesichter malen'},
+'2026-12-21':{hint:'Vor meiner Wichteltür liegt ein Zettel. Das ist der Anfang von etwas Grossem.',tease:'Nächste Nacht legt Lasse eine Spur. Eine lange.',t:'legt eine Schnitzeljagd für Micha aus',diy:'Vor der Wichteltür einen Zettel mit dem ersten Hinweis hinlegen, weitere Hinweise im Haus verstecken, am Ende wartet ein Versteck mit einer Überraschung (z. B. Schoggi)'},
+'2026-12-23':{hint:'Bevor du losrennst: Schau dir die Schnürsenkel an.',tease:'Nächste Nacht kommt mein letzter Streich. Er hat mit Knoten zu tun.',t:'spielt einen Wichtelstreich mit Schnürsenkeln',diy:'Die Schnürsenkel von Michas Schuhen locker zusammenknoten'},
 '2027-01-01':{t:'streut Konfetti vor der Wichteltür',diy:'Konfetti vor und um die Wichteltür streuen und einen Zettel hinlegen: «Es guets Neus! Ich bin schon unterwegs zum Südpol. Lasse»'}
 };
 
 /* Weihnachtsferien am Nordpol (24.–31.12.) */
 const XMAS={
-'2026-12-24':[[480,540,'kommt im Wichteldorf an und fällt seiner Familie in die Arme'],[540,840,'schläft sich nach der Reise aus'],[840,960,'backt mit Mama Zimtsterne'],[960,1080,'schmückt mit seiner Schwester Pia den Baum'],[1080,1260,'feiert Heiligabend mit seiner Familie'],[1260,1440,'schläft glücklich ein']],
-'2026-12-25':[[0,540,'schläft lange'],[540,630,'frühstückt mit der ganzen Familie'],[630,780,'macht mit Pia einen Schneespaziergang'],[780,870,'isst Weihnachtsessen bei Opa Knut'],[870,1080,'spielt mit der Familie Brettspiele'],[1080,1260,'singt mit dem Wichtelchor am Dorfbaum'],[1260,1440,'schläft tief und fest']],
+'2026-12-25':[[0,360,'ist unterwegs nach Hause'],[360,420,'kommt im Wichteldorf an und fällt seiner Familie in die Arme'],[420,720,'schläft sich nach der Reise aus'],[720,840,'isst Weihnachtsessen bei Opa Knut'],[840,960,'macht mit Pia einen Schneespaziergang'],[960,1080,'packt mit der Familie Geschenke aus'],[1080,1260,'singt mit dem Wichtelchor am Dorfbaum'],[1260,1440,'schläft glücklich ein']],
 '2026-12-31':[[0,480,'schläft tief und fest'],[480,540,'frühstückt'],[540,720,'schneidet Konfetti aus buntem Papier'],[720,780,'isst zu Mittag'],[780,960,'verabschiedet sich von seiner Familie'],[960,1140,'feiert mit dem Dorf ein frühes Silvester'],[1140,1290,'packt Sonnenbrille und Sonnencreme für den Südpol'],[1290,1320,'steigt ins Wichtelmobil']]};
 const HOL_ACT=['fährt mit Pia Schlitten','geht mit Papa Eisfischen','hilft in der Werkstatt beim grossen Aufräumen','lässt die Rentiere nach der langen Nacht ausruhen','baut mit Pia ein Iglu','spielt Karten mit Opa Knut','besucht Oma Flocke','macht mit Ida und Tobi eine Schneeballschlacht','schaut mit der Familie das Nordlicht an','liest Pia eine Geschichte vor','backt mit Mama Brot','erzählt der Familie von Volketswil','packt die Koffer für den Südpol','sortiert Fotos von der Reise'];
 
@@ -103,8 +104,11 @@ function segs(R,t0,move){let tot=0;const dk=[];for(let i=1;i<R.length;i++){dk[i]
   const S=[];let t=t0;for(let i=1;i<R.length;i++){const mt=move?dk[i]/tot*move:dk[i]/R[i].v*3600000;S.push({k:'m',i,a:t,b:t+mt,km:dk[i]});t+=mt;if(R[i].stop){const sp=R[i].stop*60000;S.push({k:'s',i,a:t,b:t+sp});t+=sp;}}
   return {R,S,a:t0,b:t};}
 const MOVE=6000000;
+const RV=[{n:'Wichteldorf',lat:90,lon:15.63,stop:0},{n:'Volketswil',lat:47.39,lon:8.69,stop:0}];
+const TRIP_V1=segs(RV,Z(2026,11,27,21),4*3600000);          // Fr 27.11. 21:00 -> Sa 01:00 direkt
+const TRIP_V2=segs([...RV].reverse(),Z(2026,11,28,2),4*3600000); // Sa 02:00 -> 06:00 zurück
 const TRIP_N1=segs(RN,Z(2026,11,30,0),MOVE);           // 30.11. 00:00 -> ~03:00
-const TRIP_X=segs([...RN].reverse(),Z(2026,12,24,5),MOVE); // 24.12. 05:00 -> ~08:00
+const TRIP_X=segs([...RN].reverse(),Z(2026,12,25,3),MOVE); // 25.12. 03:00 -> ~06:00
 const TRIP_N2=segs(RN,Z(2026,12,31,22),MOVE);           // 31.12. 22:00 -> ~01:00
 const TRIP_S=segs(RS,Z(2027,1,1,3));                     // 1.1. 03:00 -> 2.1. abends
 const TRIP_B=segs(RB,Z(2027,2,1,8));                     // 1.2. 08:00 -> 2.2.
@@ -119,6 +123,8 @@ const TRIP_TXT={
  Nairobi:['fliegt über die Savanne','hält Ausschau nach Elefanten','spielt mit dem Chauffeur «Ich sehe was, was du nicht siehst»','hält die Hand in den warmen Fahrtwind'],
  Kapstadt:['fliegt über grüne Wälder und Flüsse','sieht von weitem den Ozean','spielt mit dem Chauffeur «Ich sehe was, was du nicht siehst»','trinkt kalten Eistee'],
  'Küste der Antarktis':['fliegt über den endlosen Ozean','sieht die ersten Eisberge','zieht den dicken Pulli wieder an','zählt Wale im Meer','staunt: Hier wird es gar nicht dunkel'],
+ v1:['fährt direkt nach Volketswil, ohne Halt','hat Klebeband und Absperrband auf dem Schoss','schaut aus dem Fenster in die Nacht','prüft zum zehnten Mal, ob das Klebeband dabei ist','summt leise vor sich hin','trinkt Kakao aus der Thermoskanne','zählt die Sterne über dem Wichtelmobil'],
+ v2:['fährt zurück an den Nordpol','gähnt und kuschelt sich in die Decke','döst mit der Mütze über den Augen','lächelt zufrieden: Der Platz ist besetzt','schreibt eine Liste, was er noch holen muss'],
  back:['fliegt Richtung Norden','schaut auf die Landkarte: noch weit bis nach Hause','döst mit der Mütze über den Augen','erzählt dem Chauffeur von den Pinguinen','sortiert seine Südpol-Fotos','zieht langsam wieder die warmen Sachen an'],
  p:['lenkt den Pinguin-Express mit Kapitän Watschel','hält sich gut fest, die Pinguine sind schnell','singt mit den Pinguinen ein Schlittenlied','zählt die Pinguine vor dem Schlitten','schaut über das endlose Eis','putzt sich Schnee von der Sonnenbrille']};
 const STOP_TXT={'Spitzbergen':'streckt die Beine im Schnee und prüft mit dem Chauffeur die Kufen','Tromsø':'trinkt Kakao und staunt über das Nordlicht','Oslo':'kauft eine Zimtschnecke und sucht seine Mütze (sie sitzt auf dem Kopf)','Hamburg':'vertritt sich am Hafen die Beine','Frankfurt':'döst im Wichtelmobil, der Chauffeur trinkt Tee','Volketswil':'ist angekommen',
@@ -178,8 +184,9 @@ function spDay(day){const F=food(day),k=day,a=i=>rot(SP_ACT,day,i,6);
 function vkDay(day){ /* Volketswil: wach 1–5 Uhr */
   const k=day,F=food(day),o=[],sp=SURP[day];
   
-  if(day==='2026-11-30'){o.push([0,180,'ist im Wichtelmobil unterwegs','Wichtelmobil']);o.push([180,200,'ist angekommen und schleicht ganz leise ins Haus','Volketswil']);o.push([200,215,'öffnet zum ersten Mal die Wichteltür','Hinter der Wichteltür']);o.push([215,235,sp.t,'Bei der Wichteltür','surp']);o.push([235,270,'packt den Koffer aus','Hinter der Wichteltür']);o.push([270,300,'legt sich ins neue Bett und lächelt','Hinter der Wichteltür']);}
-  else if(day==='2026-12-24'){o.push([0,60,'schläft ein letztes Mal hinter der Wichteltür','Hinter der Wichteltür','sleep']);o.push([60,120,'packt leise seinen Koffer','Hinter der Wichteltür']);o.push([120,170,sp.t,'Bei der Wichteltür','surp']);o.push([170,240,'räumt hinter der Wichteltür auf, damit alles schön ist','Hinter der Wichteltür']);o.push([240,300,'wartet aufs Wichtelmobil und schaut ein letztes Mal aus dem Fenster','Volketswil']);return o.map(x=>({a:x[0],b:x[1],t:x[2],w:x[3],f:x[4]||''}));}
+  if(day==='2026-11-30'){o.push([0,180,'ist im Wichtelmobil unterwegs','Wichtelmobil']);o.push([180,200,'ist angekommen und schleicht ganz leise ins Haus','Volketswil']);o.push([200,220,sp.t,'Bei der Wichteltür','surp']);o.push([220,235,'öffnet zum ersten Mal die Wichteltür','Hinter der Wichteltür']);o.push([235,270,'packt den Koffer aus','Hinter der Wichteltür']);o.push([270,300,'legt sich ins neue Bett und lächelt','Hinter der Wichteltür']);}
+  else if(day==='2026-12-25'){o.push([0,60,'schläft ein letztes Mal hinter der Wichteltür','Hinter der Wichteltür','sleep']);o.push([60,120,'packt leise seinen Koffer','Hinter der Wichteltür']);o.push([120,160,'räumt hinter der Wichteltür auf, damit alles schön ist','Hinter der Wichteltür']);o.push([160,180,'schaut ein letztes Mal aus dem Fenster und steigt ins Wichtelmobil','Volketswil']);o.push([180,1440,'ist unterwegs zu seiner Familie','Wichtelmobil']);return o.map(x=>({a:x[0],b:x[1],t:x[2],w:x[3],f:x[4]||''}));}
+  else if(day==='2026-12-24'){o.push([0,60,pick(VK_SLEEP,k+'n'),'Hinter der Wichteltür','sleep']);o.push([60,80,'wacht auf, es ist Heiligabend','Hinter der Wichteltür']);o.push([80,120,'isst sein Nachtessen: '+F.zn,'Hinter der Wichteltür']);o.push([120,170,'bastelt einen kleinen Stern aus Goldpapier','Hinter der Wichteltür']);o.push([170,230,'schreibt Weihnachtskarten an Ida, Tobi und Oma Flocke','Hinter der Wichteltür']);o.push([230,280,'schaut leise aus dem Fenster in die Heilige Nacht','Volketswil']);o.push([280,300,'kriecht ins Bett hinter der Wichteltür','Hinter der Wichteltür']);o.push([300,1440,'schläft und hört von weitem Weihnachtslieder','Hinter der Wichteltür','sleep']);return o.map(x=>({a:x[0],b:x[1],t:x[2],w:x[3],f:x[4]||''}));}
   else{
     o.push([0,60,pick(VK_SLEEP,k+'n'),'Hinter der Wichteltür','sleep']);o.push([60,75,'wacht auf, alle im Haus schlafen','Hinter der Wichteltür']);
     o.push([75,105,'isst sein Nachtessen: '+F.zn,'Hinter der Wichteltür']);
@@ -191,10 +198,15 @@ function vkDay(day){ /* Volketswil: wach 1–5 Uhr */
 
 function backDay(){return [[0,0,'',''],[1080,1170,'kommt im Wichteldorf an, Oma Flocke wartet schon mit Tee','Wichteldorf'],[1170,1230,'isst Znacht bei Oma Flocke: '+MILCHREIS,'Wichteldorf'],[1230,1290,'packt den Koffer aus und findet Sand aus Kapstadt','Wichtelhaus'],[1290,1440,'schläft wieder im eigenen Bett','Wichtelhaus','sleep']].slice(1).map(x=>({a:x[0],b:x[1],t:x[2],w:x[3],f:x[4]||''}));}
 /* Tagesplan für ein Datum (ohne Reisen) */
+function fri27(){const L=fixActs(npDay('2026-11-27','Fri',{aka:true}),'Wichteldorf').filter(x=>x.a<1230);
+  L.push({a:1230,b:1250,t:'packt Klebeband und Absperrband in eine kleine Tasche',w:'Wichtelhaus',f:'',s:''});L.push({a:1250,b:1260,t:'steigt ins Wichtelmobil',w:'Wichteldorf',f:'',s:''});L.push({a:1260,b:1440,t:'ist unterwegs nach Volketswil',w:'Wichtelmobil',f:'',s:''});return L;}
+function sat28(){const F=food('2026-11-28');return [[360,660,'schläft nach der Nachtfahrt','Wichtelhaus','sleep'],[660,700,'frühstückt spät: '+F.zm,'Wichtelhaus'],[700,760,'holt bei Herrn Kufenbrecht eine Werkzeugkiste ab','Wichteldorf'],[760,820,'isst zu Mittag: '+F.mi,'Wichtelhaus'],[820,880,'holt in der Poststelle ein riesiges Paket','Wichteldorf'],[880,940,'holt bei Oma Flocke den gestrickten Schal ab','Wichteldorf'],[940,1010,'holt in der Werkstatt Bastelmaterial','Wichteldorf'],[1010,1080,'kauft im Wichtel-Laden Lichterketten und Kerzen','Wichtel-Laden','shop'],[1080,1130,'packt alles in Kisten','Wichtelhaus'],[1130,1175,'isst Znacht: '+F.zn,'Wichtelhaus'],[1175,1260,'schreibt Tagebuch und hakt die Liste ab','Wichtelhaus'],[1260,1440,pick(SLEEP,'2026-11-28z'),'Wichtelhaus','sleep']].map(x=>({a:x[0],b:x[1],t:x[2],w:x[3],f:x[4]||''}));}
 function dayPlan(day){const wd=new Date(day+'T12:00:00Z').toLocaleDateString('en-US',{weekday:'short',timeZone:'UTC'});
+  if(day==='2026-11-27')return {ph:'np',L:fri27()};
+  if(day==='2026-11-28')return {ph:'np',L:sat28()};
   if(day==='2026-11-29')return {ph:'np',L:departDay()};
   if(day<'2026-11-30')return {ph:'np',L:fixActs(npDay(day,wd,{aka:day>=AKA_START}),'Wichteldorf')};
-  if(day<='2026-12-24'&&day>='2026-11-30')return {ph:'vk',L:vkDay(day)};
+  if(day<='2026-12-25'&&day>='2026-11-30')return {ph:'vk',L:vkDay(day)};
   if(day<='2026-12-31')return {ph:'hol',L:holDay(day)};
   if(day==='2027-01-01'||day==='2027-01-02')return {ph:'trip',L:[]};
   if(day<='2027-02-01')return {ph:'sp',L:spDay(day)};
@@ -202,11 +214,11 @@ function dayPlan(day){const wd=new Date(day+'T12:00:00Z').toLocaleDateString('en
     return {ph:'np',L:fixActs(npDay(day,wd,{aka:day>=AKA_AGAIN}),'Wichteldorf')};}
 
 /* ---------- Zustand jetzt ---------- */
-const TRIPS=[['n1',TRIP_N1,'n'],['x',TRIP_X,'n'],['n2',TRIP_N2,'n'],['s',TRIP_S,'s'],['b',TRIP_B,'s']];
+const TRIPS=[['v1',TRIP_V1,'n'],['v2',TRIP_V2,'n'],['n1',TRIP_N1,'n'],['x',TRIP_X,'n'],['n2',TRIP_N2,'n'],['s',TRIP_S,'s'],['b',TRIP_B,'s']];
 function tripState(T,ms,kind,key){const g=T.S.find(x=>ms>=x.a&&ms<x.b);if(!g)return null;const A=T.R[g.i-1],B=T.R[g.i];
   const peng=B.v===150||(key==='b'&&A.v===150&&g.i<=2);
   if(g.k==='m'){const f=(ms-g.a)/(g.b-g.a);let lat=A.lat+(B.lat-A.lat)*f,lon=A.lon+(B.lon-A.lon)*f;
-    const pool=peng?TRIP_TXT.p:key==='x'?TRIP_TXT.x:key==='s'?(TRIP_TXT[B.n]||TRIP_TXT.n):key==='b'?TRIP_TXT.back:TRIP_TXT.n;
+    const pool=peng?TRIP_TXT.p:key==='v1'?TRIP_TXT.v1:key==='v2'?TRIP_TXT.v2:key==='x'?TRIP_TXT.x:key==='s'?(TRIP_TXT[B.n]||TRIP_TXT.n):key==='b'?TRIP_TXT.back:TRIP_TXT.n;
     return {mv:1,i:g.i,f,lat,lon,sp:g.km/((g.b-g.a)/3600000),to:B.n,from:A.n,t:pick(pool,key+Math.floor(ms/420000)),veh:peng?'Pinguin-Express':'Wichtelmobil',R:T.R,key};}
   let st=(key==='b'?STOP_B:key==='x'?STOP_X:STOP_TXT)[B.n]||STOP_TXT[B.n]||'macht Pause';
   if(Array.isArray(st))st=st[Math.min(st.length-1,Math.floor((ms-g.a)/(g.b-g.a)*st.length))];
@@ -214,6 +226,8 @@ function tripState(T,ms,kind,key){const g=T.S.find(x=>ms>=x.a&&ms<x.b);if(!g)ret
 function now(ms){
   for(const [key,T,kind] of TRIPS){if(ms>=T.a&&ms<T.b){const s=tripState(T,ms,kind,key);if(s){s.ph='trip';s.kind=kind;s.trip=key;return s;}}}
   const p=zParts(ms),day=p.year+'-'+p.month+'-'+p.day,m=+p.hour*60+ +p.minute;
+  /* Kurzbesuch Sa 28.11. 01:00–02:00: Platz besetzen */
+  if(ms>=TRIP_V1.b&&ms<TRIP_V2.a){const mm=(ms-TRIP_V1.b)/60000;const t=mm<8?'schleicht leise ins Haus':mm<28?'klebt zwei Kreuze aus Klebeband auf zwei Treppenstufen':mm<38?'klebt Zettel dazu: unten «Wichtelhaus», oben «Geheimnis»':mm<50?'baut eine Absperrung auf, damit niemand seinen Platz besetzt':mm<55?'prüft, ob alles hält':'steigt leise wieder ins Wichtelmobil';return {ph:'vk',day,m,lat:47.39,lon:8.69,t,w:mm>=8&&mm<55?'Bei seinem neuen Platz':'Volketswil',f:mm>=8&&mm<55?'surp':'',place:'vk'};}
   /* Konfetti-Besuch 1.1. 01:00–03:00 */
   if(ms>=TRIP_N2.b&&ms<TRIP_S.a){const a=TRIP_N2.b;const mm=(ms-a)/60000;const t=mm<15?'schleicht leise ins Haus':mm<70?SURP['2027-01-01'].t:mm<100?'schaut sich ein letztes Mal um':'steigt leise wieder ins Wichtelmobil';return {ph:'vk',day,m,lat:47.39,lon:8.69,t,w:mm<70&&mm>=15?'Bei der Wichteltür':'Volketswil',f:mm>=15&&mm<70?'surp':'',place:'vk'};}
   /* Nach Ankunft Südpol am 2.1. abends / Rückkehr Nordpol 2.2. */
@@ -222,7 +236,7 @@ function now(ms){
   if(day==='2027-01-02'&&ms<TRIP_S.b)return null;
   if(day==='2027-02-02'&&ms<TRIP_B.b)return null;
   if(day==='2026-11-30'&&ms<TRIP_N1.b)return null;
-  if(day==='2026-12-24'&&ms>=TRIP_X.b){P=holDay('2026-12-24');P={ph:'hol',L:P};}
+  if(day==='2026-12-25'&&ms>=TRIP_X.b){P={ph:'hol',L:holDay('2026-12-25')};}
   if(day==='2026-12-31'&&ms>=TRIP_N2.a)return null;
   const e=P.L.find(x=>m>=x.a&&m<x.b)||P.L[P.L.length-1];
   const place=P.ph==='vk'?'vk':P.ph==='sp'?'sp':'np';
@@ -245,11 +259,11 @@ async function weather(place){const P=WX_PLACES[place];if(!P)return null;
     j.daily.time.forEach((t,i)=>d.daily[t]={code:j.daily.weather_code[i],max:j.daily.temperature_2m_max[i],min:j.daily.temperature_2m_min[i],wind:j.daily.wind_speed_10m_max[i]});
     wxCache[key]={t:Date.now(),d};return d;}catch(e){return null;}}
 /* Ort eines Tages (für Tagebuch-Wetter) */
-function placeOfDay(day){if(day>='2026-11-30'&&day<='2026-12-23')return 'vk';if(day>='2027-01-02'&&day<='2027-02-01')return 'sp';return 'np';}
+function placeOfDay(day){if(day>='2026-11-30'&&day<='2026-12-24')return 'vk';if(day>='2027-01-02'&&day<='2027-02-01')return 'sp';return 'np';}
 const INDOOR=[['bleibt wegen des Wetters drinnen und spielt Wichtel-Memory','i'],['bleibt drinnen und liest am warmen Ofen','i'],['wartet drinnen ab und repariert Spielzeug','i'],['bleibt im Haus und backt Plätzchen','i']];
 function adjust(s,wx){ /* draussen + schlechtes Wetter -> drinnen */
   if(!s||!wx||!wx.bad||s.f!=='out')return s;const a=pick(INDOOR,s.day+s.m/60|0);
   return Object.assign({},s,{t:a[0]+' ('+wx.txt+')',w:s.place==='sp'?'Ferien-Iglu':'Wichtelhaus',f:''});}
 
-window.LT={now,dayPlan,food,weather,adjust,placeOfDay,wxText,zParts,dayStr,Z,TRIPS,TRIP_N1,TRIP_X,TRIP_N2,TRIP_S,TRIP_B,SURP,RN,RS,RB,SUBJ,PLAN,TEACH,hsh,WX_PLACES};
+window.LT={TRIP_V1,TRIP_V2,now,dayPlan,food,weather,adjust,placeOfDay,wxText,zParts,dayStr,Z,TRIPS,TRIP_N1,TRIP_X,TRIP_N2,TRIP_S,TRIP_B,SURP,RN,RS,RB,SUBJ,PLAN,TEACH,hsh,WX_PLACES};
 })();
