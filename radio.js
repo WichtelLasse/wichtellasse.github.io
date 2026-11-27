@@ -104,7 +104,7 @@ function build(H){var r=rngf(H*7919+13),p=zp(H*HR+1800000),segs=[],t=0;
  var kinds=shuffle(r,["talk","interview","traffic","poll","weather","ad","joke","greet","diary","cook","mail","sport","wissen","horo","ridd","hit","interview","mail"]);
  if(p.h===21)kinds.unshift("story");if(r()<.07)kinds.splice(2,0,"lasse");if(xdays(p)!==null)kinds.push("xmas");if((p.mo===12&&p.d>=26)||(p.mo===1&&p.d<=3))kinds.push("ny","ny");
  var i=0;
- while(t<3590){if(i%4===0)mus();if(t>=3590)break;var k=kinds[i++%kinds.length],c=segs.length;
+ while(t<3590){if(i%7===0)mus();if(t>=3590)break;var k=kinds[i++%kinds.length],c=segs.length;
   if(k==="talk")talk("talk",[["pip",pick(r,CHAT)]],"Moderation");
   else if(k==="interview"){var ch=pick(r,CH),qa=shuffle(r,ch[3]).slice(0,2),ls=[["pip","Zu Gast bei uns ist "+ch[1]+", "+ch[2]+"."]];qa.forEach(function(x){ls.push(["pip",x[0]]);ls.push([ch[0],x[1]]);});ls.push(["pip","Danke für das Gespräch."]);talk("talk",ls,"Interview mit "+ch[1]);}
   else if(k==="traffic")talk("talk",[["spr","Der Verkehr im Wichteldorf. "+pick(r,TRAFFIC)]],"Verkehr","e");
