@@ -185,3 +185,10 @@ if(!nopen)$('#qh').textContent='Es geht am 1. Dezember los';
 })();
 var h=(location.hash||'').slice(1);if(['dorf','race','orch','quest'].indexOf(h)>=0)show(h);else show('dorf');
 })();
+
+/* Tab- und Start-Verhalten: Spiel immer komplett im Bild */
+(function(){var tabs=document.querySelector('.tabs');if(!tabs)return;
+function top(){try{tabs.scrollIntoView({block:'start',behavior:'smooth'});}catch(e){tabs.scrollIntoView();}}
+tabs.addEventListener('click',function(e){if(e.target.closest('button'))setTimeout(top,60);});
+document.addEventListener('click',function(e){var b=e.target.closest('.ov .btn');if(b)setTimeout(top,60);});
+})();
