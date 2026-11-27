@@ -13,12 +13,12 @@ function inB(la,lo,b){return la>=b[0][0]&&la<=b[1][0]&&lo>=b[0][1]&&lo<=b[1][1];
 var G=null,map=null,box,el,bar,lvBtns=[],manual=null,cur=0,sat=false,tileT,tileS,lasse,home,dn,done,glow,plan,home2,cityM=[],wxd={},lastKey='',lastGeo=0,geoTxt='',lastWx=0;
 function css(){var s=document.createElement('style');s.textContent='.mapbox .badge{z-index:6}#lmap{position:absolute;inset:0;z-index:4;display:none;border-radius:inherit;overflow:hidden;background:#0b1633;font-family:system-ui,sans-serif}#lmap .leaflet-control-attribution{font-size:9px;background:#0a122bcc;color:#cfe}#lmap .leaflet-control-attribution a{color:#ffd27a}'+
  '.kl{position:relative;width:46px;height:46px}.kl i{position:absolute;inset:6px;border-radius:50%;background:rgba(255,210,122,.35);border:2px solid #ffd27a;animation:klp 1.4s infinite}.kl span{position:absolute;left:0;right:0;top:3px;text-align:center;font-size:26px;line-height:40px}@keyframes klp{0%{transform:scale(.7);opacity:1}100%{transform:scale(1.5);opacity:0}}'+
- '.kh{background:#0a122bdd;border:1px solid #ffd27a;color:#ffe9b8;font:800 13px system-ui,sans-serif;padding:4px 9px;border-radius:999px;white-space:nowrap;transform:translate(-50%,-100%)}'+
+ '.kh,.kc{width:max-content}.kh{background:#0a122bdd;border:1px solid #ffd27a;color:#ffe9b8;font:800 13px system-ui,sans-serif;padding:4px 9px;border-radius:999px;white-space:nowrap;transform:translate(-50%,-100%)}'+
  '.kc{display:flex;align-items:center;gap:5px;white-space:nowrap;transform:translate(7px,-50%);font:700 12px system-ui,sans-serif;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000;cursor:pointer}.kc:before{content:"";width:9px;height:9px;border-radius:50%;background:#fff;border:2px solid #0a122b;margin-left:-14px;margin-right:5px;flex:none}'+
  '#lvbar{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 0}#lvbar button{background:#ffffff0d;border:1px solid #ffffff33;color:#fff;border-radius:999px;padding:8px 13px;font:700 .85rem system-ui,sans-serif;cursor:pointer;min-height:38px}#lvbar button.on{background:#ffd27a;color:#0a122b;border-color:#ffd27a}';document.head.appendChild(s);}
 function ico(html,sz,anc){return LF.divIcon({className:'',html:html,iconSize:sz||[0,0],iconAnchor:anc||[0,0]});}
 function build(){
- box=document.getElementById('map').parentNode;el=document.createElement('div');el.id='lmap';box.appendChild(el);
+ el.style.display='block';
  map=LF.map(el,{zoomSnap:.25,zoomControl:true,attributionControl:true,minZoom:6,maxZoom:15,maxBounds:[[44.8,4.9],[48.7,11.6]],maxBoundsViscosity:.9});
  tileT=LF.tileLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg',{maxZoom:15,attribution:'© <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>'});
  tileS=LF.tileLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage/default/current/3857/{z}/{x}/{y}.jpeg',{maxZoom:15,attribution:'© <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>'});
@@ -31,7 +31,9 @@ function build(){
  lasse=LF.marker(HOME,{icon:ico('<div class="kl"><i></i><span id="kle">🛷</span></div>',[46,46],[23,23]),zIndexOffset:1000,interactive:false}).addTo(map);
  CIT.forEach(function(c){var m=LF.marker([c[1],c[2]],{icon:ico('<div class="kc" data-n="'+c[0]+'">'+c[0]+'</div>'),zIndexOffset:100});m._c=c;m.on('click',function(){if(c[0]==='Volketswil')setLevel(3);else if(c[0]==='Zürich')setLevel(2);});cityM.push(m);});
  map.on('zoomend moveend',cityVis);
- bar=document.createElement('div');bar.id='lvbar';
+
+}
+function mkBar(){ bar=document.createElement('div');bar.id='lvbar';
  [['🌍 Welt',0],['🇨🇭 Schweiz',1],['Kanton Zürich',2],['🏠 Volketswil',3]].forEach(function(x){var b=document.createElement('button');b.type='button';b.textContent=x[0];b.onclick=function(){setLevel(x[1]);};bar.appendChild(b);lvBtns.push(b);});
  var ba=document.createElement('button');ba.type='button';ba.textContent='📍 Auto';ba.onclick=function(){manual=null;mark();};bar.appendChild(ba);lvBtns.push(ba);
  var bs=document.createElement('button');bs.type='button';bs.textContent='🛰️ Luftbild';bs.onclick=function(){sat=!sat;if(sat){map.removeLayer(tileT);tileS.addTo(map);}else{map.removeLayer(tileS);tileT.addTo(map);}bs.classList.toggle('on',sat);};bar.appendChild(bs);
@@ -40,12 +42,12 @@ function build(){
 function cityVis(){var z=map.getZoom(),bd=map.getBounds().pad(.1);cityM.forEach(function(m){var show=z>=m._c[3]&&bd.contains(m.getLatLng());if(show&&!map.hasLayer(m)){m.addTo(map);paintCity(m);}else if(!show&&map.hasLayer(m))map.removeLayer(m);});}
 function paintCity(m){var n=m._c[0],w=wxd[n],e=m.getElement&&m.getElement();if(e){var d=e.querySelector('.kc');if(d)d.textContent=n+(w?' '+w:'');}}
 function setLevel(k){manual=k;mark();}
-function mark(){var want=manual==null?cur:manual;lvBtns.forEach(function(b,i){var on=(i===4?manual==null:(i===want&&manual!=null));b.classList.toggle('on',on);});}
+function mark(){if(!lvBtns.length)return;var want=manual==null?cur:manual;lvBtns.forEach(function(b,i){var on=(i===4?manual==null:(i===want&&manual!=null));b.classList.toggle('on',on);});}
 function applyLevel(k){var lg=document.getElementById('lgbar');
  if(k===0){el.style.display='none';if(lg)lg.style.display='';return;}
- el.style.display='block';if(lg)lg.style.display='none';map.invalidateSize();
+ el.style.display='block';if(lg)lg.style.display='none';var first=!map;if(first){try{build();}catch(e){map=null;el.style.display='none';if(lg)lg.style.display='';return;}}map.invalidateSize();
  var b=k===1?CH:(k===2?ZH:QU);
- map.fitBounds(b,{animate:true,duration:1.2,padding:[8,8]});setTimeout(cityVis,1300);}
+ map.fitBounds(b,{animate:!first,duration:1.2,padding:[8,8]});setTimeout(cityVis,1300);}
 function want(s){if(s.ph!=='trip'&&s.place==='vk')return 3;if(s.ph==='trip'){var la=+s.lat,lo=+s.lon;if(hav({lat:la,lon:lo},{lat:HOME[0],lon:HOME[1]})<4)return 3;if(inB(la,lo,ZH))return 2;if(inB(la,lo,CH))return 1;}return 0;}
 var cnt=0,pend=-1,shown=-1;
 function hud(s){
@@ -64,12 +66,12 @@ function wx(now){if(now-lastWx<15*60000)return;lastWx=now;var pts=[],seen={};
  CIT.forEach(function(c){pts.push([c[0],c[1],c[2]]);seen[c[0]]=1;});
  if(G&&G.cities)G.cities().forEach(function(c){if(!seen[c.n]&&Math.abs(c.lat)<=89.9){pts.push([c.n,c.lat,c.lon]);seen[c.n]=1;}});
  var url='https://api.open-meteo.com/v1/forecast?latitude='+pts.map(function(p){return p[1].toFixed(3);}).join(',')+'&longitude='+pts.map(function(p){return p[2].toFixed(3);}).join(',')+'&current=temperature_2m,weather_code&timezone=auto';
- fetch(url).then(function(r){return r.json();}).then(function(j){if(!Array.isArray(j))j=[j];var m={};j.forEach(function(x,i){if(!x||!x.current)return;var n=pts[i][0];var t=(WX[x.current.weather_code]||'🌡️')+' '+Math.round(x.current.temperature_2m)+'°';wxd[n]=t;m[n]=t;});if(G&&G.setWx)G.setWx(m);cityM.forEach(function(mm){if(map.hasLayer(mm))paintCity(mm);});}).catch(function(){lastWx=now-14*60000;});}
+ fetch(url).then(function(r){return r.json();}).then(function(j){if(!Array.isArray(j))j=[j];var m={};j.forEach(function(x,i){if(!x||!x.current)return;var n=pts[i][0];var t=(WX[x.current.weather_code]||'🌡️')+' '+Math.round(x.current.temperature_2m)+'°';wxd[n]=t;m[n]=t;});if(G&&G.setWx)G.setWx(m);cityM.forEach(function(mm){if(map&&map.hasLayer(mm))paintCity(mm);});}).catch(function(){lastWx=now-14*60000;});}
 function update(now,s){
- if(!map)return;wx(now);geo(s,now);
+ wx(now);geo(s,now);
  var w=want(s);if(w===pend)cnt++;else{pend=w;cnt=1;}if(cnt>=3&&cur!==pend){cur=pend;if(manual==null)mark();}
  var lv=manual==null?cur:manual;if(lv!==shown){shown=lv;applyLevel(lv);mark();}
- if(now-(update.t||0)<300)return;update.t=now;hud(s);if(lv===0)return;
+ if(now-(update.t||0)<300)return;update.t=now;hud(s);if(lv===0||!map)return;
  var atHome=(s.ph!=='trip'&&s.place==='vk');var pos=atHome?HOME:[+s.lat,+s.lon];lasse.setLatLng(pos);
  var em=s.ph==='trip'?(s.veh==='Pinguin-Express'?'🐧':(s.mv?'🛷':'☕')):(s.f==='sleep'?'💤':(atHome?'🚪':'🏡'));var e=document.getElementById('kle');if(e&&e.textContent!==em)e.textContent=em;
  if(s.ph==='trip'&&s.R){var Rt=s.R,up=Math.max(0,s.mv?s.i-1:s.i),dp=[],pl=[],i;
@@ -78,6 +80,6 @@ function update(now,s){
   var from={lat:s.lat,lon:s.lon};for(i=up+1;i<Rt.length;i++){pl=pl.concat(lerp(from,Rt[i],40));from=Rt[i];}
   dn.setLatLngs(dp);glow.setLatLngs(dp);plan.setLatLngs(pl);var last=Rt[Rt.length-1];home2.setLatLngs(last&&last.n==='Volketswil'?[[last.lat,last.lon],HOME]:[]);}
  else{dn.setLatLngs([]);glow.setLatLngs([]);plan.setLatLngs([]);home2.setLatLngs([]);}}
-function init(g){G=g;css();try{build();}catch(e){map=null;}}
+function init(g){G=g;css();box=document.getElementById('map').parentNode;el=document.createElement('div');el.id='lmap';box.appendChild(el);try{mkBar();}catch(e){}}
 window.KM={init:init,update:update,setLevel:function(k){if(map)setLevel(k);}};
 })();
