@@ -22,7 +22,7 @@ function init(cv,T,opt){
  var earth=new TH.Group();scene.add(earth);
  var mat=new TH.MeshPhongMaterial({map:fallbackTex(opt.land),shininess:6,specular:0x112233});
  var sph=new TH.Mesh(new TH.SphereGeometry(1,96,64),mat);earth.add(sph);
- try{var ld=new TH.TextureLoader();ld.setCrossOrigin('anonymous');ld.load('https://cdn.jsdelivr.net/npm/three-globe@2.31.0/example/img/earth-blue-marble.jpg',function(t){try{t.anisotropy=R.capabilities.getMaxAnisotropy();mat.map=t;mat.needsUpdate=true;}catch(e){}},undefined,function(){});}catch(e){}
+ var texReq=0;function loadTex(){try{var ld=new TH.TextureLoader();ld.setCrossOrigin('anonymous');ld.load('https://cdn.jsdelivr.net/npm/three-globe@2.31.0/example/img/earth-blue-marble.jpg',function(t){try{t.anisotropy=R.capabilities.getMaxAnisotropy();mat.map=t;mat.needsUpdate=true;}catch(e){}},undefined,function(){});}catch(e){}}
  var atm=new TH.Mesh(new TH.SphereGeometry(1.14,64,48),new TH.ShaderMaterial({vertexShader:'varying vec3 vN;void main(){vN=normalize(normalMatrix*normal);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',fragmentShader:'varying vec3 vN;void main(){float i=pow(max(0.0,0.72-dot(vN,vec3(0.0,0.0,1.0))),3.0);gl_FragColor=vec4(0.35,0.65,1.0,1.0)*i*1.6;}',side:TH.BackSide,blending:TH.AdditiveBlending,transparent:true,depthWrite:false}));scene.add(atm);
  /* Routen */
  var routes=[];function addR(a){if(a&&a.length&&routes.indexOf(a)<0)routes.push(a);}addR(T.RN);addR(T.RS);(T.TRIPS||[]).forEach(function(x){addR(x[1]&&x[1].R);});
@@ -69,7 +69,7 @@ function init(cv,T,opt){
  function ui(){[[bL,'follow'],[bW,'world']].forEach(function(x){x[0].style.background=mode===x[1]?'#ffd27a':'#0a122bcc';x[0].style.color=mode===x[1]?'#0a122b':'#fff';});}ui();
  var lastB=0,wp=new TH.Vector3(),fr=0,cw=W,ch=H;function fit(){var rc=cv.getBoundingClientRect();if(rc.width<20||rc.height<20)return;var k=Math.min(2.5,window.devicePixelRatio||1),w=Math.round(rc.width*k),h=Math.round(rc.height*k);if(w!==cw||h!==ch){cw=w;ch=h;R.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();}}
  function draw(now,s){
-  if(fr++%20===0)fit();
+  if(!texReq){texReq=1;loadTex();}if(fr++%20===0)fit();
   var lat=+s.lat||0,lon=+s.lon||0;
   if(mode==='follow'){var ty=-Math.PI/2-lon*RAD,tp=Math.max(-1.3,Math.min(1.3,lat*RAD));var dy=((ty-yaw+Math.PI*3)%(Math.PI*2))-Math.PI;yaw+=dy*.06;pitch+=(tp-pitch)*.06;}
   else if(mode==='world'){yaw+=.0025;pitch+=(.35-pitch)*.02;}

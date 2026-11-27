@@ -71,8 +71,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>window.LF=window.L;</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="globe3d.js?v=3"></script>
-<script src="karte.js?v=4"></script>
+<script src="globe3d.js?v=4"></script>
+<script src="karte.js?v=5"></script>
 <script src="common.js"></script>
 <script src="tag.js"></script>
 <script>
@@ -210,7 +210,7 @@ function tick(now){
   const pl=s.ph==='trip'?'':s.place;if(pl&&(pl!==wxPlace)&&!wxBusy)loadWx(pl);
   const sw=s.ph!=='trip'&&wx&&wxPlace===s.place?T.adjust(s,wx):s;
   const globe=(s.ph==='trip'&&(s.trip==='s'||s.trip==='b'))||s.ph==='sp';
-  G3?G3.draw(now,s):(globe?drawGlobe(now,s):drawNorth(now,s));if(window.KM){try{KM.update(now,s);}catch(e){}}
+  G3?((window.KM&&KM.level&&KM.level()!==0)?0:G3.draw(now,s)):(globe?drawGlobe(now,s):drawNorth(now,s));if(window.KM){try{KM.update(now,s);}catch(e){}}
   if(now-last>300){last=now;
     $('#hd').textContent='Lasse '+sw.t;$('#hs').textContent=label(sw);$('#ho').textContent=place(sw);
     $('#hlat').textContent=dm(s.lat,'N','S');$('#hlon').textContent=dm(s.lon,'E','W');

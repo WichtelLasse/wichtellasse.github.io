@@ -86,5 +86,5 @@ function update(now,s){
   dn.setLatLngs(dp);glow.setLatLngs(dp);plan.setLatLngs(pl);var last=Rt[Rt.length-1];home2.setLatLngs(last&&last.n==='Volketswil'?[[last.lat,last.lon],HOME]:[]);}
  else{dn.setLatLngs([]);glow.setLatLngs([]);plan.setLatLngs([]);home2.setLatLngs([]);}}
 function init(g){G=g;css();box=document.getElementById('map').parentNode;el=document.createElement('div');el.id='lmap';box.appendChild(el);try{mkBar();}catch(e){}}
-window.KM={init:init,update:update,setLevel:function(k){setLevel(k);}};
+window.KM={init:init,update:update,setLevel:function(k){setLevel(k);},level:function(){return manual==null?cur:manual;}};
 })();
