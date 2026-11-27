@@ -1,5 +1,5 @@
 (function(){"use strict";
-var LF=window.LF,KM=window.KM,T=window.LT;if(!LF||!KM||!T||!KM.map)return;
+var LF=window.LF,KM=window.KM,T=null;if(!LF||!KM||!KM.map)return;
 var HOME=[47.4059,8.6822],map=null,rings=null,stops=null,seen={},cur=null;
 var $=function(s){return document.querySelector(s)};
 var st=document.createElement('style');st.textContent='#ktl{display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap}#ktl button{font:700 .95rem var(--font);padding:9px 14px;border-radius:12px;border:1px solid var(--line);background:#ffffff0d;color:var(--ice);cursor:pointer}#ktl input{flex:1;min-width:140px;accent-color:#ffd27a}#ktl .kt{font-weight:700;font-size:.9rem;min-width:7.5em}.kring{background:none;border:0;color:#ffd27a;font:700 12px system-ui;text-shadow:0 0 3px #000,0 0 3px #000;white-space:nowrap}.kstop{font:600 14px system-ui;color:#10203c;max-width:240px}.kstop img{width:100%;border-radius:8px;margin:6px 0 4px;display:block}.kstop b{font-size:15px}';document.head.appendChild(st);
@@ -28,6 +28,7 @@ function addRing(btnBar){
  map.on('zoomend',z);z();}
 function km(a,b){var R=6371,r=Math.PI/180,dl=(b[0]-a[0])*r,dn=(b[1]-a[1])*r,x=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dn/2)*Math.sin(dn/2);return 2*R*Math.asin(Math.min(1,Math.sqrt(x)));}
 function addStops(){
+ T=window.LT;if(!T)return;
  var all=[].concat(T.RN,T.RS,T.RB||[]);T.TRIPS.forEach(function(t){all=all.concat((t[1]&&t[1].R)||[]);});
  var by={};all.forEach(function(p){if(p&&p.n&&p.lat<85&&p.lat>-86&&p.n!=='Volketswil'&&p.n!=='Wichteldorf'&&!by[p.n])by[p.n]=p;});
  stops=LF.layerGroup().addTo(map);
