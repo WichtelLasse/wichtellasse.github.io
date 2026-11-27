@@ -159,7 +159,7 @@ onScroll();
 (function(){
   try{
     const ul=document.querySelector('.nav ul');
-    if(ul){const k=ul.querySelector('a[href="index.html"]');[['quiz.html','Quiz'],['zeugnis.html','Zeugnis'],['live.html','📍 Live']].forEach(([h,t])=>{if(ul.querySelector('a[href="'+h+'"]'))return;const li=document.createElement('li'),a=document.createElement('a');a.className='l';a.href=h;a.textContent=t;if(location.pathname.endsWith('/'+h))a.className+=' cur';li.appendChild(a);ul.insertBefore(li,k?k.parentNode.nextSibling:null);});}
+    if(ul){const k=ul.querySelector('a[href="index.html"]');[['quiz.html','Quiz'],['zeugnis.html','Zeugnis'],['radio.html','Radio'],['live.html','📍 Live']].forEach(([h,t])=>{if(ul.querySelector('a[href="'+h+'"]'))return;const li=document.createElement('li'),a=document.createElement('a');a.className='l';a.href=h;a.textContent=t;if(location.pathname.endsWith('/'+h))a.className+=' cur';li.appendChild(a);ul.insertBefore(li,k?k.parentNode.nextSibling:null);});}
     {const live=location.pathname.endsWith('/live.html');
       const p=document.createElement('a');p.href='live.html';p.className='livepill';
       const st=()=>{p.innerHTML='📍 <b>Lasse live</b> · Wo ist er gerade?';};
