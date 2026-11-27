@@ -72,7 +72,7 @@
 <script>window.LF=window.L;</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="globe3d.js?v=4"></script>
-<script src="karte.js?v=5"></script>
+<script src="karte.js?v=6"></script><script src="kx.js?v=1"></script>
 <script src="common.js"></script>
 <script src="tag.js"></script>
 <script>
@@ -203,6 +203,7 @@ function gallery(ms){const R=reached(ms),key=R.map(x=>x.n).join(',');if(key===ga
   g.innerHTML=R.map(x=>'<button class="ph" data-n="'+x.n+'" type="button"><img loading="lazy" alt="'+x.n+'" src="'+IMG(PH[x.n][0],360)+'"><span>📷 '+x.n+'</span></button>').join('');}
 document.addEventListener('click',e=>{const b=e.target.closest('.ph,#hphoto');if(!b)return;const n=b.dataset.n;if(!PH[n])return;
   const lb=$('#lb');lb.querySelector('img').src=IMG(PH[n][0],1400);lb.querySelector('p').textContent=PH[n][1];lb.hidden=false;});
+window.KM_ph=PH;window.KM_img=IMG;
 let last=0;
 function tick(now){
   const ms=L.now();let s=T.now(ms);
