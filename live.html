@@ -28,7 +28,7 @@
     <h2 class="reveal">Wo ist Lasse gerade?</h2>
     <p class="lead reveal">Hier siehst du live, wo Lasse gerade ist. Du siehst auch, was er gerade macht: in der Wichtel-Akademie sitzen, Rentiere füttern, unterwegs sein oder schlafen. Das Wetter bei ihm ist echt und kommt live aus dem Internet. Schau einfach öfter vorbei.</p>
     <div class="live-wrap" style="margin-top:22px">
-      <div class="mapbox reveal"><canvas id="map" width="900" height="1000" aria-label="Live-Karte mit dem Standort von Lasse"></canvas><div class="badge wait" id="badge"><i></i><span id="bt">…</span></div></div>
+      <div class="mapbox reveal"><canvas id="map" width="900" height="1000" aria-label="3D-Globus mit dem Standort von Lasse, drehbar"></canvas><div class="badge wait" id="badge"><i></i><span id="bt">…</span></div></div>
       <div class="hud">
         <div class="m" style="grid-column:1/-1"><small>Lasse macht gerade</small><b id="hd" style="font-size:1.15rem;font-family:inherit;line-height:1.35">…</b></div>
         <div class="m"><small>Status</small><b id="hs" style="font-size:1.05rem">…</b></div>
@@ -67,6 +67,8 @@
 #lb p{font-size:1.1rem;margin:12px 0 4px}#lb small{opacity:.6}
 #hphoto{margin-top:8px}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="globe3d.js?v=1"></script>
 <script src="common.js"></script>
 <script src="tag.js"></script>
 <script>
@@ -94,7 +96,7 @@ const LAND2=[
 [[-120,34],[-110,23],[-105,20],[-97,16],[-92,15],[-87,13],[-83,9],[-80,9],[-77,8],[-80,7],[-84,10],[-88,16],[-90,21],[-97,22],[-97,28],[-90,30],[-82,30],[-80,34],[-100,30]],
 [[-180,-78],[-160,-77],[-140,-75],[-120,-73],[-100,-73],[-80,-73],[-68,-68],[-60,-63.5],[-57,-63.5],[-62,-70],[-60,-77],[-40,-78],[-20,-73],[0,-70],[20,-70],[40,-69],[60,-67],[80,-67],[100,-66],[120,-66],[140,-66],[160,-70],[170,-72],[180,-78],[180,-90],[-180,-90]]
 ];
-const cv=$('#map'),c=cv.getContext('2d');
+const cv=$('#map');let G3=null;try{const tc=document.createElement('canvas');if(window.LG&&(tc.getContext('webgl')||tc.getContext('experimental-webgl')))G3=window.LG.init(cv,T,{land:[...LAND,...LAND2]});}catch(e){G3=null;}const c=G3?null:cv.getContext('2d');
 const stars=Array.from({length:130},()=>({x:Math.random()*S,y:Math.random()*SH,r:Math.random()*1.6+.3,p:Math.random()*6}));
 const dm=(v,p,n)=>{const a=Math.abs(v),d=Math.floor(a),m=(a-d)*60;return d+'° '+m.toFixed(1).padStart(4,'0')+"' "+(v>=0?p:n);};
 function region(la,lo){if(la<-60)return 'Antarktis';if(la<-35)return 'Südlicher Ozean';if(la<-20)return lo<25?'Südliches Afrika':'Südliches Afrika';if(la<5)return 'Ostafrika';if(la<22)return 'Sudan';if(la<32)return 'Ägypten';if(la<38)return 'Mittelmeer';if(la<46)return 'Italien';return la>85?'Packeis am Nordpol':la>76?'Nordpolarmeer':la>66?'Nordmeer':la>60?'Norwegen':la>56?'Skagerrak':la>52?'Norddeutschland':la>49?'Rhein-Main':'Schweiz';}
@@ -204,7 +206,7 @@ function tick(now){
   const pl=s.ph==='trip'?'':s.place;if(pl&&(pl!==wxPlace)&&!wxBusy)loadWx(pl);
   const sw=s.ph!=='trip'&&wx&&wxPlace===s.place?T.adjust(s,wx):s;
   const globe=(s.ph==='trip'&&(s.trip==='s'||s.trip==='b'))||s.ph==='sp';
-  globe?drawGlobe(now,s):drawNorth(now,s);
+  G3?G3.draw(now,s):(globe?drawGlobe(now,s):drawNorth(now,s));
   if(now-last>300){last=now;
     $('#hd').textContent='Lasse '+sw.t;$('#hs').textContent=label(sw);$('#ho').textContent=place(sw);
     $('#hlat').textContent=dm(s.lat,'N','S');$('#hlon').textContent=dm(s.lon,'E','W');
