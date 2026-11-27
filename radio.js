@@ -97,10 +97,8 @@ function build(H){var r=rngf(H*7919+13),p=zp(H*HR+1800000),segs=[],t=0;
  function talk(ty,ls,label,e){ls.forEach(function(l){if(!l[2])l[2]=e||"f";});var d=lines(ls);add(ty,d,{ls:ls,label:label});}
  var qq=shuffle(r,TR),qi=0;function mus(){var tr=qq[qi++%qq.length];add("music",tr.dur,{song:{name:tr.t,artist:"LibriVox-Freiwillige",style:"real",url:tr.u,dur:tr.dur},label:"Musik"});}
  var tm=zp(H*HR+t*1000);
- talk("id",[["pip","Wichtelfunk Nordpol, die Stimme aus dem Wichteldorf. Es ist "+tm.h+" Uhr "+zpad(tm.mi)+"."]],"Wichtelfunk");
- var n1=pick(r,r()<.5?NEWS:[[pick(r,NN)+" "+pick(r,NE),pick(r,NN)+" "+pick(r,NE)+". "+pick(r,NR)]]),n2=pick(r,NEWS);var nn=pick(r,NN),ne=pick(r,NE);
- if(r()<.5)n1=[nn+" "+ne,nn+" "+ne+". "+pick(r,NR)];
- talk("news",[["spr","Hier sind die Nachrichten aus dem Wichteldorf."],["spr",n1[0]+". "+n1[1]],["spr",n2[0]+". "+n2[1]],["spr","Das war es für diese Stunde. Bleiben Sie dran."]],"Nachrichten","e");
+ talk("id",[["pip","Wichtelfunk Nordpol, die Stimme aus dem Wichteldorf."]],"Wichtelfunk");
+ var n1=pick(r,NEWS),n2=pick(r,NEWS);
  var kinds=shuffle(r,["talk","interview","traffic","poll","weather","ad","joke","greet","diary","cook","mail","sport","wissen","horo","ridd","hit","interview","mail"]);
  if(p.h===21)kinds.unshift("story");if(r()<.07)kinds.splice(2,0,"lasse");if(xdays(p)!==null)kinds.push("xmas");if((p.mo===12&&p.d>=26)||(p.mo===1&&p.d<=3))kinds.push("ny","ny");
  var i=0;
@@ -108,20 +106,20 @@ function build(H){var r=rngf(H*7919+13),p=zp(H*HR+1800000),segs=[],t=0;
   if(k==="talk")talk("talk",[["pip",pick(r,CHAT)]],"Moderation");
   else if(k==="interview"){var ch=pick(r,CH),qa=shuffle(r,ch[3]).slice(0,2),ls=[["pip","Zu Gast bei uns ist "+ch[1]+", "+ch[2]+"."]];qa.forEach(function(x){ls.push(["pip",x[0]]);ls.push([ch[0],x[1]]);});ls.push(["pip","Danke für das Gespräch."]);talk("talk",ls,"Interview mit "+ch[1]);}
   else if(k==="traffic")talk("talk",[["spr","Der Verkehr im Wichteldorf. "+pick(r,TRAFFIC)]],"Verkehr","e");
-  else if(k==="poll"){var q=pick(r,POLLS),pc=30+Math.floor(r()*41);talk("poll",[["pip","Abstimmung im Wichteldorf. "+q[0]+" "+q[1]+" oder "+q[2]+"?"],["pip","Das Zwischenergebnis: "+pc+" Prozent für "+q[1]+" und "+(100-pc)+" Prozent für "+q[2]+"."]],"Abstimmung","a");segs[segs.length-1].poll={q:q,pc:pc,id:H+"-"+segs.length};}
-  else if(k==="weather"){var wt=pick(r,["leichter Schneefall","dichter Schneefall","klarer Sternenhimmel","Polarlicht","sanfter Flockenwirbel"]),tp=-3-Math.floor(r()*9);talk("talk",[["spr","Das Wichtel-Wetter, erfunden und frisch aus der Zuckerbäckerei: "+wt+", "+tp+" Grad, ein leichter Wind aus Nordwest."]],"Wichtel-Wetter","r");}
+  else if(k==="poll"){var q=pick(r,POLLS),pc=pick(r,[40,55,65]);talk("poll",[["pip","Abstimmung im Wichteldorf. "+q[0]+" "+q[1]+" oder "+q[2]+"?"],["pip","Das Zwischenergebnis: "+pc+" Prozent für "+q[1]+" und "+(100-pc)+" Prozent für "+q[2]+"."]],"Abstimmung","a");segs[segs.length-1].poll={q:q,pc:pc,id:H+"-"+segs.length};}
+  else if(k==="weather"){var wt=pick(r,["leichter Schneefall","dichter Schneefall","klarer Sternenhimmel","Polarlicht","sanfter Flockenwirbel"]),tp=pick(r,[-4,-7,-10]);talk("talk",[["spr","Das Wichtel-Wetter, erfunden und frisch aus der Zuckerbäckerei: "+wt+", "+tp+" Grad, ein leichter Wind aus Nordwest."]],"Wichtel-Wetter","r");}
   else if(k==="ad")talk("talk",[["pip","Kurze Werbung. "+pick(r,ADS)]],"Werbung","a");
   else if(k==="joke")talk("talk",[["pip","Der Wichtelwitz. "+pick(r,JOKES)]],"Wichtelwitz");
   else if(k==="greet")talk("talk",[["pip",pick(r,GREETS)]],"Grüsse");
   else if(k==="story"){var st=STORIES[(Math.floor(H/24))%STORIES.length].split(". "),ls2=[["pip","Es ist Zeit für die Gute-Nacht-Geschichte."]];st.forEach(function(s,ix){ls2.push(["pip",s+(ix<st.length-1?".":"")]);});talk("talk",ls2,"Gute-Nacht-Geschichte","r");}
   else if(k==="diary")talk("talk",[["pip","Der Rückblick aus dem Wichtel-Tagebuch."],["mia",pick(r,DI)]],"Tagebuch-Rückblick","r");
   else if(k==="cook"){var ck=pick(r,COOK);talk("talk",[["pip","Willkommen im Kochstudio."],["knusperchen",ck]],"Kochstudio");}
-  else if(k==="mail"){var nm=pick(r,RN2);talk("talk",[["pip","Hörerpost. "+nm+" schreibt: "+pick(r,MAILM)],["pip","Danke, "+nm.split(" ")[0]+"!"]],"Hörerpost");}
+  else if(k==="mail"){var nm=pick(r,RN2.slice(0,6));talk("talk",[["pip","Hörerpost. "+nm+" schreibt: "+pick(r,MAILM)],["pip","Danke, "+nm.split(" ")[0]+"!"]],"Hörerpost");}
   else if(k==="sport")talk("talk",[["spr","Der Wichtel-Sport. "+pick(r,SPORT)]],"Sport","a");
   else if(k==="wissen")talk("talk",[["pip","Wusstet ihr schon? "+pick(r,WISS)]],"Wissen","r");
   else if(k==="horo")talk("talk",[["gloeckli","Das Wichtel-Horoskop für "+pick(r,SIGN)+": "+pick(r,HT)]],"Horoskop","r");
   else if(k==="ridd"){var rd=pick(r,RIDD);talk("talk",[["pip","Das Hörerrätsel. "+rd[0]],["pip","Wir geben euch einen Moment zum Nachdenken."],["pip","Die Lösung: "+rd[1]]],"Hörerrätsel");}
-  else if(k==="hit"){var h3=shuffle(r,TR).slice(0,3);talk("talk",[["pip","Die Wichtel-Hitparade. Auf Platz drei: "+h3[2].t+". Auf Platz zwei: "+h3[1].t+". Und auf Platz eins: "+h3[0].t+"."]],"Wichtel-Hitparade","a");}
+  else if(k==="hit"){var hq=Math.floor(r()*6),h3=TR.slice(hq*3,hq*3+3);talk("talk",[["pip","Die Wichtel-Hitparade. Auf Platz drei: "+h3[2].t+". Auf Platz zwei: "+h3[1].t+". Und auf Platz eins: "+h3[0].t+"."]],"Wichtel-Hitparade","a");}
   else if(k==="xmas"){var xd=xdays(p);talk("talk",[["pip",xd===0?"Heute ist Heiligabend. Wir wünschen euch einen wunderbaren Abend.":"Noch "+xd+" Mal schlafen bis Weihnachten. Habt ihr schon alle Plätzchen probiert?"]],"Countdown","a");}
   else if(k==="ny"){talk("talk",[["pip",(p.mo===1?"Frohes neues Jahr, liebe Hörerinnen und Hörer! Wir wünschen euch Glück, Gesundheit und viele Plätzchen.":"Das Jahr geht zu Ende. Ein grosser Dank an alle, die zugehört haben. Rutscht gut ins neue Jahr!")]],"Jahreswechsel","a");}
   else if(k==="lasse"){var lv=pick(r,LASSE);talk("talk",lv.map(function(x){return[x[0],x[1]];}),"Lasse im Radio");}
@@ -158,17 +156,22 @@ function gen(sg){var ev=[];function E(k,t,n,d,v){ev.push({k:k,t:t,n:n,d:d,v:v});
  }
  ev.sort(function(a,b){return a.t-b.t;});return ev;}
 var AU=null,realCur=null,SIL="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
-function unlockAU(){try{if(!AU)AU=new Audio();AU.src=SIL;var pr=AU.play();if(pr&&pr.catch)pr.catch(function(){});}catch(e){}}
+function unlockAU(){try{if(!VA)VA=new Audio();VA.src=SIL;var q=VA.play();if(q&&q.catch)q.catch(function(){});}catch(e){}try{if(!AU)AU=new Audio();AU.src=SIL;var pr=AU.play();if(pr&&pr.catch)pr.catch(function(){});}catch(e){}}
 function playReal(sg,off){try{if(!AU)AU=new Audio();realCur={sg:sg,t0:Date.now()-off*1000};AU.src=sg.url;AU.volume=.9;AU.onloadedmetadata=function(){try{if(off>1.5)AU.currentTime=off;}catch(e){}};var pr=AU.play();if(pr&&pr.catch)pr.catch(function(){});}catch(e){}}
-function stopReal(){realCur=null;try{if(AU)AU.pause();}catch(e){}}
+function stopReal(){realCur=null;try{if(VA)VA.pause();}catch(e){}try{if(AU)AU.pause();}catch(e){}}
 function realFade(){if(!realCur||!AU)return;var left=realCur.sg.dur-(Date.now()-realCur.t0)/1000;try{AU.volume=left<4?Math.max(0,left/4)*.9:.9;}catch(e){}}
 var ON=false,cur={key:null,li:-1},mus=null,sp=null,voices=[];
 function loadVoices(){try{voices=speechSynthesis.getVoices().filter(function(v){return/^de/i.test(v.lang);});}catch(e){voices=[];}}
 loadVoices();try{speechSynthesis.onvoiceschanged=loadVoices;}catch(e){}
 var FN=["anna","petra","marlene","vicki","helena","katja","lena","sandy","shelley","flo"],MN=["markus","yannick","hans","martin","reed","eddy","rocko","grandpa"];
 function voiceFor(w){var c=VC[w];if(!voices.length)return null;var pool=voices.filter(function(v){var n=v.name.toLowerCase(),f=FN.some(function(x){return n.indexOf(x)>=0}),m=MN.some(function(x){return n.indexOf(x)>=0});return c.g==="f"?(f||!m):(m||!f);});if(!pool.length)pool=voices;return pool[c.i%pool.length];}
+var VI=null,VA=null;
+(function(){try{fetch("vo-index.json?v=8").then(function(r){return r.json();}).then(function(j){VI=j;}).catch(function(){});}catch(e){}})();
+function fnv(t){var b=new TextEncoder().encode(t),x=2166136261;for(var i=0;i<b.length;i++){x^=b[i];x=Math.imul(x,16777619)>>>0;}return x.toString(16);}
+function clip(w,txt,e){if(!VI)return false;var x=VI[fnv(w+"|"+e+"|"+txt)];if(!x)return false;try{if(!VA)VA=new Audio();VA.pause();VA.onloadedmetadata=function(){try{VA.currentTime=x[1];}catch(er){}var p=VA.play();if(p&&p.catch)p.catch(function(){});};VA.ontimeupdate=function(){if(VA.currentTime>=x[1]+x[2])VA.pause();};VA.src="vo-"+x[0];VA.load();VA.volume=1;return true;}catch(er){return false;}}
+function say(w,txt,e){e=e||"f";try{speechSynthesis.cancel();}catch(x){}if(VA){try{VA.pause();}catch(x){}}if(clip(w,txt,e))return;say0(w,txt,e);}
 var EM={f:[.07,.1],e:[-.08,-.12],r:[-.16,-.05],a:[.14,.22]};
-function say(w,txt,e){try{speechSynthesis.cancel();var c=VC[w],m=EM[e]||EM.f,v=voiceFor(w),parts=txt.match(/[^.!?]+[.!?]*/g)||[txt];parts.forEach(function(p,ix){p=p.trim();if(!p)return;var u=new SpeechSynthesisUtterance(p),end=p.slice(-1),pe=0,re=0;if(end==="!"){pe=.12;re=.06;}else if(end==="?"){pe=.1;re=-.02;}if(ix===0){pe+=.04;}u.lang="de-DE";if(v)u.voice=v;u.pitch=Math.max(.1,Math.min(2,c.p+m[1]+pe+(Math.random()-.5)*.08));u.rate=Math.max(.5,Math.min(1.6,c.r+m[0]+re+(Math.random()-.5)*.06));speechSynthesis.speak(u);});}catch(x){}}
+function say0(w,txt,e){try{speechSynthesis.cancel();var c=VC[w],m=EM[e]||EM.f,v=voiceFor(w),parts=txt.match(/[^.!?]+[.!?]*/g)||[txt];parts.forEach(function(p,ix){p=p.trim();if(!p)return;var u=new SpeechSynthesisUtterance(p),end=p.slice(-1),pe=0,re=0;if(end==="!"){pe=.12;re=.06;}else if(end==="?"){pe=.1;re=-.02;}if(ix===0){pe+=.04;}u.lang="de-DE";if(v)u.voice=v;u.pitch=Math.max(.1,Math.min(2,c.p+m[1]+pe+(Math.random()-.5)*.08));u.rate=Math.max(.5,Math.min(1.6,c.r+m[0]+re+(Math.random()-.5)*.06));speechSynthesis.speak(u);});}catch(x){}}
 function stopMusic(){stopReal();if(mus){var g=mus.g;try{g.gain.setTargetAtTime(0,AC.currentTime,.08);setTimeout(function(){try{g.disconnect();}catch(e){}},600);}catch(e){}mus=null;}}
 function startMusic(sg,off){if(sg.style==="real"){playReal(sg,off);return;}ctx();var g=AC.createGain();g.gain.value=1;g.connect(comp);var ev=gen(sg);var base=AC.currentTime-off;mus={g:g,ev:ev,i:0,base:base,dur:sg.dur};while(mus.i<ev.length&&ev[mus.i].t+ev[mus.i].d<off)mus.i++;}
 function pump(){if(realCur){realFade();return;}if(!mus||!AC)return;var pos=AC.currentTime-mus.base,e;while(mus.i<mus.ev.length&&mus.ev[mus.i].t<=pos+4){e=mus.ev[mus.i++];var w=mus.base+e.t;if(w<AC.currentTime)w=AC.currentTime+.01;ply(e,w,mus.g);}
