@@ -58,7 +58,7 @@ var SHOWS=[[6,10,"Guten Morgen, Wichteldorf"],[10,14,"Zimtstern-Mittag"],[14,18,
 function showName(h){var x=h<6?h+24:h;for(var i=0;i<SHOWS.length;i++)if(x>=SHOWS[i][0]&&x<SHOWS[i][1])return SHOWS[i][2];return SHOWS[4][2];}
 function styleFor(r,p){var x=r(),ny=(p.mo===12&&p.d>=28)||(p.mo===1&&p.d<=3);if(ny)return x<.4?"neujahr":x<.7?"banger":x<.85?"wichtel":x<.95?"weihnacht":"klassik";return x<.38?"weihnacht":x<.68?"wichtel":x<.88?"banger":"klassik";}
 function makeSong(r,p){var st=styleFor(r,p);if(st==="klassik"){var c=CLS[Math.floor(r()*CLS.length)],tot=0;c.t.forEach(function(n){tot+=n[1]*c.u;});return{style:"klassik",cls:c,name:c.n,artist:"Wichtelfunk-Orchester",dur:tot+2};}
- var bpm={weihnacht:76+Math.floor(r()*20),wichtel:104+Math.floor(r()*14),banger:122+Math.floor(r()*6),neujahr:116+Math.floor(r()*8)}[st],bars=40+Math.floor(r()*4)*4,seed=Math.floor(r()*1e9);
+ var bpm={weihnacht:76+Math.floor(r()*20),wichtel:104+Math.floor(r()*14),banger:122+Math.floor(r()*6),neujahr:116+Math.floor(r()*8)}[st],bars=32+Math.floor(r()*3)*4,seed=Math.floor(r()*1e9);
  return{style:st,seed:seed,bpm:bpm,bars:bars,name:pick(r,A1)+pick(r,B1[st]),artist:pick(r,AR[st]),dur:bars*240/bpm};}
 function lines(a){var o=0;a.forEach(function(l){l.o=o;l.d=1+l[1].length*.08;o+=l.d+.6;});return o;}
 function zpad(n){return(n<10?"0":"")+n;}
@@ -74,7 +74,7 @@ function build(H){var r=rngf(H*7919+13),p=zp(H*HR+1800000),segs=[],t=0;
  var kinds=shuffle(r,["talk","interview","traffic","poll","weather","ad","joke","greet"]);
  if(p.h===21)kinds.unshift("story");if(r()<.2)kinds.splice(2,0,"lasse");
  var i=0;
- while(t<3590){mus();if(t>=3590)break;var k=kinds[i++%kinds.length],c=segs.length;
+ while(t<3590){if(i%2===0)mus();if(t>=3590)break;var k=kinds[i++%kinds.length],c=segs.length;
   if(k==="talk")talk("talk",[["pip",pick(r,CHAT)]],"🎙️ Moderation");
   else if(k==="interview"){var ch=pick(r,CH),qa=shuffle(r,ch[3]).slice(0,2),ls=[["pip","Zu Gast bei uns ist "+ch[1]+", "+ch[2]+"."]];qa.forEach(function(x){ls.push(["pip",x[0]]);ls.push([ch[0],x[1]]);});ls.push(["pip","Danke für das Gespräch."]);talk("talk",ls,"🎤 Interview mit "+ch[1]);}
   else if(k==="traffic")talk("talk",[["spr","Der Verkehr im Wichteldorf. "+pick(r,TRAFFIC)]],"🚦 Verkehr");
