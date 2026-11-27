@@ -67,8 +67,12 @@
 #lb p{font-size:1.1rem;margin:12px 0 4px}#lb small{opacity:.6}
 #hphoto{margin-top:8px}
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>window.LF=window.L;</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="globe3d.js?v=2"></script>
+<script src="globe3d.js?v=3"></script>
+<script src="karte.js?v=1"></script>
 <script src="common.js"></script>
 <script src="tag.js"></script>
 <script>
@@ -96,7 +100,7 @@ const LAND2=[
 [[-120,34],[-110,23],[-105,20],[-97,16],[-92,15],[-87,13],[-83,9],[-80,9],[-77,8],[-80,7],[-84,10],[-88,16],[-90,21],[-97,22],[-97,28],[-90,30],[-82,30],[-80,34],[-100,30]],
 [[-180,-78],[-160,-77],[-140,-75],[-120,-73],[-100,-73],[-80,-73],[-68,-68],[-60,-63.5],[-57,-63.5],[-62,-70],[-60,-77],[-40,-78],[-20,-73],[0,-70],[20,-70],[40,-69],[60,-67],[80,-67],[100,-66],[120,-66],[140,-66],[160,-70],[170,-72],[180,-78],[180,-90],[-180,-90]]
 ];
-const cv=$('#map');let G3=null;try{const tc=document.createElement('canvas');if(window.LG&&(tc.getContext('webgl')||tc.getContext('experimental-webgl')))G3=window.LG.init(cv,T,{land:[...LAND,...LAND2]});}catch(e){G3=null;}const c=G3?null:cv.getContext('2d');
+const cv=$('#map');let G3=null;try{const tc=document.createElement('canvas');if(window.LG&&(tc.getContext('webgl')||tc.getContext('experimental-webgl')))G3=window.LG.init(cv,T,{land:[...LAND,...LAND2],onCity:(n)=>{const k=n==='Volketswil'?3:n==='Zürich'?2:-1;if(k>=0&&window.KM)KM.setLevel(k);}});}catch(e){G3=null;}if(window.KM){try{window.KM_region=region;window.KM.init(G3);}catch(e){}}const c=G3?null:cv.getContext('2d');
 const stars=Array.from({length:130},()=>({x:Math.random()*S,y:Math.random()*SH,r:Math.random()*1.6+.3,p:Math.random()*6}));
 const dm=(v,p,n)=>{const a=Math.abs(v),d=Math.floor(a),m=(a-d)*60;return d+'° '+m.toFixed(1).padStart(4,'0')+"' "+(v>=0?p:n);};
 function region(la,lo){if(la<-60)return 'Antarktis';if(la<-35)return 'Südlicher Ozean';if(la<-20)return lo<25?'Südliches Afrika':'Südliches Afrika';if(la<5)return 'Ostafrika';if(la<22)return 'Sudan';if(la<32)return 'Ägypten';if(la<38)return 'Mittelmeer';if(la<46)return 'Italien';return la>85?'Packeis am Nordpol':la>76?'Nordpolarmeer':la>66?'Nordmeer':la>60?'Norwegen':la>56?'Skagerrak':la>52?'Norddeutschland':la>49?'Rhein-Main':'Schweiz';}
@@ -206,7 +210,7 @@ function tick(now){
   const pl=s.ph==='trip'?'':s.place;if(pl&&(pl!==wxPlace)&&!wxBusy)loadWx(pl);
   const sw=s.ph!=='trip'&&wx&&wxPlace===s.place?T.adjust(s,wx):s;
   const globe=(s.ph==='trip'&&(s.trip==='s'||s.trip==='b'))||s.ph==='sp';
-  G3?G3.draw(now,s):(globe?drawGlobe(now,s):drawNorth(now,s));
+  G3?G3.draw(now,s):(globe?drawGlobe(now,s):drawNorth(now,s));if(window.KM){try{KM.update(now,s);}catch(e){}}
   if(now-last>300){last=now;
     $('#hd').textContent='Lasse '+sw.t;$('#hs').textContent=label(sw);$('#ho').textContent=place(sw);
     $('#hlat').textContent=dm(s.lat,'N','S');$('#hlon').textContent=dm(s.lon,'E','W');
