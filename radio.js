@@ -88,7 +88,7 @@ function build(H){var r=rngf(H*7919+13),p=zp(H*HR+1800000),segs=[],t=0;
   if(segs.length>c&&t>3600){}}
  var last=segs[segs.length-1];last.d=3600-last.s;if(last.d<4){segs.pop();var pr=segs[segs.length-1];pr.d=3600-pr.s;}
  return segs;}
-var cache={};function sched(H){if(!cache[H]){cache[H]=build(H);var ks=Object.keys(cache);if(ks.length>4)delete cache[ks[0]];}return cache[H];}
+var cache={};function sched(H){if(!cache[H]){cache[H]=build(H);Object.keys(cache).forEach(function(k){if(Math.abs(k-H)>3)delete cache[k];});}return cache[H];}
 function which(now){var H=Math.floor(now/HR),off=(now-H*HR)/1000,sc=sched(H),s=sc[sc.length-1],idx=sc.length-1;for(var i=0;i<sc.length;i++)if(off>=sc[i].s&&off<sc[i].s+sc[i].d){s=sc[i];idx=i;break;}var nx=sc[idx+1]||sched(H+1)[0];return{H:H,off:off,seg:s,idx:idx,next:nx};}
 var AC=null,comp,out,nb,song=null;
 function ctx(){if(!AC){AC=new(window.AudioContext||window.webkitAudioContext)();comp=AC.createDynamicsCompressor();out=AC.createGain();out.gain.value=.85;comp.connect(out);out.connect(AC.destination);nb=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);var d=nb.getChannelData(0);for(var i=0;i<d.length;i++)d[i]=Math.random()*2-1;}if(AC.state==="suspended")AC.resume();}
