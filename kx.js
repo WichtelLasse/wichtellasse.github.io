@@ -8,7 +8,7 @@ var u0=KM.update;KM.update=function(now,s){cur=s;if(s&&s.ph==='trip'&&s.R){var u
 var bar=document.createElement('div');bar.id='ktl';
 bar.innerHTML='<button type="button" id="ktp">⏱️ Zeitraffer</button><input type="range" id="ktr" hidden><span class="kt" id="ktt" hidden></span><button type="button" id="ktl2" hidden>● Live</button>';
 var anchor=document.getElementById('lvbar');
-function place(){anchor=document.getElementById('lvbar');if(anchor&&!bar.parentNode){anchor.parentNode.insertBefore(bar,anchor.nextSibling);return true;}return !!bar.parentNode;}
+function place(){anchor=document.getElementById('lvbar');if(anchor&&!bar.parentNode){anchor.parentNode.insertBefore(bar,anchor.nextSibling);wire();return true;}return !!bar.parentNode;}
 var play=0,iv=0;
 function live(){clearInterval(iv);iv=0;delete window.__now;$('#ktr').hidden=true;$('#ktt').hidden=true;$('#ktl2').hidden=true;$('#ktp').textContent='⏱️ Zeitraffer';play=0;}
 function setT(v){window.__now=v;$('#ktr').value=v;$('#ktt').textContent=fmt(v);}
@@ -16,7 +16,6 @@ function start(){var n=Date.now(),r=$('#ktr');r.min=n-6*3600e3;r.max=n;r.step=60
 function wire(){$('#ktp').onclick=function(){if(!window.__now&&!iv){start();return;}play=!play;this.textContent=play?'⏸️ Pause':'▶️ Weiter';};
  $('#ktr').oninput=function(){play=0;$('#ktp').textContent='▶️ Weiter';setT(+this.value);};
  $('#ktl2').onclick=live;}
-wire();
 function addRing(btnBar){
  rings=LF.layerGroup();[100,500,1000,2500].forEach(function(km){
   LF.circle(HOME,{radius:km*1000,color:'#ffd27a',weight:1.5,opacity:.8,fill:false,dashArray:'6 8',interactive:false}).addTo(rings);
