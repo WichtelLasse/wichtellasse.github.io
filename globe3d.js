@@ -43,7 +43,7 @@ function init(cv,T,opt){
  function setEmo(e){if(e===curE)return;curE=e;if(!ec[e])ec[e]=emoTex(e);emo.material.map=ec[e];emo.material.needsUpdate=true;}
  var trail=null,trailT=0;
  function setTrail(s){if(trail){earth.remove(trail);trail.geometry.dispose();trail.material.dispose();trail=null;}if(s.ph!=='trip'||!s.R)return;
-  var up=s.mv?s.i-1:s.i;var p=route(s.R,Math.max(0,up));p.push({lat:s.lat,lon:s.lon});var v=dedupe(p.map(function(q){return V(q.lat,q.lon,1.009);}));if(v.length<2)return;
+  var up=s.mv?s.i-1:s.i;var b0=s.R[Math.max(0,up)],p=route(s.R,Math.max(0,up));if(!p.length)p=[{lat:b0.lat,lon:b0.lon}];p=p.concat(line(b0,{lat:s.lat,lon:s.lon},40));var v=dedupe(p.map(function(q){return V(q.lat,q.lon,1.009);}));if(v.length<2)return;
   try{var cu=new TH.CatmullRomCurve3(v);var g=new TH.TubeGeometry(cu,Math.min(400,v.length*2),.0055,6,false);trail=new TH.Mesh(g,new TH.MeshBasicMaterial({color:0x7dffd0}));earth.add(trail);}catch(e){trail=null;}}
  /* Steuerung */
  var yaw=-Math.PI/2,pitch=.5,d=3.6,dT=3.6,mode='follow',vy=0,vp=0,drag=false,pts={},lp=0;
