@@ -18,8 +18,15 @@ document.getElementById('tcount').textContent='· '+got+' von '+bd.length;
 document.getElementById('tbar').style.width='0';setTimeout(function(){document.getElementById('tbar').style.width=Math.round(got/bd.length*100)+'%';},100);
 document.getElementById('tbad').innerHTML=bd.map(function(b){return '<div class="bd'+(b[3]?' on':'')+'"><div class="ic">'+b[0]+'</div><b>'+b[1]+'</b><small>'+b[2]+'</small></div>';}).join('');
 var far=builds.length?Math.max.apply(null,builds.map(function(x){return +x.d||+x.dist||0;})):0;
-var recs=[['🛷','Schlitten',sled],['❄️','Flocken',flake],['🏁','Rennen-Level',rlv],['🛠️','Weitester Flug',far?Math.round(far)+' m':'–'],['🎅','Memory (Züge)',mem||'–'],['⛄','Schneemann (s)',snow||'–']];
+var recs=[['🛷','Schlitten',sled],['❄️','Flocken',flake],['🏁','Rennen-Level',rlv],['🛠️','Weitester Flug',far?Math.round(far)+' m':'–'],['🎅','Memory (Züge)',mem||'–'],['⛄','Schneemann (s)',snow||'–'],['🧠','Quiz (von 8)',n('wl_quizbest')||'–'],['❄️','Schneeball-Treffer',n('wl_duel')||'–'],['🏭','Fliessband-Level',n('wl_fab')||'–'],['🏘️','Dorf-Plätze',(o('wl_dorf',[])||[]).filter(Boolean).length+' von 9'],['🗺️','Schatzsuche',Math.min(8,n('wl_schatz'))+' von 8']];
 document.getElementById('trec').innerHTML=recs.map(function(r){return '<div>'+r[0]+'<b>'+r[2]+'</b>'+r[1]+'</div>';}).join('');
 var cur=WL.skin().id;
 document.getElementById('tsk').innerHTML=WL.SK.map(function(k){var h=own.indexOf(k.id)>=0;return '<span class="chip'+(k.id===cur?' on':'')+'" style="'+(h?'':'opacity:.4')+'">'+(h?'':'🔒 ')+k.n+'</span>';}).join('');
+
+(function(){var sb=document.querySelector('.starbar');if(!sb)return;var box=document.createElement('div');box.style.cssText='margin-top:16px';
+function dstr(ms){return new Date(ms).toLocaleDateString('sv-SE',{timeZone:'Europe/Zurich'});}
+function render(){var d=WL.g('wl_daily',{d:'',s:0}),today=dstr(Date.now()),done=d.d===today;
+ box.innerHTML='<div class="rec" style="grid-template-columns:1fr"><div><span style="font-size:1.6rem">🎁</span><b style="font-size:1.1rem">Tagesstern</b>'+(done?'Heute schon geholt. Serie: '+d.s+' Tage in Folge. Morgen gibt es wieder Sterne!':'Hol dir heute deine Sterne. Je mehr Tage in Folge, desto mehr gibt es (bis 7 Tage).')+'<br>'+(done?'':'<button class="btn" id="tdl" style="margin-top:10px">Tagesstern holen</button>')+'</div></div>';
+ var b=box.querySelector('#tdl');if(b)b.onclick=function(){var y=dstr(Date.now()-864e5),s=(d.d===y?d.s:0)+1,gain=2+Math.min(s,7);WL.s('wl_daily',{d:today,s:s});WL.add(gain);document.getElementById('tstars').textContent=WL.stars();render();};}
+render();sb.parentNode.insertBefore(box,sb.nextSibling);})();
 })();
