@@ -62,6 +62,9 @@ body.touch #hudwrap.on .tc{display:block}
 #btnA{right:calc(24px + env(safe-area-inset-right));bottom:calc(30px + env(safe-area-inset-bottom));background:rgba(255,210,122,.85);color:var(--ink)}
 #btnJ{right:calc(110px + env(safe-area-inset-right));bottom:calc(20px + env(safe-area-inset-bottom));width:62px;height:62px}
 #btnD{right:calc(34px + env(safe-area-inset-right));bottom:calc(116px + env(safe-area-inset-bottom));width:56px;height:56px;display:none}
+#btnS{right:calc(120px + env(safe-area-inset-right));bottom:calc(100px + env(safe-area-inset-bottom));width:54px;height:54px}
+.sball{width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#cfe2f5 60%,#9fb8d6);box-shadow:0 2px 6px #0006}
+.cfly{position:fixed;left:0;top:0;z-index:56;width:12px;height:30px;margin:-15px 0 0 -6px;border-radius:7px 7px 3px 3px;background:repeating-linear-gradient(45deg,#fff 0 5px,#e0262c 5px 10px);box-shadow:0 2px 8px #0008;pointer-events:none}
 #btnD.on{display:grid}
 body.touch #hudwrap.on #btnD:not(.on){display:none}
 /* Bauen */
@@ -148,6 +151,7 @@ body:not(.touch) #buildbar{bottom:90px}
   <button id="btnA" class="tbtn tc" aria-label="Aktion">✋</button>
   <button id="btnJ" class="tbtn tc" aria-label="Springen">⤒</button>
   <button id="btnD" class="tbtn tc" aria-label="Sinken">⬇</button>
+  <button id="btnS" class="tbtn tc" aria-label="Schneeball werfen"><span class="sball"></span></button>
   <div id="buildbar"><button class="btn ghost" id="bRot">↻ Drehen</button><button class="btn" id="bPlace">✔ Platzieren</button><button class="btn ghost" id="bCancel">✕</button></div>
 </div>
 <div id="prompt"></div>
@@ -155,7 +159,7 @@ body:not(.touch) #buildbar{bottom:90px}
 <div id="panel" class="panel"></div>
 <div id="map"><canvas id="mapc" width="800" height="800"></canvas></div>
 <div id="fade"></div>
-<script type="module" src="w3d-main.js?v=2"></script>
+<script type="module" src="w3d-main.js?v=3"></script>
 <noscript><p style="padding:20px">Wichtel 3D braucht JavaScript.</p></noscript>
 </body>
 </html>

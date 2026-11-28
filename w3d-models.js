@@ -1,6 +1,6 @@
 // Realistische, prozedurale 3D-Modelle für Wichtel 3D
 import * as THREE from './three.min.js';
-import { signTexture, windowTexture } from './w3d-tex.js';
+import { signTexture, windowTexture } from './w3d-tex.js?v=3';
 
 export let T = null;
 const M = {}; // Material-Cache
@@ -148,13 +148,25 @@ export function makeWichtel(o = {}) {
   root.userData = { legs, arms, head, body, t: 0 };
   return root;
 }
-export function animateWichtel(w, dt, speed) {
-  const u = w.userData; u.t += dt * (4 + speed * 2.2);
-  const sw = Math.min(1, speed / 3) * .7, s = Math.sin(u.t);
-  u.legs[0].rotation.x = s * sw; u.legs[1].rotation.x = -s * sw;
-  u.arms[0].rotation.x = -s * sw * .8; u.arms[1].rotation.x = s * sw * .8;
-  u.body.position.y = Math.abs(Math.cos(u.t)) * .05 * Math.min(1, speed) + Math.sin(performance.now() / 600) * .006;
-  u.head.rotation.z = Math.sin(u.t * .5) * .04;
+export function animateWichtel(w, dt, speed, st) {
+  const u = w.userData; st = st || {}; u.t += dt * (4 + speed * 2.2);
+  const run = Math.min(1, speed / 3), sw = run * .75, s = Math.sin(u.t), L = (a, b, k) => a + (b - a) * Math.min(1, dt * k);
+  let l0 = s * sw, l1 = -s * sw, a0x = -s * sw * .8, a1x = s * sw * .8, a0z = 0, a1z = 0, lean = Math.min(speed / 9, 1) * .2, by = Math.abs(Math.cos(u.t)) * .06 * run;
+  if (st.air) {
+    if (st.glide) { a0z = 1.45; a1z = -1.45; a0x = a1x = -.2; l0 = .25; l1 = -.15; lean = .35; }
+    else if (st.vy > 0) { a0x = a1x = -2.7; l0 = -.9; l1 = .5; lean = .05; }
+    else { a0x = a1x = -1.6; a0z = .6; a1z = -.6; l0 = -.3; l1 = .3; }
+    by = 0;
+  } else if (st.cheer > 0) { const c = Math.sin(st.cheer * 18); a0x = a1x = -2.9; a0z = .3 + c * .25; a1z = -.3 - c * .25; by = Math.abs(Math.sin(st.cheer * 9)) * .25; }
+  else if (speed < .2) { const br = Math.sin(performance.now() / 700); a0z = .05 + br * .03; a1z = -.05 - br * .03; by = br * .008; u.head.rotation.y = L(u.head.rotation.y, Math.sin(performance.now() / 2300) * .35, 2); }
+  if (speed > .2 || st.air) u.head.rotation.y = L(u.head.rotation.y, 0, 6);
+  u.legs[0].rotation.x = L(u.legs[0].rotation.x, l0, 18); u.legs[1].rotation.x = L(u.legs[1].rotation.x, l1, 18);
+  u.arms[0].rotation.x = L(u.arms[0].rotation.x, a0x, 14); u.arms[1].rotation.x = L(u.arms[1].rotation.x, a1x, 14);
+  u.arms[0].rotation.z = L(u.arms[0].rotation.z, -a0z, 12); u.arms[1].rotation.z = L(u.arms[1].rotation.z, -a1z, 12);
+  u.body.rotation.x = st.flip > 0 ? (1 - st.flip) * Math.PI * 2 : L(u.body.rotation.x, lean, 8);
+  const sq = st.land || 0; u.body.scale.set(1 + sq * .14, 1 - sq * .22, 1 + sq * .14);
+  if (st.flip > 0) { const th = (1 - st.flip) * Math.PI * 2; u.body.position.set(0, .6 - .6 * Math.cos(th), -.6 * Math.sin(th)); } else { u.body.position.set(0, by, 0); }
+  u.head.rotation.z = Math.sin(u.t * .5) * .04 * run;
 }
 
 // ---------- Fenster ----------

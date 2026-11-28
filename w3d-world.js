@@ -1,6 +1,6 @@
 // Welt: Gelände, Himmel, Dorf, Wald, Kollisionen, Kinderhaus
 import * as THREE from './three.min.js';
-import * as MD from './w3d-models.js';
+import * as MD from './w3d-models.js?v=3';
 
 // ---------- Rauschen & Gelände ----------
 function hash(x, z) { const s = Math.sin(x * 127.1 + z * 311.7) * 43758.5453; return s - Math.floor(s); }
@@ -117,13 +117,13 @@ export const PORTAL = new THREE.Vector3(0, 34, -150);
 export function buildVillage(scene) {
   const colliders = [], circles = [], doors = [], chimneys = [], anim = {};
   const props = new THREE.Group(), town = new THREE.Group();
-  const addBox = (x, z, w, d, ry) => colliders.push({ x, z, hw: w / 2 + .2, hd: d / 2 + .2, ry: ry || 0 });
+  const addBox = (x, z, w, d, ry, top = 999, roof = null) => colliders.push({ x, z, hw: w / 2 + .2, hd: d / 2 + .2, ry: ry || 0, top, roof });
   function place(def) {
     let g = MD.makeBuilding({ w: def.w, d: def.d, h: def.h, wall: def.wall, roof: def.roof, sign: def.name, floors: def.floors || 1, door: def.door || 0, seed: def.x * 3 + def.z });
     const ch = g.userData.chimney;
     const ry = def.ry !== undefined ? def.ry : Math.atan2(-def.x, -def.z);
     g.position.set(def.x, H(def.x, def.z) - .2, def.z); g.rotation.y = ry; town.add(g);
-    addBox(def.x, def.z, def.w + .3, def.d + .3, ry);
+    addBox(def.x, def.z, def.w + .3, def.d + .3, ry, g.position.y + .7 + def.h, { rh: Math.min(def.w, def.d) * .45, half: def.w / 2 + .35 });
     const dir = new THREE.Vector3(Math.sin(ry), 0, Math.cos(ry));
     const dp = new THREE.Vector3(def.x, 0, def.z).addScaledVector(dir, def.d / 2 + 1.8);
     doors.push({ ...def, pos: dp, ry });
@@ -146,12 +146,12 @@ export function buildVillage(scene) {
   const tree = MD.makeXmasTree(16); scene.add(tree); circles.push({ x: 0, z: 0, r: 4.2 }); anim.tree = tree;
   const gifts = [0xc4161c, 0x2a6ad8, 0x2f8a4e, 0xd8a62a, 0x8a3ad8];
   for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2, gf = MD.makeGift(gifts[i % 5]); gf.position.set(Math.cos(a) * 4.6, 0, Math.sin(a) * 4.6); gf.rotation.y = a * 3; gf.scale.setScalar(1 + (i % 3) * .3); props.add(gf); }
-  for (let i = 0; i < 4; i++) { const a = i / 4 * Math.PI * 2 + Math.PI / 4, b = MD.makeBench(); b.position.set(Math.cos(a) * 11, 0, Math.sin(a) * 11); b.rotation.y = -a - Math.PI / 2; props.add(b); circles.push({ x: b.position.x, z: b.position.z, r: 1.1 }); }
+  for (let i = 0; i < 4; i++) { const a = i / 4 * Math.PI * 2 + Math.PI / 4, b = MD.makeBench(); b.position.set(Math.cos(a) * 11, 0, Math.sin(a) * 11); b.rotation.y = -a - Math.PI / 2; props.add(b); circles.push({ x: b.position.x, z: b.position.z, r: 1.1, top: .68 }); }
   // Laternen entlang der Wege
   const lampPos = [];
   for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; lampPos.push([Math.cos(a) * 16.5, Math.sin(a) * 16.5]); }
   for (const d of doors) { const mx = (d.x + 0) / 2, mz = (d.z + 0) / 2; lampPos.push([mx + (d.z > 0 ? 2 : -2), mz]); }
-  for (const [x, z] of lampPos) { const l = MD.makeLantern(); l.position.set(x, H(x, z), z); props.add(l); circles.push({ x, z, r: .4 }); }
+  for (const [x, z] of lampPos) { const l = MD.makeLantern(); l.position.set(x, H(x, z), z); props.add(l); circles.push({ x, z, r: .4, top: H(x, z) + 3.9 }); }
   // Echte Lichter an wenigen Stellen (Rest leuchtet über Emission)
   const lightsAt = [[0, 0, 9, 0xffc070, 30], [-30, -14, 3.5, 0xffb060, 16], [31, -13, 3.5, 0xffb060, 16], [15, 28, 3.5, 0xffb060, 16], [0, -29, 4, 0xffb060, 18], [-14, 30, 3.5, 0xffb060, 14]];
   for (const [x, z, y, c, dist] of lightsAt) { const pl = new THREE.PointLight(c, 40, dist, 1.6); pl.position.set(x, y, z); scene.add(pl); }
@@ -169,13 +169,14 @@ export function buildVillage(scene) {
   // Rentiergehege beim Stall
   const fx = 50, fz = 30;
   const fenceDefs = [[fx, fz - 8, 16, 0], [fx, fz + 8, 16, 0], [fx + 8, fz, 16, Math.PI / 2], [fx - 8, fz - 5, 6, Math.PI / 2], [fx - 8, fz + 5, 6, Math.PI / 2]];
-  for (const [x, z, l, r] of fenceDefs) { const f = MD.makeFence(l); f.position.set(x, H(x, z), z); f.rotation.y = r; props.add(f); addBox(x, z, r ? .3 : l, r ? l : .3, 0); }
+  for (const [x, z, l, r] of fenceDefs) { const f = MD.makeFence(l); f.position.set(x, H(x, z), z); f.rotation.y = r; props.add(f); addBox(x, z, r ? .3 : l, r ? l : .3, 0, H(x, z) + 1.25); }
   anim.reindeer = [];
   for (let i = 0; i < 4; i++) { const r = MD.makeReindeer(); r.position.set(fx - 4 + (i % 2) * 7, H(fx, fz), fz - 4 + Math.floor(i / 2) * 7); r.rotation.y = i * 1.4; r.scale.setScalar(.85); scene.add(r); anim.reindeer.push(r); circles.push({ x: r.position.x, z: r.position.z, r: 1.2 }); }
   for (let i = 0; i < 5; i++) { const hb = MD.makeHay(); hb.position.set(fx - 6 + i * 3, H(fx, fz), fz + 6); hb.rotation.y = i; props.add(hb); }
   // Schneemänner, Kisten, Geschenke verteilt
-  [[-8, 20], [20, 16], [-20, -30], [44, -30], [-48, 30]].forEach(([x, z], i) => { const s = MD.makeSnowman(.9 + (i % 2) * .3); s.position.set(x, H(x, z), z); s.rotation.y = i; props.add(s); circles.push({ x, z, r: .8 }); });
-  [[-36, -16], [-35, -15], [24, -12], [25, -13], [-28, 18]].forEach(([x, z], i) => { const c = MD.makeCrate(); c.position.set(x, H(x, z), z); c.rotation.y = i; props.add(c); circles.push({ x, z, r: .6 }); });
+  [[-8, 20], [20, 16], [-20, -30], [44, -30], [-48, 30]].forEach(([x, z], i) => { const s = MD.makeSnowman(.9 + (i % 2) * .3); s.position.set(x, H(x, z), z); s.rotation.y = i; props.add(s); circles.push({ x, z, r: .8, top: H(x, z) + 3.1 * (.9 + (i % 2) * .3) }); });
+  // Kisten-Treppen: damit man auf Dächer springen kann
+  [[-36, -16, 1], [-35, -14.6, 2], [24, -12, 1], [25.2, -12.6, 2], [-28, 18, 1], [-27, 19.2, 2], [-39.5, 8, 1], [-38.6, 9.2, 2], [-21, -2, 1], [-20.4, -3.2, 2], [44, 8, 1], [44.8, 9.4, 2], [-34, -30, 1], [9, 30, 1], [10, 29, 2]].forEach(([x, z, n], i) => { for (let k = 0; k < n; k++) { const c = MD.makeCrate(); c.position.set(x, H(x, z) + k * .63, z); c.rotation.y = i + k * .4; props.add(c); } circles.push({ x, z, r: .62, top: H(x, z) + n * .63 }); });
   scene.add(mergeStatic(props));
   // Gefrorener See (Eisbahn)
   const ice = new THREE.Mesh(new THREE.CircleGeometry(LAKE.r, 48), new THREE.MeshStandardMaterial({ map: MD.T.ice, color: 0xbfe6ff, roughness: .08, metalness: .2 })); ice.rotation.x = -Math.PI / 2; ice.position.set(LAKE.x, .02, LAKE.z); ice.receiveShadow = true; scene.add(ice);

@@ -1,8 +1,9 @@
 // Wichtel 3D – Das Leben im Wichteldorf
 import * as THREE from './three.min.js';
-import { makeTextures } from './w3d-tex.js';
-import * as MD from './w3d-models.js';
-import * as W from './w3d-world.js';
+import { makeTextures } from './w3d-tex.js?v=3';
+import * as MD from './w3d-models.js?v=3';
+import * as W from './w3d-world.js?v=3';
+import { Particles, Footprints, candyFly } from './w3d-fx.js?v=3';
 
 const $ = s => document.querySelector(s);
 const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
@@ -17,8 +18,8 @@ let S; try { S = Object.assign(def(), JSON.parse(localStorage.getItem(SKEY)) || 
 const save = () => { try { localStorage.setItem(SKEY, JSON.stringify(S)); } catch (e) { } };
 const RANKS = [[0, 'Wichtel-Lehrling'], [120, 'Junior-Wichtel'], [350, 'Wichtel'], [800, 'Meister-Wichtel'], [1600, 'Ober-Wichtel'], [3000, 'Nordpol-Legende']];
 const rank = () => { let i = 0; RANKS.forEach((r, k) => { if (S.xp >= r[0]) i = k; }); return i; };
-function addXP(n) { const r0 = rank(); S.xp += n; if (rank() > r0) { toast('🎉 Neuer Rang: ' + RANKS[rank()][1] + '!', 4000); sfx('rank'); } hud(); save(); }
-function addCandy(n) { S.candy += n; if (n > 0) floatText('+' + n + ' 🍬'); hud(); save(); }
+function addXP(n) { const r0 = rank(); S.xp += n; if (n >= 10) P.cheer = 1; if (rank() > r0) { toast('🎉 Neuer Rang: ' + RANKS[rank()][1] + '!', 4000); sfx('rank'); } hud(); save(); }
+function addCandy(n) { S.candy += n; if (n > 0) { try { candyFly(camera, player.getWorldPosition(new THREE.Vector3()).setY(player.getWorldPosition(new THREE.Vector3()).y + 1), Math.ceil(n / 3), $('#candy').parentNode); } catch (e) { } floatText('+' + n); } hud(); save(); }
 
 // ================= Tagesaufgaben =================
 const TASKS = { bake: ['Backe Plätzchen in der Bäckerei', 1], toy: ['Baue Spielzeug in der Werkstatt', 1], school: ['Mach den Unterricht in der Akademie', 1], post: ['Sortiere Wunschzettel in der Post', 1], stall: ['Füttere die Rentiere', 1], build: ['Bau etwas Neues ins Dorf', 1], mission: ['Mach einen Streich bei einem Kind', 1], rings: ['Flieg durch 5 Nordlicht-Ringe', 5], stars: ['Finde 2 Glitzersterne', 2], talk: ['Rede mit 3 Wichteln', 3] };
@@ -42,6 +43,7 @@ let AC = null, master = null, musicGain = null;
 function audio() { if (AC) { if (AC.state === 'suspended') AC.resume(); return; } try { AC = new (window.AudioContext || window.webkitAudioContext)(); master = AC.createGain(); master.gain.value = S.sound ? .9 : 0; master.connect(AC.destination); musicGain = AC.createGain(); musicGain.gain.value = S.music ? .12 : 0; musicGain.connect(master); wind(); music(); } catch (e) { } }
 function tone(f, d, type = 'sine', v = .12, at = 0, dest) { if (!AC) return; const t = AC.currentTime + at, o = AC.createOscillator(), g = AC.createGain(); o.type = type; o.frequency.setValueAtTime(f, t); g.gain.setValueAtTime(.0001, t); g.gain.linearRampToValueAtTime(v, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g); g.connect(dest || master); o.start(t); o.stop(t + d + .05); }
 function noiseBurst(d, f, v) { if (!AC) return; const b = AC.createBuffer(1, AC.sampleRate * d, AC.sampleRate), a = b.getChannelData(0); for (let i = 0; i < a.length; i++) a[i] = (Math.random() * 2 - 1) * (1 - i / a.length); const s = AC.createBufferSource(), fl = AC.createBiquadFilter(), g = AC.createGain(); s.buffer = b; fl.type = 'lowpass'; fl.frequency.value = f; g.gain.value = v; s.connect(fl); fl.connect(g); g.connect(master); s.start(); }
+function tone2() { tone(660, .12, 'triangle', .07); tone(990, .2, 'triangle', .06, .06); }
 function sfx(k) {
   if (!AC) return;
   if (k === 'coin') { tone(988, .12, 'triangle', .1); tone(1319, .25, 'triangle', .1, .08); }
@@ -90,6 +92,18 @@ const V = W.buildVillage(village);
 const snow = W.makeSnowfall(LOW ? 1300 : 2800); village.add(snow);
 const smoke = W.makeSmoke(V.chimneys); village.add(smoke);
 const colliders = V.colliders, circles = V.circles;
+const FX = new Particles(village, LOW ? 260 : 500);
+const STEPS = new Footprints(village, LOW ? 120 : 220);
+// Leuchten (Bloom) auf starken Geräten
+let composer = null, renderPass = null;
+if (!LOW && !QP.has('nobloom')) {
+  Promise.all([import('./pp-EffectComposer.js'), import('./pp-RenderPass.js'), import('./pp-UnrealBloomPass.js'), import('./pp-OutputPass.js')]).then(([E, R, U, O]) => {
+    composer = new E.EffectComposer(renderer); renderPass = new R.RenderPass(village, camera); composer.addPass(renderPass);
+    composer.addPass(new U.UnrealBloomPass(new THREE.Vector2(innerWidth / 2, innerHeight / 2), .55, .5, .82)); composer.addPass(new O.OutputPass());
+    composer.setSize(innerWidth, innerHeight);
+  }).catch(() => { composer = null; });
+}
+addEventListener('resize', () => { if (composer) composer.setSize(innerWidth, innerHeight); FX.resize(); });
 
 // ================= Spieler =================
 let player = null;
@@ -100,7 +114,7 @@ function makePlayer() {
   return player;
 }
 makePlayer(); village.add(player);
-const P = { pos: new THREE.Vector3(0, 0, 22), vel: new THREE.Vector3(), vy: 0, onG: true, mode: 'title', boost: 0, stepT: 0, scene: village };
+const P = { pos: new THREE.Vector3(0, 0, 22), vel: new THREE.Vector3(), vy: 0, onG: true, mode: 'title', boost: 0, stepT: 0, scene: village, jumps: 0, flip: 0, land: 0, cheer: 0, glide: false, airT: 0, throwT: 0 };
 player.position.copy(P.pos);
 
 // Kamera
@@ -179,7 +193,7 @@ function tutStep(n) { if (S.tut === n) { S.tut++; save(); sfx('ok'); const t = t
 
 // ================= Eingabe =================
 const K = {}; let joy = { x: 0, y: 0, on: false }, actionPressed = false, jumpPressed = false;
-addEventListener('keydown', e => { K[e.code] = true; if (e.code === 'KeyE' || e.code === 'Enter') actionPressed = true; if (e.code === 'Space') { jumpPressed = true; if (P.mode !== 'ui') e.preventDefault(); } if (e.code === 'KeyB' && P.mode === 'walk') openBuild(); if (e.code === 'KeyM') toggleMap(); if (e.code === 'Escape') { if (P.mode === 'ui') closePanel(); else if (P.mode === 'build') endBuild(); } if (e.code === 'KeyR' && P.mode === 'build') BUILD.r += Math.PI / 8; });
+addEventListener('keydown', e => { K[e.code] = true; if (e.code === 'KeyE' || e.code === 'Enter') actionPressed = true; if (e.code === 'Space') { jumpPressed = true; if (P.mode !== 'ui') e.preventDefault(); } if (e.code === 'KeyB' && P.mode === 'walk') openBuild(); if (e.code === 'KeyM') toggleMap(); if (e.code === 'KeyF') throwBall(); if (e.code === 'Escape') { if (P.mode === 'ui') closePanel(); else if (P.mode === 'build') endBuild(); } if (e.code === 'KeyR' && P.mode === 'build') BUILD.r += Math.PI / 8; });
 addEventListener('keyup', e => { K[e.code] = false; });
 // Kamera ziehen (Maus/Touch ausserhalb der Steuerung)
 let drag = null;
@@ -200,17 +214,78 @@ $('#btnA').addEventListener('pointerdown', e => { e.preventDefault(); actionPres
 let holdA = false; addEventListener('pointerup', () => { holdA = false; });
 $('#btnJ').addEventListener('pointerdown', e => { e.preventDefault(); jumpPressed = true; holdJ = true; });
 let holdJ = false; addEventListener('pointerup', () => { holdJ = false; });
-$('#btnD').addEventListener('pointerdown', e => { e.preventDefault(); holdD = true; }); let holdD = false; addEventListener('pointerup', () => { holdD = false; });
+$('#btnD').addEventListener('pointerdown', e => { e.preventDefault(); holdD = true; });
+$('#btnS').addEventListener('pointerdown', e => { e.preventDefault(); throwBall(); }); let holdD = false; addEventListener('pointerup', () => { holdD = false; });
 
 // ================= Kollision =================
 function collide(p, cols, circs, r = .42) {
   for (const c of cols) {
     const dx = p.x - c.x, dz = p.z - c.z; if (Math.abs(dx) > c.hw + c.hd + 2 || Math.abs(dz) > c.hw + c.hd + 2) continue;
+    if (c.top !== undefined && p.y !== undefined && p.y >= topAt(c, dx, dz) - .15) continue;
     const cs = Math.cos(c.ry), sn = Math.sin(c.ry), lx = dx * cs - dz * sn, lz = dx * sn + dz * cs, ex = c.hw + r, ez = c.hd + r;
     if (Math.abs(lx) < ex && Math.abs(lz) < ez) { let nx = lx, nz = lz; if (ex - Math.abs(lx) < ez - Math.abs(lz)) nx = Math.sign(lx) * ex; else nz = Math.sign(lz) * ez; p.x = c.x + nx * cs + nz * sn; p.z = c.z - nx * sn + nz * cs; }
   }
-  for (const c of circs) { const dx = p.x - c.x, dz = p.z - c.z; if (Math.abs(dx) > 6 || Math.abs(dz) > 6) continue; const d = Math.hypot(dx, dz), m = c.r + r; if (d < m && d > 1e-4) { p.x = c.x + dx / d * m; p.z = c.z + dz / d * m; } }
+  for (const c of circs) { const dx = p.x - c.x, dz = p.z - c.z; if (Math.abs(dx) > 6 || Math.abs(dz) > 6) continue; if (c.top !== undefined && p.y !== undefined && p.y >= c.top - .15) continue; const d = Math.hypot(dx, dz), m = c.r + r; if (d < m && d > 1e-4) { p.x = c.x + dx / d * m; p.z = c.z + dz / d * m; } }
 }
+
+// Höhe eines Hindernisses an einer Stelle (Dächer sind schräg!)
+function topAt(c, dx, dz) {
+  if (!c.roof) return c.top;
+  const cs = Math.cos(c.ry), sn = Math.sin(c.ry), lx = dx * cs - dz * sn;
+  return c.top + .3 + c.roof.rh * Math.max(0, 1 - Math.abs(lx) / c.roof.half);
+}
+// Worauf steht der Wichtel? Boden, Kiste, Bank, Dach …
+function supportY(p, cols, circs, base) {
+  let g = base;
+  for (const c of cols) {
+    if (c.top === undefined || c.top > 500) continue;
+    const dx = p.x - c.x, dz = p.z - c.z; if (Math.abs(dx) > c.hw + c.hd || Math.abs(dz) > c.hw + c.hd) continue;
+    const cs = Math.cos(c.ry), sn = Math.sin(c.ry), lx = dx * cs - dz * sn, lz = dx * sn + dz * cs;
+    if (Math.abs(lx) < c.hw + .25 && Math.abs(lz) < c.hd + .25) { const h = topAt(c, dx, dz); if (p.y >= h - .6) g = Math.max(g, h); }
+  }
+  for (const c of circs) { if (c.top === undefined) continue; const dx = p.x - c.x, dz = p.z - c.z; if (Math.abs(dx) > c.r + .3 || Math.abs(dz) > c.r + .3) continue; if (Math.hypot(dx, dz) < c.r + .2 && p.y >= c.top - .6) g = Math.max(g, c.top); }
+  return g;
+}
+// Kamera nicht durch Häuser
+function camBlock(from, to) {
+  const d = to.clone().sub(from), steps = 22, pt = new THREE.Vector3();
+  for (let i = 1; i <= steps; i++) {
+    pt.copy(from).addScaledVector(d, i / steps);
+    for (const c of colliders) {
+      if (c.top === undefined || c.top < 1) continue;
+      const dx = pt.x - c.x, dz = pt.z - c.z; if (Math.abs(dx) > c.hw + c.hd || Math.abs(dz) > c.hw + c.hd) continue;
+      const cs = Math.cos(c.ry), sn = Math.sin(c.ry), lx = dx * cs - dz * sn, lz = dx * sn + dz * cs;
+      if (Math.abs(lx) < c.hw && Math.abs(lz) < c.hd && pt.y < (c.top > 500 ? 30 : topAt(c, dx, dz)) + .4) return from.clone().addScaledVector(d, Math.max(.12, (i - 1.3) / steps));
+    }
+  }
+  return to;
+}
+
+// ================= Schneebälle =================
+const balls = [];
+const ballGeo = new THREE.SphereGeometry(.16, 12, 10), ballMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .8 });
+function throwBall() {
+  if (P.mode !== 'walk' && P.mode !== 'mission') return;
+  const yaw = player.rotation.y, m = new THREE.Mesh(ballGeo, ballMat); m.castShadow = true;
+  m.position.set(P.pos.x + Math.sin(yaw) * .4, P.pos.y + 1.1, P.pos.z + Math.cos(yaw) * .4);
+  m.userData.v = new THREE.Vector3(Math.sin(yaw) * 16 + P.vel.x * .5, 5, Math.cos(yaw) * 16 + P.vel.z * .5); m.userData.t = 3;
+  P.scene.add(m); balls.push(m); P.throwT = .35; sfx('jump'); if (P.mode === 'mission') MS.noise += 10;
+}
+function updateBalls(dt) {
+  for (let i = balls.length - 1; i >= 0; i--) {
+    const b = balls[i], v = b.userData.v; v.y -= 14 * dt; b.position.addScaledVector(v, dt); b.userData.t -= dt;
+    let hit = false; const gy = P.scene === village ? W.H(b.position.x, b.position.z) : 0;
+    if (b.position.y < gy + .1) hit = true;
+    if (P.scene === village) {
+      for (const n of npcs) if (n.m.visible && n.m.position.distanceTo(b.position.clone().setY(b.position.y - .8)) < .7) { hit = true; n.hitT = 1.2; n.wait = 1.5; toast('❄️ ' + n.d.n + ': «' + ['Hey! Na warte!', 'Hihi, getroffen!', 'Das gibt Revanche!', 'Brrr, kalt!'][Math.floor(Math.random() * 4)] + '»'); addXP(1); QUEST && QUEST.ev('hitnpc'); }
+      for (const t of targets) if (t.visible && t.position.distanceTo(b.position) < 1.1) { hit = true; QUEST && QUEST.ev('target', t); }
+      for (const c of colliders) { const dx = b.position.x - c.x, dz = b.position.z - c.z, cs = Math.cos(c.ry), sn = Math.sin(c.ry), lx = dx * cs - dz * sn, lz = dx * sn + dz * cs; if (Math.abs(lx) < c.hw && Math.abs(lz) < c.hd && b.position.y < (c.top > 500 ? 30 : topAt(c, dx, dz))) { hit = true; break; } }
+    }
+    if (hit || b.userData.t < 0) { FX.emit(b.position, 14, { speed: 2.5, life: .7, size: .35, grav: 6 }); P.scene.remove(b); balls.splice(i, 1); }
+  }
+}
+const targets = [];
+let QUEST = null;
 
 // ================= Interaktion =================
 let near = null;
@@ -363,6 +438,7 @@ function updateFly(dt) {
   for (const s of starMeshes) if (s.visible && s.position.distanceTo(mobil.position) < 3.2) collectStar(s);
   // Portal
   if (mobil.position.distanceTo(W.PORTAL) < 9) startMission();
+  if (Math.random() < dt * 40) FX.emit(mobil.position.clone().addScaledVector(dir, -2), 1, { speed: .4, life: 1.2, size: .45, glow: 1, color: [0x9fffd8, 0xffd27a, 0xbfe6ff][Math.floor(Math.random() * 3)], grav: 0 });
   P.pos.copy(mobil.position);
 }
 
@@ -373,7 +449,7 @@ function startMission() {
   if (P.mode === 'mission') return;
   fade(() => {
     MS.kh = W.buildKidHouse(); const keys = Object.keys(MS.kh.spots).sort(() => Math.random() - .5); MS.todo = keys.slice(0, Math.min(5, 3 + Math.floor(S.missions / 3))); MS.done = []; MS.noise = 0; MS.t = 240; MS.over = false;
-    mobil.remove(player); player.scale.setScalar(1); MS.kh.scene.add(player); P.scene = MS.kh.scene; P.mode = 'mission'; P.pos.copy(MS.kh.start); P.vy = 0; player.rotation.y = 0; CAM.yaw = Math.PI; CAM.pitch = .8; CAM.dist = 7;
+    mobil.remove(player); player.scale.setScalar(1); MS.kh.scene.add(player); FX.move(MS.kh.scene); P.scene = MS.kh.scene; P.mode = 'mission'; P.pos.copy(MS.kh.start); P.vy = 0; player.rotation.y = 0; CAM.yaw = Math.PI; CAM.pitch = .8; CAM.dist = 7;
     MS.marks = {}; for (const k of MS.todo) { const sp = MS.kh.spots[k], m = new THREE.Mesh(new THREE.RingGeometry(1.6, 2.1, 40), new THREE.MeshBasicMaterial({ color: 0xffd27a, transparent: true, opacity: .85, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.position.set(sp.pos.x, .06, sp.pos.z); MS.kh.scene.add(m); MS.marks[k] = m; }
     MS.cat = makeCat(); MS.cat.position.set(20, 0, 10); MS.kh.scene.add(MS.cat); MS.catTarget.set(0, 0, 0);
     $('#mission').classList.add('on'); $('#btnJ').textContent = '⤒'; $('#btnD').classList.remove('on'); renderMission(); tutStep(3);
@@ -386,7 +462,7 @@ function endMission(win, why) {
   if (win) { const rew = Math.min(90, 35 + S.missions * 3); S.missions++; addCandy(rew); addXP(70 + MS.todo.length * 8); progress('mission'); sfx('rank'); panel(`<h2>🌟 Streich gelungen!</h2><p class="say">Am Morgen wird das Kind staunen. Niemand hat dich gesehen!</p><p class="big">+${rew} 🍬</p><button class="btn" data-close>Zurück ins Wichteldorf</button>`); }
   else { sfx('fail'); addCandy(3); panel(`<h2>😱 Fast erwischt!</h2><p class="say">${why}</p><p>Zum Glück bist du gerade noch durch die Wichteltür entkommen. Versuch es nochmal!</p><button class="btn" data-close>Zurück ins Wichteldorf</button>`); }
   P.prev = 'walk';
-  setTimeout(() => fade(() => { MS.kh.scene.remove(player); village.add(player); P.scene = village; P.pos.set(W.PAD.x + 3, 0, W.PAD.z + 4); mobil.position.set(W.PAD.x, W.H(W.PAD.x, W.PAD.z) + .7, W.PAD.z); $('#mission').classList.remove('on'); MS.kh = null; }), 50);
+  setTimeout(() => fade(() => { MS.kh.scene.remove(player); village.add(player); P.scene = village; FX.move(village); P.pos.set(W.PAD.x + 3, 0, W.PAD.z + 4); mobil.position.set(W.PAD.x, W.H(W.PAD.x, W.PAD.z) + .7, W.PAD.z); $('#mission').classList.remove('on'); MS.kh = null; }), 50);
 }
 function updateMission(dt) {
   MS.t -= dt; MS.noise = Math.max(0, MS.noise - dt * 7);
@@ -403,7 +479,7 @@ function updateMission(dt) {
 }
 
 // ================= Stern einsammeln =================
-function collectStar(s) { s.visible = false; village.remove(s); S.stars.push(s.userData.i); addCandy(5); addXP(10); progress('stars'); sfx('star'); toast('✨ Glitzerstern gefunden! (' + S.stars.length + '/' + W.STAR_SPOTS.length + ')'); if (S.stars.length === W.STAR_SPOTS.length) { addCandy(100); toast('🌟 ALLE Glitzersterne gefunden! +100 🍬', 5000); } }
+function collectStar(s) { FX.emit(s.position, 40, { speed: 4, life: 1.1, size: .5, glow: 1, color: 0xffd27a, grav: 1 }); P.cheer = 1; s.visible = false; village.remove(s); S.stars.push(s.userData.i); addCandy(5); addXP(10); progress('stars'); sfx('star'); toast('✨ Glitzerstern gefunden! (' + S.stars.length + '/' + W.STAR_SPOTS.length + ')'); if (S.stars.length === W.STAR_SPOTS.length) { addCandy(100); toast('🌟 ALLE Glitzersterne gefunden! +100 🍬', 5000); } }
 
 // ================= Übergänge & Karte =================
 function fade(fn) { const f = $('#fade'); f.classList.add('on'); setTimeout(() => { fn(); setTimeout(() => f.classList.remove('on'), 120); }, 450); }
@@ -421,7 +497,7 @@ function drawMap() {
 $('#hMap').onclick = toggleMap; $('#map').onclick = toggleMap;
 $('#hTasks').onclick = () => { renderTasks(); $('#taskbox').classList.toggle('on'); };
 $('#hMenu').onclick = () => {
-  const p = panel(`<h2>☰ Menü</h2><button class="btn" id="mSound">${S.sound ? '🔊 Ton an' : '🔇 Ton aus'}</button><button class="btn" id="mMusic">${S.music ? '🎵 Musik an' : '🎵 Musik aus'}</button><div class="help"><h3>Steuerung</h3><p><b>Handy:</b> Joystick links = laufen (weit drücken = rennen) · Bildschirm wischen = Kamera · ✋ = Aktion · ⤒ = Springen</p><p><b>Computer:</b> WASD/Pfeile = laufen · Shift = rennen/schleichen · Maus ziehen = Kamera · Mausrad = Zoom · E = Aktion · Leertaste = Springen · B = Bauen · M = Karte</p><p><b>Wichtelmobil:</b> lenken & steigen mit Joystick/WASD · ⬇ = sinken · 🚀/Leertaste = Turbo</p></div><a class="btn ghost" href="index.html">Zurück zur Website</a><button class="btn ghost" id="mReset">Spielstand löschen</button><button class="btn" data-close>Weiterspielen</button>`, 'wide');
+  const p = panel(`<h2>☰ Menü</h2><button class="btn" id="mSound">${S.sound ? '🔊 Ton an' : '🔇 Ton aus'}</button><button class="btn" id="mMusic">${S.music ? '🎵 Musik an' : '🎵 Musik aus'}</button><div class="help"><h3>Steuerung</h3><p><b>Handy:</b> Joystick links = laufen (weit drücken = rennen) · Bildschirm wischen = Kamera · ✋ = Aktion · ⤒ = Springen (2x = Doppelsprung, halten = gleiten) · Schneeball-Knopf = werfen</p><p><b>Computer:</b> WASD/Pfeile = laufen · Shift = rennen/schleichen · Maus ziehen = Kamera · Mausrad = Zoom · E = Aktion · Leertaste = Springen (2x = Doppelsprung, gedrückt halten = mit der Mütze gleiten) · F = Schneeball · B = Bauen · M = Karte</p><p><b>Tipp:</b> Über Kisten kommst du auf die Dächer!</p><p><b>Wichtelmobil:</b> lenken & steigen mit Joystick/WASD · ⬇ = sinken · 🚀/Leertaste = Turbo</p></div><a class="btn ghost" href="index.html">Zurück zur Website</a><button class="btn ghost" id="mReset">Spielstand löschen</button><button class="btn" data-close>Weiterspielen</button>`, 'wide');
   $('#mSound').onclick = () => { S.sound = !S.sound; if (master) master.gain.value = S.sound ? .9 : 0; save(); $('#mSound').textContent = S.sound ? '🔊 Ton an' : '🔇 Ton aus'; };
   $('#mMusic').onclick = () => { S.music = !S.music; if (musicGain) musicGain.gain.value = S.music ? .12 : 0; save(); $('#mMusic').textContent = S.music ? '🎵 Musik an' : '🎵 Musik aus'; };
   $('#mReset').onclick = () => { if ($('#mReset').dataset.sure) { localStorage.removeItem(SKEY); location.reload(); } else { $('#mReset').dataset.sure = 1; $('#mReset').textContent = 'Wirklich? Nochmal tippen'; } };
@@ -471,22 +547,38 @@ function frame(now) {
     if (P.speed > .3) { const a = Math.atan2(P.vel.x, P.vel.z); let d = a - player.rotation.y; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; player.rotation.y += d * Math.min(1, dt * 10); }
     if (inVillage) { collide(P.pos, colliders, circles); const r = Math.hypot(P.pos.x, P.pos.z); if (r > 150) { P.pos.x *= 150 / r; P.pos.z *= 150 / r; } }
     else collide(P.pos, MS.kh.colliders, MS.kh.circles);
-    const gy = inVillage ? (ice ? .02 : W.H(P.pos.x, P.pos.z)) : 0;
-    if (jumpPressed && P.onG && P.mode !== 'build') { P.vy = 6.8; P.onG = false; sfx('jump'); if (P.mode === 'mission') MS.noise += 6; }
-    P.vy -= 18 * dt; P.pos.y += P.vy * dt; if (P.pos.y <= gy) { if (!P.onG && P.mode === 'mission' && P.vy < -6) MS.noise += 8; P.pos.y = gy; P.vy = 0; P.onG = true; }
+    const base = inVillage ? (ice ? .02 : W.H(P.pos.x, P.pos.z)) : 0;
+    const gy = inVillage ? supportY(P.pos, colliders, circles, base) : supportY(P.pos, MS.kh.colliders, MS.kh.circles, base);
+    const jumpHeld = K.Space || holdJ;
+    if (jumpPressed && P.mode !== 'build') {
+      if (P.onG) { P.vy = 8.2; P.onG = false; P.jumps = 1; sfx('jump'); FX.emit(P.pos, 8, { speed: 1.5, life: .5, size: .4, grav: 2 }); if (P.mode === 'mission') MS.noise += 6; }
+      else if (P.jumps < 2) { P.vy = 7.6; P.jumps = 2; P.flip = 1; sfx('jump'); tone2(); FX.emit(P.pos.clone().setY(P.pos.y + .4), 14, { speed: 2, life: .6, size: .25, glow: 1, color: 0xffe7a0, grav: 0 }); if (P.mode === 'mission') MS.noise += 8; }
+    }
+    P.glide = !P.onG && P.vy < 0 && jumpHeld && P.jumps >= 1 && P.airT > .25;
+    P.vy -= (P.glide ? 6 : 20) * dt; if (P.glide) { P.vy = Math.max(P.vy, -2.2); if (Math.random() < dt * 20) FX.emit(P.pos.clone().setY(P.pos.y + .2), 1, { speed: .3, life: .8, size: .18, glow: 1, color: 0xbfe6ff, grav: -0.3 }); }
+    const wasAir = !P.onG; P.pos.y += P.vy * dt;
+    if (P.pos.y <= gy) {
+      if (wasAir) { const hard = -P.vy; if (hard > 4) { P.land = Math.min(1, hard / 14); FX.emit(P.pos, Math.min(22, 6 + hard * 1.2), { speed: 1.2 + hard * .15, life: .7, size: .45, grav: 3, up: .6 }); sfx('step'); if (P.mode === 'mission') MS.noise += hard > 9 ? 10 : 3; } }
+      P.pos.y = gy; P.vy = 0; P.onG = true; P.jumps = 0; P.airT = 0;
+    } else if (P.pos.y > gy + .05) { P.onG = false; P.airT += dt; }
+    P.flip = Math.max(0, P.flip - dt * 2.2); P.land = Math.max(0, P.land - dt * 5); P.cheer = Math.max(0, P.cheer - dt); P.throwT = Math.max(0, P.throwT - dt);
     player.position.copy(P.pos);
-    MD.animateWichtel(player, dt, P.onG ? P.speed : 0);
-    if (P.onG && P.speed > 1) { P.stepT -= dt * P.speed; if (P.stepT < 0) { P.stepT = 2.2; if (P.mode !== 'mission') sfx('step'); else if (P.speed > 4) { sfx('step'); } } }
+    MD.animateWichtel(player, dt, P.onG ? P.speed : 0, { air: !P.onG, vy: P.vy, glide: P.glide, flip: P.flip, land: P.land, cheer: P.cheer });
+    if (P.throwT > 0) player.userData.arms[1].rotation.x = -2.6 + (1 - P.throwT / .35) * 3.4;
+    if (P.onG && P.speed > 1) { P.stepT -= dt * P.speed; if (P.stepT < 0) { P.stepT = 2.2; if (inVillage && !ice && P.pos.y - base < .1) { STEPS.add(P.pos.x, P.pos.y, P.pos.z, player.rotation.y); if (P.speed > 6) FX.emit(P.pos, 2, { speed: .8, life: .5, size: .3, grav: 3, up: .4 }); } if (P.mode !== 'mission') sfx('step'); else if (P.speed > 4) { sfx('step'); } } }
+    if (ice && P.speed > 6 && P.onG && Math.random() < dt * 30) FX.emit(P.pos, 1, { speed: .5, life: .4, size: .2, glow: 1, color: 0xcff0ff, grav: 0 });
     if (P.mode === 'mission' && P.speed > 4.5) MS.noise += dt * (P.speed > 7 ? 20 : 5);
     if (P.mode === 'build') updateBuild();
   } else if (P.mode === 'fly') updateFly(dt);
   else if (P.mode === 'title') { CAM.yaw += dt * .08; }
   // Sterne
+  updateBalls(dt); FX.update(dt);
   for (const s of starMeshes) if (s.visible) { s.rotation.y += dt * 2; s.position.y += Math.sin(T * 2 + s.userData.i) * .004; if (P.mode === 'walk' && s.position.distanceTo(player.position.clone().setY(player.position.y + .8)) < 1.4) collectStar(s); }
   // NPC
   if (inVillage) for (const n of npcs) {
     const m = n.m, d = m.position.distanceTo(P.pos);
     if (d > 70) { m.visible = false; continue; } m.visible = true;
+    if (n.hitT > 0) { n.hitT -= dt; m.rotation.y += dt * 10; MD.animateWichtel(m, dt, 0, { cheer: n.hitT }); continue; }
     if (d < 2.6 && P.mode === 'walk') { const a = Math.atan2(P.pos.x - m.position.x, P.pos.z - m.position.z); m.rotation.y += (a - m.rotation.y) * .1; MD.animateWichtel(m, dt, 0); continue; }
     if (n.wait > 0) { n.wait -= dt; MD.animateWichtel(m, dt, 0); continue; }
     if (!n.target) npcTarget(n);
@@ -511,7 +603,7 @@ function frame(now) {
   if (P.mode === 'fly') { dist = 13; yaw = F.yaw + Math.PI; pitch = .28 - F.pitch * .4; CAM.yaw += (yaw - CAM.yaw) * .05; }
   if (P.mode === 'title') { dist = 48; pitch = .3; }
   const cp = new THREE.Vector3(CAM.tgt.x + Math.sin(yaw) * Math.cos(pitch) * dist, CAM.tgt.y + Math.sin(pitch) * dist, CAM.tgt.z + Math.cos(yaw) * Math.cos(pitch) * dist);
-  if (inVillage) { const gh = W.H(cp.x, cp.z) + .6; if (cp.y < gh) cp.y = gh; } else { cp.x = Math.max(-MS.kh.W + 1, Math.min(MS.kh.W - 1, cp.x)); cp.z = Math.max(-MS.kh.D + 1, Math.min(MS.kh.D - 1, cp.z)); cp.y = Math.min(cp.y, 10); }
+  if (inVillage) { const gh = W.H(cp.x, cp.z) + .6; if (cp.y < gh) cp.y = gh; if (P.mode === 'walk' || P.mode === 'build') cp.copy(camBlock(CAM.tgt, cp)); } else { cp.x = Math.max(-MS.kh.W + 1, Math.min(MS.kh.W - 1, cp.x)); cp.z = Math.max(-MS.kh.D + 1, Math.min(MS.kh.D - 1, cp.z)); cp.y = Math.min(cp.y, 10); }
   camera.position.lerp(cp, P.mode === 'title' ? 1 : Math.min(1, dt * 8)); camera.lookAt(CAM.tgt);
   // Interaktionen
   near = (P.mode === 'walk' || P.mode === 'fly' || P.mode === 'mission') ? findNear() : null;
@@ -523,7 +615,7 @@ function frame(now) {
   let tt = P.mode === 'walk' || P.mode === 'fly' ? tutTarget() : null; const cmp = $('#compass');
   if (P.mode === 'mission' && MS.kh) { let best = null, bd = 1e9; for (const k of MS.todo) if (!MS.done.includes(k)) { const sp = MS.kh.spots[k], d = Math.hypot(sp.pos.x - P.pos.x, sp.pos.z - P.pos.z); if (d < bd) { bd = d; best = { txt: sp.name, pos: sp.pos }; } } tt = best || { txt: 'Zurück zur Wichteltür', pos: MS.kh.exit }; for (const k in MS.marks) MS.marks[k].material.opacity = .5 + Math.sin(T * 4) * .35; }
   if (tt) { const dx = tt.pos.x - P.pos.x, dz = tt.pos.z - P.pos.z, a = Math.atan2(dx, dz) - (CAM.yaw + Math.PI); cmp.classList.add('on'); $('#carrow').style.transform = `rotate(${-a}rad)`; $('#ctext').textContent = tt.txt + ' · ' + Math.round(Math.hypot(dx, dz)) + ' m'; } else cmp.classList.remove('on');
-  renderer.render(P.scene, camera);
+  if (composer && P.scene === village) { renderPass.scene = P.scene; composer.render(); } else renderer.render(P.scene, camera);
   if (!window.__ready) { window.__ready = 1; $('#loading').classList.remove('on'); }
 }
 ensureDay(); hud(); title();
