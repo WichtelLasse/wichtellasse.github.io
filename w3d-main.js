@@ -72,7 +72,10 @@ if (QP.has('ns')) renderer.setPixelRatio(.5);
 renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.1; renderer.outputColorSpace = THREE.SRGBColorSpace;
 $('#game').appendChild(renderer.domElement);
 const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, .1, 1400);
-addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); });
+function fit() { const w = innerWidth, h = innerHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+addEventListener('resize', fit); addEventListener('orientationchange', () => setTimeout(fit, 300)); if (window.visualViewport) visualViewport.addEventListener('resize', fit);
+['gesturestart', 'gesturechange', 'dblclick'].forEach(ev => document.addEventListener(ev, e => e.preventDefault(), { passive: false }));
+document.addEventListener('touchmove', e => { if (!e.target.closest('.panel,.tbox,#taskbox')) e.preventDefault(); }, { passive: false });
 
 MD.setTextures(makeTextures());
 const village = new THREE.Scene();
@@ -182,7 +185,7 @@ S.built.forEach(placeBuilt);
 
 // ================= UI-Helfer =================
 let toastT = 0;
-function toast(m, ms = 2600) { const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), ms); }
+function toast(m, ms = 2600) { if (isTouch) ms = Math.min(ms, 2200); const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), ms); }
 function floatText(m) { const e = document.createElement('div'); e.className = 'float'; e.textContent = m; document.body.appendChild(e); setTimeout(() => e.remove(), 1400); }
 function hud() { $('#candy').textContent = S.candy; $('#starsN').textContent = S.stars.length + '/' + W.STAR_SPOTS.length; const r = rank(), lo = RANKS[r][0], hi = RANKS[r + 1] ? RANKS[r + 1][0] : lo + 1; $('#rank').textContent = RANKS[r][1]; $('#xpbar').style.width = Math.min(100, (S.xp - lo) / (hi - lo) * 100) + '%'; $('#pname').textContent = S.name || 'Wichtel'; }
 function renderTasks() { ensureDay(); $('#tasks').innerHTML = S.tasks.map(k => `<li class="${taskDone(k) ? 'ok' : ''}">${taskDone(k) ? '✅' : '⬜'} ${TASKS[k][0]} <b>${Math.min(S.tp[k] || 0, TASKS[k][1])}/${TASKS[k][1]}</b></li>`).join('') + `<li class="streak">🔥 Serie: ${S.streak} Tag${S.streak === 1 ? '' : 'e'}</li>`; }
@@ -480,7 +483,7 @@ function startMission() {
   if (P.mode === 'mission') return;
   fade(() => {
     MS.kh = W.buildKidHouse(); const keys = Object.keys(MS.kh.spots).sort(() => Math.random() - .5); MS.todo = keys.slice(0, Math.min(5, 3 + Math.floor(S.missions / 3))); MS.done = []; MS.noise = 0; MS.t = 240; MS.over = false;
-    mobil.remove(player); player.scale.setScalar(1); MS.kh.scene.add(player); FX.move(MS.kh.scene); P.scene = MS.kh.scene; P.mode = 'mission'; P.pos.copy(MS.kh.start); P.vy = 0; player.rotation.y = 0; CAM.yaw = Math.PI; CAM.pitch = .8; CAM.dist = 7;
+    mobil.remove(player); player.scale.setScalar(1); MS.kh.scene.add(player); FX.move(MS.kh.scene); P.scene = MS.kh.scene; P.mode = 'mission'; P.pos.copy(MS.kh.start); P.vy = 0; player.rotation.y = 0; CAM.yaw = Math.PI; CAM.pitch = .6; CAM.dist = 7;
     MS.marks = {}; for (const k of MS.todo) { const sp = MS.kh.spots[k], m = new THREE.Mesh(new THREE.RingGeometry(1.6, 2.1, 40), new THREE.MeshBasicMaterial({ color: 0xffd27a, transparent: true, opacity: .85, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.position.set(sp.pos.x, .06, sp.pos.z); MS.kh.scene.add(m); MS.marks[k] = m; }
     MS.cat = makeCat(); MS.cat.position.set(20, 0, 10); MS.kh.scene.add(MS.cat); MS.catTarget.set(0, 0, 0);
     $('#mission').classList.add('on'); $('#quest').style.display = 'none'; $('#btnJ').textContent = '⤒'; $('#btnD').classList.remove('on'); renderMission(); tutStep(3);
@@ -783,7 +786,7 @@ function frame(now) {
   // Kompass zum Ziel
   let tt = P.mode === 'walk' || P.mode === 'fly' ? tutTarget() : null; const cmp = $('#compass');
   if (P.mode === 'mission' && MS.kh) { let best = null, bd = 1e9; for (const k of MS.todo) if (!MS.done.includes(k)) { const sp = MS.kh.spots[k], d = Math.hypot(sp.pos.x - P.pos.x, sp.pos.z - P.pos.z); if (d < bd) { bd = d; best = { txt: sp.name, pos: sp.pos }; } } tt = best || { txt: 'Zurück zur Wichteltür', pos: MS.kh.exit }; for (const k in MS.marks) MS.marks[k].material.opacity = .5 + Math.sin(T * 4) * .35; }
-  if (tt && tt.pos) { const dx = tt.pos.x - P.pos.x, dz = tt.pos.z - P.pos.z, a = Math.atan2(dx, dz) - (CAM.yaw + Math.PI); cmp.classList.add('on'); $('#carrow').style.transform = `rotate(${-a}rad)`; $('#ctext').textContent = tt.txt + ' · ' + Math.round(Math.hypot(dx, dz)) + ' m'; } else cmp.classList.remove('on');
+  if (tt && tt.pos) { const dx = tt.pos.x - P.pos.x, dz = tt.pos.z - P.pos.z, a = Math.atan2(dx, dz) - (CAM.yaw + Math.PI); cmp.classList.add('on'); $('#carrow').style.transform = `rotate(${-a}rad)`; $('#ctext').textContent = tt.txt; $('#cdist').textContent = Math.round(Math.hypot(dx, dz)) + ' m'; } else cmp.classList.remove('on');
   if (composer && P.scene === village) { renderPass.scene = P.scene; composer.render(); } else renderer.render(P.scene, camera);
   if (!window.__ready) { window.__ready = 1; $('#loading').classList.remove('on'); }
 }

@@ -2,7 +2,11 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Wichtel 3D">
 <title>Wichtel 3D – Wichtel Lasse</title>
 <meta name="description" content="Wichtel 3D: Lebe als Wichtel im Wichteldorf am Nordpol, arbeite, baue das Dorf aus, fliege mit dem Wichtelmobil und mach heimlich Streiche.">
 <meta name="theme-color" content="#070d1f">
@@ -10,7 +14,7 @@
 <style>
 :root{--gold:#ffd27a;--ink:#0b1633;--red:#c4161c;--mint:#6fe39a;--glass:rgba(10,18,43,.72);--line:rgba(255,255,255,.16)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;overflow:hidden;background:#05070d;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;position:fixed;inset:0;-webkit-touch-callout:none;-webkit-text-size-adjust:100%;background:#05070d;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none}
 #game canvas{display:block;width:100vw;height:100vh;height:100dvh}
 button{font:inherit;color:inherit;cursor:pointer}
 .btn{display:inline-block;margin:6px 4px 0;padding:12px 22px;border-radius:999px;border:0;background:var(--gold);color:var(--ink);font-weight:800;text-decoration:none;font-size:1rem}
@@ -140,6 +144,23 @@ body:not(.touch) #buildbar{bottom:90px}
  .tbox{max-height:94vh;overflow:auto;padding:12px 18px;max-width:560px}.tbox h1{font-size:1.6rem}.tbox p{display:none}.tbox input{padding:8px 12px;margin-top:6px}.tbox .btn{padding:9px 18px;margin-top:4px}.row{margin:4px 0}.row button{width:36px;height:36px}.lbl{margin-top:4px}
  .panel{max-height:92vh;padding:14px}.panel h2{font-size:1.3rem}
 }
+
+/* Handy: schlanke Anzeigen, die die Sicht nicht versperren */
+body.touch .card{background:rgba(10,18,43,.48);backdrop-filter:none;-webkit-backdrop-filter:none;border-color:rgba(255,255,255,.12)}
+body.touch #ctext{display:none}
+body.touch #compass{left:50%!important;transform:translateX(-50%)!important;top:max(6px,env(safe-area-inset-top))!important;bottom:auto!important;padding:4px 12px;gap:6px;font-size:.8rem}
+body.touch #cdist{font-weight:800}
+body.touch .me{padding:4px 10px}body.touch .me b{display:none}body.touch .me small{font-size:.7rem;font-weight:700}body.touch .xp{width:80px;height:4px;margin-top:3px}
+body.touch #quest{max-width:30vw!important;font-size:.7rem!important;padding:5px 9px;line-height:1.25;top:calc(max(6px,env(safe-area-inset-top)) + 40px)!important;left:max(8px,env(safe-area-inset-left))!important}
+body.touch #quest small{font-size:.6rem}
+body.touch #toast{top:calc(max(6px,env(safe-area-inset-top)) + 40px)!important;left:50%!important;right:auto!important;transform:translateX(-50%)!important;font-size:.74rem!important;max-width:38vw!important;padding:6px 12px!important;background:rgba(10,18,43,.65)}
+body.touch .float{font-size:1.1rem}
+body.touch .icon{width:32px!important;height:32px!important;font-size:.95rem!important}
+body.touch .pill{font-size:.8rem!important;padding:4px 8px}
+body.touch #mission ul{font-size:.62rem!important;margin-top:3px}body.touch #mission li{padding:1px 0}body.touch #mission .noise{height:6px}body.touch #mission{max-width:24vw!important;font-size:.66rem!important;padding:5px 8px;top:calc(max(6px,env(safe-area-inset-top)) + 40px)!important}
+body.touch #taskbox{font-size:.75rem;max-width:40vw}
+body.touch #prompt{font-size:.8rem!important;padding:7px 14px!important;bottom:calc(14px + env(safe-area-inset-bottom))!important}
+body.touch #joy{opacity:.75}body.touch .tbtn{opacity:.85}
 </style>
 </head>
 <body>
@@ -175,7 +196,7 @@ body:not(.touch) #buildbar{bottom:90px}
   </div>
   <div class="card" id="quest"></div>
   <div class="card" id="taskbox"><h3>📋 Tagesaufgaben</h3><ul id="tasks"></ul></div>
-  <div class="card" id="compass"><span id="carrow">⬆</span><span id="ctext"></span></div>
+  <div class="card" id="compass"><span id="carrow">⬆</span><span id="ctext"></span><b id="cdist"></b></div>
   <div class="card" id="mission"><b id="mclock">🕐 01:00 Uhr</b><div style="font-size:.8rem;margin-top:6px">Lautstärke</div><div class="noise"><div id="noisebar"></div></div><ul id="mlist"></ul><div class="holdw"><div id="hold"></div></div></div>
   <div id="joy" class="tc"><div id="knob"></div></div>
   <button id="btnA" class="tbtn tc" aria-label="Aktion">✋</button>
@@ -190,7 +211,7 @@ body:not(.touch) #buildbar{bottom:90px}
 <div id="map"><canvas id="mapc" width="800" height="800"></canvas></div>
 <div id="fade"></div>
 <div id="rotate"><div class="phone"></div><b>Bitte dreh dein Handy</b><p>Wichtel 3D wird im Querformat gespielt.</p></div>
-<script type="module" src="w3d-main.js?v=6"></script>
+<script type="module" src="w3d-main.js?v=7"></script>
 <noscript><p style="padding:20px">Wichtel 3D braucht JavaScript.</p></noscript>
 </body>
 </html>
