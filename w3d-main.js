@@ -1,10 +1,11 @@
 // Wichtel 3D – Das Leben im Wichteldorf
 import * as THREE from './three.min.js';
-import { makeTextures } from './w3d-tex.js?v=8';
-import * as MD from './w3d-models.js?v=8';
-import * as W from './w3d-world.js?v=8';
-import { Particles, Footprints, candyFly } from './w3d-fx.js?v=8';
-import * as TR from './w3d-travel.js?v=8';
+import { makeTextures } from './w3d-tex.js?v=9';
+import * as MD from './w3d-models.js?v=9';
+import * as W from './w3d-world.js?v=9';
+import { Particles, Footprints, candyFly } from './w3d-fx.js?v=9';
+import * as TR from './w3d-travel.js?v=9';
+import * as CH from './w3d-chars.js?v=9';
 
 const $ = s => document.querySelector(s);
 const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
@@ -78,7 +79,12 @@ addEventListener('resize', fit); addEventListener('orientationchange', () => set
 ['gesturestart', 'gesturechange', 'dblclick'].forEach(ev => document.addEventListener(ev, e => e.preventDefault(), { passive: false }));
 document.addEventListener('touchmove', e => { if (!e.target.closest('.panel,.tbox,#taskbox')) e.preventDefault(); }, { passive: false });
 
-MD.setTextures(makeTextures());
+MD.setTextures(makeTextures()); MD.setRig(CH);
+if (!QP.has('proc')) {
+  const ld = document.createElement('div'); ld.id = 'loading'; ld.style.cssText = 'position:fixed;inset:0;z-index:90;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#05070d;color:#ffd27a;font:700 20px system-ui;gap:14px'; ld.innerHTML = '<div>🎄 Die Wichtel ziehen sich an …</div><div style="width:220px;height:8px;border-radius:6px;background:#1c2540;overflow:hidden"><i id="ldbar" style="display:block;height:100%;width:5%;background:#ffd27a;transition:width .3s"></i></div>'; document.body.appendChild(ld);
+  try { await CH.load('', f => { const b = document.getElementById('ldbar'); if (b) b.style.width = (5 + f * 95) + '%'; }); } catch (e) { console.warn('Figuren konnten nicht geladen werden', e); }
+  ld.remove();
+}
 const village = new THREE.Scene();
 village.fog = new THREE.FogExp2(0x0d1a36, .0075);
 const sky = W.makeSky(); village.add(sky);
@@ -114,8 +120,9 @@ addEventListener('resize', () => { if (composer) composer.setSize(innerWidth, in
 // ================= Spieler =================
 let player = null;
 function makePlayer() {
-  const old = player; player = MD.makeWichtel({ coat: S.coat, hat: S.hat, beard: S.beard, stripes: S.hat === 'stripes' });
-  if (S.hat === 'stripes') player.userData.head.children.forEach(c => { if (c.material && c.material.map === null && c.geometry.type === 'ConeGeometry') { c.material.map = MD.T.knit; c.material.color.set(0xffffff); c.material.needsUpdate = true; } });
+  const old = player; if (old) CH.forget(old); player = MD.makeWichtel({ coat: S.coat, hat: S.hat, beard: S.beard, stripes: S.hat === 'stripes' });
+  if (S.hat === 'stripes' && player.userData.rig) { const c = player.userData.hat.userData.cone; c.material.map = MD.T.knit; c.material.color.set(0xffffff); c.material.needsUpdate = true; }
+  else if (S.hat === 'stripes') player.userData.head.children.forEach(c => { if (c.material && c.material.map === null && c.geometry.type === 'ConeGeometry') { c.material.map = MD.T.knit; c.material.color.set(0xffffff); c.material.needsUpdate = true; } });
   if (old) { player.position.copy(old.position); player.rotation.copy(old.rotation); old.parent && old.parent.remove(old); }
   return player;
 }
@@ -128,18 +135,18 @@ const CAM = { yaw: 0, pitch: .38, dist: 7.5, tgt: new THREE.Vector3() };
 
 // ================= NPC-Wichtel =================
 const NPCS = [
-  { n: 'Oma Zimt', coat: 'coatGreen', hat: 0xd8a62a, beard: false, home: 'baeckerei', say: ['Probier meine Zimtsterne, Liebes! Aber nicht alle auf einmal.', 'In der Bäckerei kannst du dir Zuckerstangen verdienen. Trau dich!', 'Weisst du, warum Wichtel nachts arbeiten? Weil dann die Kinder schlafen.'] },
+  { n: 'Oma Zimt', female: 1, coat: 'coatGreen', hat: 0xd8a62a, beard: false, home: 'baeckerei', say: ['Probier meine Zimtsterne, Liebes! Aber nicht alle auf einmal.', 'In der Bäckerei kannst du dir Zuckerstangen verdienen. Trau dich!', 'Weisst du, warum Wichtel nachts arbeiten? Weil dann die Kinder schlafen.'] },
   { n: 'Professor Knopf', coat: 'coatBlue', hat: 0x2a3e6a, beard: true, home: 'schule', say: ['In der Akademie lernst du alles, was ein guter Wichtel wissen muss.', 'Merke: Ein Wichtel lässt sich nie erwischen. Sonst verliert er seine Zauberkraft!', 'Wer viel lernt, steigt schneller im Rang auf.'] },
   { n: 'Flocki', coat: 'coatRed', hat: 0x2a6ad8, beard: false, home: 'werkstatt', say: ['Hast du schon das Nordlicht-Tor gesehen? Dahinter liegt die Menschenwelt!', 'Mit dem Wichtelmobil kannst du durch die Ringe am Himmel fliegen. Das macht so Spass!', 'Ich habe einen Glitzerstern auf einem Dach gesehen. Nur von oben erreichbar …'] },
   { n: 'Funki', coat: 'coatGreen', hat: 0x7a2a22, beard: false, home: 'stall', say: ['Die Rentiere haben Hunger. Hilfst du mir beim Füttern?', 'Blitzi klaut mir jeden Morgen die Mütze.', 'Rentiere lieben Äpfel. Und Kraulen hinter den Ohren.'] },
-  { n: 'Frau Post', coat: 'coatBlue', hat: 0xc4161c, beard: false, home: 'post', say: ['So viele Wunschzettel! Ich komme gar nicht nach.', 'Kinder aus der ganzen Welt schreiben uns. Sogar aus der Schweiz!', 'Hilf mir sortieren, dann gibt es Zuckerstangen.'] },
+  { n: 'Frau Post', female: 1, coat: 'coatBlue', hat: 0xc4161c, beard: false, home: 'post', say: ['So viele Wunschzettel! Ich komme gar nicht nach.', 'Kinder aus der ganzen Welt schreiben uns. Sogar aus der Schweiz!', 'Hilf mir sortieren, dann gibt es Zuckerstangen.'] },
   { n: 'Bürgermeister Bommel', coat: 'coatRed', hat: 0x1f1f1f, beard: true, home: 'rathaus', say: ['Im Rathaus holst du die Belohnung für deine Tagesaufgaben ab.', 'Unser Dorf wird jedes Jahr schöner. Bau mit!', 'Jeden Tag gibt es neue Aufgaben. Wer dranbleibt, bekommt einen Bonus.'] },
   { n: 'Kakao-Kurt', coat: 'coatGreen', hat: 0x8a5a2a, beard: true, home: 'cafe', say: ['Ein heisser Kakao macht schnelle Beine!', 'Mit Sahne oder mit extra Sahne?', 'Im Café ist es immer warm.'] },
-  { n: 'Marktfrau Nelli', coat: 'coatGreen', hat: 0xd8a62a, beard: false, home: 'bib', stay: [80, 20], say: ['Willkommen auf dem Weihnachtsmarkt! Hier duftet es nach gebrannten Mandeln.', 'Hast du die Eishöhle im Norden schon gesehen? Dort glitzert es überall!', 'Die Lichterketten hier hat Flocki aufgehängt. Ganz allein!'] },
+  { n: 'Marktfrau Nelli', female: 1, coat: 'coatGreen', hat: 0xd8a62a, beard: false, home: 'bib', stay: [80, 20], say: ['Willkommen auf dem Weihnachtsmarkt! Hier duftet es nach gebrannten Mandeln.', 'Hast du die Eishöhle im Norden schon gesehen? Dort glitzert es überall!', 'Die Lichterketten hier hat Flocki aufgehängt. Ganz allein!'] },
   { n: 'Höhlenforscher Ole', coat: 'coatBlue', hat: 0x2f8a4e, beard: true, home: 'bib', stay: [-50, -84], say: ['Die Eishöhle ist uralt. Die Kristalle leuchten seit tausend Jahren.', 'Irgendwo hier drin sollen Glitzersterne versteckt sein …', 'Pass auf, der Boden ist rutschig!'] },
-  { n: 'Lotte', coat: 'coatRed', hat: 0xff4fa8, beard: false, home: 'bib', say: ['In der Bibliothek gibt es Wichtel-Wissen. Lies alles, dann wirst du schlauer!', 'Auf dem gefrorenen See kann man rutschen. Juhuu!', 'Hast du schon alle Glitzersterne gefunden?'] },
+  { n: 'Lotte', female: 1, coat: 'coatRed', hat: 0xff4fa8, beard: false, home: 'bib', say: ['In der Bibliothek gibt es Wichtel-Wissen. Lies alles, dann wirst du schlauer!', 'Auf dem gefrorenen See kann man rutschen. Juhuu!', 'Hast du schon alle Glitzersterne gefunden?'] },
 ];
-const npcs = NPCS.map((d, i) => { const m = MD.makeWichtel({ coat: d.coat, hat: d.hat, beard: d.beard }); const door = V.doors.find(x => x.id === d.home) || V.doors[0]; m.position.set(door.pos.x, 0, door.pos.z); if (d.stay) m.position.set(d.stay[0], W.H(d.stay[0], d.stay[1]), d.stay[1]); village.add(m); return { d, m, target: null, wait: Math.random() * 3, talkedToday: false }; });
+const npcs = NPCS.map((d, i) => { const m = MD.makeWichtel({ coat: d.coat, hat: d.hat, beard: d.beard, female: d.female }); const door = V.doors.find(x => x.id === d.home) || V.doors[0]; m.position.set(door.pos.x, 0, door.pos.z); if (d.stay) m.position.set(d.stay[0], W.H(d.stay[0], d.stay[1]), d.stay[1]); village.add(m); return { d, m, target: null, wait: Math.random() * 3, talkedToday: false }; });
 function npcTarget(n) { const all = V.doors.filter(x => x.job); const t = Math.random() < .35 ? new THREE.Vector3((Math.random() - .5) * 20, 0, (Math.random() - .5) * 20) : all[Math.floor(Math.random() * all.length)].pos.clone(); n.target = t; }
 
 // ================= Glitzersterne =================
@@ -509,7 +516,7 @@ function endMission(win, why) {
   else { sfx('fail'); addCandy(3); panel(`<h2>😱 Erwischt!</h2><p class="say">${why}</p><p>Zum Glück bist du gerade noch durch die Wichteltür entkommen. Versuch es nochmal!</p><button class="btn" data-close>${back}</button>`); }
   P.prev = 'walk';
   setTimeout(() => fade(() => {
-    MS.kh.scene.remove(player);
+    MS.kh.scene.remove(player); if (MS.cat) CH.forget(MS.cat); if (MS.par) CH.forget(MS.par);
     if (MS.origin) { const T2 = MS.origin.town; T2.scene.add(player); P.scene = T2.scene; FX.move(T2.scene); P.pos.copy(MS.origin.pos); P.prev = 'town'; }
     else { village.add(player); P.scene = village; FX.move(village); P.pos.set(W.PAD.x + 3, 0, W.PAD.z + 4); mobil.position.set(W.PAD.x, W.H(W.PAD.x, W.PAD.z) + .7, W.PAD.z); }
     $('#mission').classList.remove('on'); MS.kh = null; $('#quest').style.display = '';
@@ -530,6 +537,7 @@ function updateMission(dt) {
   // ---- Katze ----
   const c = MS.cat, cu = c.userData; cu.t += dt;
   const toP = P.pos.clone().sub(c.position); toP.y = 0; const dP = toP.length();
+  c.userData.sleep = MS.catState === 'sleep';
   if (MS.catState === 'sleep') { MS.catT -= dt; cu.head.rotation.z = -.6; c.scale.y = 1 + Math.sin(T * 1.5) * .03; cu.eyes.forEach(e => e.visible = false); if (MS.catT <= 0 && (MS.noise > 35 || (dP < 7 && P.speed > 4.6))) { MS.catState = 'hunt'; sfx('meow'); toast('🐱 Die Katze ist aufgewacht und will dich fressen! Renn weg oder wirf einen Schneeball!', 3500); } }
   else {
     cu.eyes.forEach(e => e.visible = true); cu.head.rotation.z = 0; c.scale.y = 1;
@@ -842,8 +850,8 @@ function frame(now) {
     } else if (P.pos.y > gy + .05) { P.onG = false; P.airT += dt; }
     P.flip = Math.max(0, P.flip - dt * 2.2); P.land = Math.max(0, P.land - dt * 5); P.cheer = Math.max(0, P.cheer - dt); P.throwT = Math.max(0, P.throwT - dt);
     player.position.copy(P.pos);
-    MD.animateWichtel(player, dt, P.onG ? P.speed : 0, { air: !P.onG, vy: P.vy, glide: P.glide, flip: P.flip, land: P.land, cheer: P.cheer });
-    if (P.throwT > 0) player.userData.arms[1].rotation.x = -2.6 + (1 - P.throwT / .35) * 3.4;
+    MD.animateWichtel(player, dt, P.onG ? P.speed : 0, { air: !P.onG, vy: P.vy, glide: P.glide, flip: P.flip, land: P.land, cheer: P.cheer, throwT: P.throwT, sneak: P.mode === 'mission' && P.speed < 4.6 });
+    if (P.throwT > 0 && !player.userData.rig) player.userData.arms[1].rotation.x = -2.6 + (1 - P.throwT / .35) * 3.4;
     if (P.onG && P.speed > 1) { P.stepT -= dt * P.speed; if (P.stepT < 0) { P.stepT = 2.2; if (inVillage && !ice && P.pos.y - base < .1) { STEPS.add(P.pos.x, P.pos.y, P.pos.z, player.rotation.y); if (P.speed > 6) FX.emit(P.pos, 2, { speed: .8, life: .5, size: .3, grav: 3, up: .4 }); } if (P.mode !== 'mission') sfx('step'); else if (P.speed > 4) { sfx('step'); } } }
     if (ice && P.speed > 6 && P.onG && Math.random() < dt * 30) FX.emit(P.pos, 1, { speed: .5, life: .4, size: .2, glow: 1, color: 0xcff0ff, grav: 0 });
     if (P.mode === 'mission' && P.speed > 4.5) MS.noise += dt * (P.speed > 7 ? 20 : 5);
@@ -858,7 +866,7 @@ function frame(now) {
     const m = n.m, d = m.position.distanceTo(P.pos);
     if (d > 70) { m.visible = false; continue; } m.visible = true;
     if (n.hitT > 0) { n.hitT -= dt; m.rotation.y += dt * 10; MD.animateWichtel(m, dt, 0, { cheer: n.hitT }); continue; }
-    if (d < 2.6 && P.mode === 'walk') { const a = Math.atan2(P.pos.x - m.position.x, P.pos.z - m.position.z); m.rotation.y += (a - m.rotation.y) * .1; MD.animateWichtel(m, dt, 0); continue; }
+    if (d < 2.6 && P.mode === 'walk') { const a = Math.atan2(P.pos.x - m.position.x, P.pos.z - m.position.z); m.rotation.y += (a - m.rotation.y) * .1; MD.animateWichtel(m, dt, 0, { talk: true }); continue; }
     if (n.wait > 0 || n.d.stay) { n.wait -= dt; MD.animateWichtel(m, dt, 0); continue; }
     if (!n.target) npcTarget(n);
     const to = n.target.clone().sub(m.position); to.y = 0; const l = to.length();
@@ -900,6 +908,7 @@ function frame(now) {
   let tt = P.mode === 'walk' || P.mode === 'fly' ? tutTarget() : null; const cmp = $('#compass');
   if (P.mode === 'mission' && MS.kh) { let best = null, bd = 1e9; for (const k of MS.todo) if (!MS.done.includes(k)) { const sp = MS.kh.spots[k], d = Math.hypot(sp.pos.x - P.pos.x, sp.pos.z - P.pos.z); if (d < bd) { bd = d; best = { txt: sp.name, pos: sp.pos }; } } tt = best || { txt: 'Zurück zur Wichteltür', pos: MS.kh.exit }; for (const k in MS.marks) MS.marks[k].material.opacity = .5 + Math.sin(T * 4) * .35; }
   if (tt && tt.pos) { const dx = tt.pos.x - P.pos.x, dz = tt.pos.z - P.pos.z, a = Math.atan2(dx, dz) - (CAM.yaw + Math.PI); cmp.classList.add('on'); $('#carrow').style.transform = `rotate(${-a}rad)`; $('#ctext').textContent = tt.txt; $('#cdist').textContent = Math.round(Math.hypot(dx, dz)) + ' m'; } else cmp.classList.remove('on');
+  CH.tick(Math.min(dt, .1));
   if (composer && P.scene === village) { renderPass.scene = P.scene; composer.render(); } else renderer.render(P.scene, camera);
   if (!window.__ready) { window.__ready = 1; $('#loading').classList.remove('on'); }
 }

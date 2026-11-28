@@ -1,6 +1,6 @@
 // Welt: Gelände, Himmel, Dorf, Wald, Kollisionen, Kinderhaus
 import * as THREE from './three.min.js';
-import * as MD from './w3d-models.js?v=8';
+import * as MD from './w3d-models.js?v=9';
 
 // ---------- Rauschen & Gelände ----------
 function hash(x, z) { const s = Math.sin(x * 127.1 + z * 311.7) * 43758.5453; return s - Math.floor(s); }

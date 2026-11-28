@@ -1,7 +1,8 @@
 // Weltreise: Städte, Wahrzeichen, Menschen, Flug-Szene
 import * as THREE from './three.min.js';
-import * as MD from './w3d-models.js?v=8';
-import { makeSky, makeSnowfall, mergeStatic } from './w3d-world.js?v=8';
+import * as MD from './w3d-models.js?v=9';
+import * as CH from './w3d-chars.js?v=9';
+import { makeSky, makeSnowfall, mergeStatic } from './w3d-world.js?v=9';
 
 export const DEST = [
   { id: 'volketswil', name: 'Volketswil', land: 'Schweiz', x: .515, y: .30, style: 'swiss', snow: true },
@@ -26,6 +27,7 @@ function winTex(cols, rows, lit = .6, base = '#2a2f3a') {
 
 // ---------- Menschen (Eltern im Pyjama) ----------
 export function makeHuman(o = {}) {
+  if (CH.ready) return CH.makeHuman(o);
   const g = new THREE.Group(), pj = new THREE.MeshStandardMaterial({ color: o.pj || 0x5a7ab8, roughness: .9 }), skin = mat('hskin', { color: 0xe8b896, roughness: .6 });
   const legs = []; for (const s of [-1, 1]) { const l = new THREE.Mesh(new THREE.CapsuleGeometry(.75, 3.6, 4, 10), pj); l.position.set(s * .8, 2.5, 0); g.add(l); legs.push(l); const f = new THREE.Mesh(MD.roundBox(1.1, .6, 2, .25), mat('slipper', { color: 0x8a2a2a, roughness: .9 })); f.position.set(s * .8, .3, .4); g.add(f); }
   const body = new THREE.Mesh(new THREE.CapsuleGeometry(1.6, 3.2, 6, 14), pj); body.position.y = 7; g.add(body);
@@ -42,10 +44,11 @@ export function makeHuman(o = {}) {
   g.userData = { legs, arms, cone, spot, t: 0 };
   return shadeAll(g);
 }
-export function animateHuman(h, dt, speed) { const u = h.userData; u.t += dt * speed * 1.4; u.legs[0].rotation.x = Math.sin(u.t) * .35 * Math.min(1, speed); u.legs[1].rotation.x = -Math.sin(u.t) * .35 * Math.min(1, speed); u.arms[0].rotation.x = -Math.sin(u.t) * .3; }
+export function animateHuman(h, dt, speed) { if (h.userData.rig) return CH.animateHuman(h, dt, speed); const u = h.userData; u.t += dt * speed * 1.4; u.legs[0].rotation.x = Math.sin(u.t) * .35 * Math.min(1, speed); u.legs[1].rotation.x = -Math.sin(u.t) * .35 * Math.min(1, speed); u.arms[0].rotation.x = -Math.sin(u.t) * .3; }
 
 // ---------- Katze (kann schlafen, jagen, flüchten) ----------
 export function makeCat() {
+  if (CH.ready) return CH.makeAnimal('cat');
   const g = new THREE.Group(), fur = new THREE.MeshStandardMaterial({ color: 0xd8823a, roughness: .95 });
   const b = new THREE.Mesh(new THREE.CapsuleGeometry(1, 2.4, 6, 14), fur); b.rotation.z = Math.PI / 2; b.position.y = 1.8; g.add(b);
   const head = new THREE.Group(); head.position.set(2, 2.6, 0); g.add(head);

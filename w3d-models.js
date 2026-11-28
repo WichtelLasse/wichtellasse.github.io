@@ -1,8 +1,9 @@
 // Realistische, prozedurale 3D-Modelle für Wichtel 3D
 import * as THREE from './three.min.js';
-import { signTexture, windowTexture } from './w3d-tex.js?v=8';
+import { signTexture, windowTexture } from './w3d-tex.js?v=9';
 
 export let T = null;
+export let RIG = null; export function setRig(r) { RIG = r; }
 const M = {}; // Material-Cache
 export function setTextures(t) {
   T = t;
@@ -81,12 +82,13 @@ export function spruceGeometry(seed = 1, h = 7, lo = false) {
 
 // ---------- Wichtel ----------
 const SKIN = 0xf2c6a2;
-function bentCone(r, h, bend, seg = 24) {
+export function bentCone(r, h, bend, seg = 24) {
   const g = new THREE.ConeGeometry(r, h, 20, seg, true), p = g.attributes.position;
   for (let i = 0; i < p.count; i++) { const y = p.getY(i), t = Math.min(1, Math.max(0, (y + h / 2) / h)); p.setX(i, p.getX(i) + Math.pow(t, 2.2) * bend); p.setY(i, y - Math.pow(t, 3) * bend * .25); }
   g.computeVertexNormals(); g.translate(0, h / 2, 0); return g;
 }
 export function makeWichtel(o = {}) {
+  if (RIG && RIG.ready && !o.proc) return RIG.makeWichtel(o);
   const coat = o.coat || 'coatRed', hatCol = o.hat || 0xc4161c, beard = !!o.beard, scale = o.scale || 1;
   const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
   const coatMat = new THREE.MeshStandardMaterial({ map: T[coat], roughness: .92, color: 0xffffff });
@@ -149,6 +151,7 @@ export function makeWichtel(o = {}) {
   return root;
 }
 export function animateWichtel(w, dt, speed, st) {
+  if (w.userData.rig) return RIG.animateWichtel(w, dt, speed, st || {});
   const u = w.userData; st = st || {}; u.t += dt * (4 + speed * 2.2);
   const run = Math.min(1, speed / 3), sw = run * .75, s = Math.sin(u.t), L = (a, b, k) => a + (b - a) * Math.min(1, dt * k);
   let l0 = s * sw, l1 = -s * sw, a0x = -s * sw * .8, a1x = s * sw * .8, a0z = 0, a1z = 0, lean = Math.min(speed / 9, 1) * .2, by = Math.abs(Math.cos(u.t)) * .06 * run;
