@@ -1,9 +1,9 @@
 // Wichtel 3D – Das Leben im Wichteldorf
 import * as THREE from './three.min.js';
-import { makeTextures } from './w3d-tex.js?v=3';
-import * as MD from './w3d-models.js?v=3';
-import * as W from './w3d-world.js?v=3';
-import { Particles, Footprints, candyFly } from './w3d-fx.js?v=3';
+import { makeTextures } from './w3d-tex.js?v=5';
+import * as MD from './w3d-models.js?v=5';
+import * as W from './w3d-world.js?v=5';
+import { Particles, Footprints, candyFly } from './w3d-fx.js?v=5';
 
 const $ = s => document.querySelector(s);
 const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
@@ -93,6 +93,7 @@ const V = W.buildVillage(village);
 const snow = W.makeSnowfall(LOW ? 1300 : 2800); village.add(snow);
 const smoke = W.makeSmoke(V.chimneys); village.add(smoke);
 const colliders = V.colliders, circles = V.circles;
+const REG = W.buildRegions(village, colliders, circles);
 const FX = new Particles(village, LOW ? 260 : 500);
 const STEPS = new Footprints(village, LOW ? 120 : 220);
 // Leuchten (Bloom) auf starken Geräten
@@ -130,9 +131,11 @@ const NPCS = [
   { n: 'Frau Post', coat: 'coatBlue', hat: 0xc4161c, beard: false, home: 'post', say: ['So viele Wunschzettel! Ich komme gar nicht nach.', 'Kinder aus der ganzen Welt schreiben uns. Sogar aus der Schweiz!', 'Hilf mir sortieren, dann gibt es Zuckerstangen.'] },
   { n: 'Bürgermeister Bommel', coat: 'coatRed', hat: 0x1f1f1f, beard: true, home: 'rathaus', say: ['Im Rathaus holst du die Belohnung für deine Tagesaufgaben ab.', 'Unser Dorf wird jedes Jahr schöner. Bau mit!', 'Jeden Tag gibt es neue Aufgaben. Wer dranbleibt, bekommt einen Bonus.'] },
   { n: 'Kakao-Kurt', coat: 'coatGreen', hat: 0x8a5a2a, beard: true, home: 'cafe', say: ['Ein heisser Kakao macht schnelle Beine!', 'Mit Sahne oder mit extra Sahne?', 'Im Café ist es immer warm.'] },
+  { n: 'Marktfrau Nelli', coat: 'coatGreen', hat: 0xd8a62a, beard: false, home: 'bib', stay: [80, 20], say: ['Willkommen auf dem Weihnachtsmarkt! Hier duftet es nach gebrannten Mandeln.', 'Hast du die Eishöhle im Norden schon gesehen? Dort glitzert es überall!', 'Die Lichterketten hier hat Flocki aufgehängt. Ganz allein!'] },
+  { n: 'Höhlenforscher Ole', coat: 'coatBlue', hat: 0x2f8a4e, beard: true, home: 'bib', stay: [-50, -84], say: ['Die Eishöhle ist uralt. Die Kristalle leuchten seit tausend Jahren.', 'Irgendwo hier drin sollen Glitzersterne versteckt sein …', 'Pass auf, der Boden ist rutschig!'] },
   { n: 'Lotte', coat: 'coatRed', hat: 0xff4fa8, beard: false, home: 'bib', say: ['In der Bibliothek gibt es Wichtel-Wissen. Lies alles, dann wirst du schlauer!', 'Auf dem gefrorenen See kann man rutschen. Juhuu!', 'Hast du schon alle Glitzersterne gefunden?'] },
 ];
-const npcs = NPCS.map((d, i) => { const m = MD.makeWichtel({ coat: d.coat, hat: d.hat, beard: d.beard }); const door = V.doors.find(x => x.id === d.home) || V.doors[0]; m.position.set(door.pos.x, 0, door.pos.z); village.add(m); return { d, m, target: null, wait: Math.random() * 3, talkedToday: false }; });
+const npcs = NPCS.map((d, i) => { const m = MD.makeWichtel({ coat: d.coat, hat: d.hat, beard: d.beard }); const door = V.doors.find(x => x.id === d.home) || V.doors[0]; m.position.set(door.pos.x, 0, door.pos.z); if (d.stay) m.position.set(d.stay[0], W.H(d.stay[0], d.stay[1]), d.stay[1]); village.add(m); return { d, m, target: null, wait: Math.random() * 3, talkedToday: false }; });
 function npcTarget(n) { const all = V.doors.filter(x => x.job); const t = Math.random() < .35 ? new THREE.Vector3((Math.random() - .5) * 20, 0, (Math.random() - .5) * 20) : all[Math.floor(Math.random() * all.length)].pos.clone(); n.target = t; }
 
 // ================= Glitzersterne =================
@@ -299,10 +302,13 @@ let QUEST = null;
 let near = null;
 function findNear() {
   if (P.mode === 'walk') {
-    for (const d of V.doors) if (d.job && P.pos.distanceTo(d.pos) < 3.2) return { t: 'door', d, label: JOBLABEL[d.job] ? d.name + ': ' + JOBLABEL[d.job] : d.name };
+    for (const d of V.doors) if (d.job && P.pos.distanceTo(d.pos) < 3.2) return { t: 'door', d, label: INSIDE_JOB[d.id] ? d.name + ' betreten' : (JOBLABEL[d.job] ? d.name + ': ' + JOBLABEL[d.job] : d.name) };
     for (const n of npcs) if (n.m.position.distanceTo(P.pos) < 2.4) return { t: 'npc', n, label: 'Mit ' + n.d.n + ' reden' };
     if (Math.hypot(P.pos.x - W.PAD.x, P.pos.z - W.PAD.z) < 5.5) return { t: 'mobil', label: 'Ins Wichtelmobil steigen' };
     if (hay.length) for (const h of hay) if (h.position.distanceTo(P.pos) < 2) return { t: 'hay', h, label: 'Futter aufheben' };
+  } else if (P.mode === 'inside' && IN) {
+    if (Math.hypot(P.pos.x - IN.station.x, P.pos.z - IN.station.z) < 1.5) return { t: 'station', label: IN.stationLabel };
+    if (Math.hypot(P.pos.x - IN.exit.x, P.pos.z - IN.exit.z) < 1.6) return { t: 'out', label: 'Nach draussen gehen' };
   } else if (P.mode === 'fly') {
     if (Math.hypot(mobil.position.x - W.PAD.x, mobil.position.z - W.PAD.z) < 14 && mobil.position.y < 30) return { t: 'land', label: 'Landen' };
   } else if (P.mode === 'mission') {
@@ -314,13 +320,29 @@ function findNear() {
 const JOBLABEL = { bake: 'Plätzchen backen', toy: 'Spielzeug bauen', school: 'Unterricht', post: 'Wunschzettel sortieren', stall: 'Rentiere füttern', cafe: 'Kakao kaufen', build: 'Bau-Laden', home: 'Kleiderschrank', rathaus: 'Tagesaufgaben', lib: 'Wichtel-Wissen lesen', talk: 'Besuchen' };
 function interact(n) {
   sfx('click');
-  if (n.t === 'door') JOBS[n.d.job] && JOBS[n.d.job](n.d);
+  if (n.t === 'door') { if (INSIDE_JOB[n.d.id]) enterBuilding(n.d); else JOBS[n.d.job] && JOBS[n.d.job](n.d); }
+  else if (n.t === 'station') JOBS[INSIDE_JOB[IN.door.id]](IN.door);
+  else if (n.t === 'out') exitBuilding();
   else if (n.t === 'npc' && questTalk(n.n.d.n)) { if (!n.n.talkedToday) { n.n.talkedToday = true; progress('talk'); } }
   else if (n.t === 'npc') { const line = n.n.d.say[Math.floor(Math.random() * n.n.d.say.length)]; panel(`<h2>${n.n.d.n}</h2><p class="say">«${line}»</p><button class="btn" data-close>Tschüss!</button>`); if (!n.n.talkedToday) { n.n.talkedToday = true; progress('talk'); addXP(2); } }
   else if (n.t === 'mobil') startFly();
   else if (n.t === 'land') land();
   else if (n.t === 'hay') { village.remove(n.h); hay.splice(hay.indexOf(n.h), 1); sfx('coin'); if (!hay.length) { clearTimeout(hayTimer); addCandy(14); addXP(14); progress('stall'); toast('🦌 Alle Rentiere sind satt! Danke!'); S.jobs++; save(); } else toast('Noch ' + hay.length + ' Futter übrig'); }
   else if (n.t === 'exit') endMission(true);
+}
+
+// ================= Begehbare Häuser =================
+const INSIDE_JOB = { baeckerei: 'bake', werkstatt: 'toy', schule: 'school', post: 'post', cafe: 'cafe', bib: 'lib', home: 'home' };
+const ROOMS = {}; let IN = null;
+function enterBuilding(d) {
+  fade(() => {
+    IN = ROOMS[d.id] || (ROOMS[d.id] = W.buildInterior(d.id, d.name)); IN.door = d;
+    village.remove(player); IN.scene.add(player); P.scene = IN.scene; P.mode = 'inside'; P.pos.copy(IN.spawn); P.vel.set(0, 0, 0); P.vy = 0; player.rotation.y = Math.PI; CAM.yaw = 0; CAM.pitch = .55; CAM.dist = 4.2; FX.move(IN.scene);
+    $('#quest').style.display = 'none'; sfx('bell');
+  });
+}
+function exitBuilding() {
+  fade(() => { IN.scene.remove(player); village.add(player); P.scene = village; P.mode = 'walk'; const d = IN.door; P.pos.set(d.pos.x, W.H(d.pos.x, d.pos.z), d.pos.z); player.rotation.y = d.ry; CAM.yaw = d.ry + Math.PI; CAM.dist = 7.5; FX.move(village); $('#quest').style.display = ''; IN = null; });
 }
 
 // ================= Jobs / Minispiele =================
@@ -494,12 +516,13 @@ function collectStar(s) { FX.emit(s.position, 40, { speed: 4, life: 1.1, size: .
 function fade(fn) { const f = $('#fade'); f.classList.add('on'); setTimeout(() => { fn(); setTimeout(() => f.classList.remove('on'), 120); }, 450); }
 function toggleMap() { const m = $('#map'); m.classList.toggle('on'); if (m.classList.contains('on')) drawMap(); }
 function drawMap() {
-  const c = $('#mapc'), x = c.getContext('2d'), s = c.width / 200; x.fillStyle = '#e9f1fb'; x.fillRect(0, 0, c.width, c.height);
-  const tx = v => (v + 100) * s; x.fillStyle = '#9ac0dc'; x.beginPath(); x.arc(tx(W.LAKE.x), tx(W.LAKE.z), W.LAKE.r * s, 0, 7); x.fill();
+  const c = $('#mapc'), x = c.getContext('2d'), s = c.width / 230; x.fillStyle = '#e9f1fb'; x.fillRect(0, 0, c.width, c.height);
+  const tx = v => (v + 115) * s; x.fillStyle = '#9ac0dc'; x.beginPath(); x.arc(tx(W.LAKE.x), tx(W.LAKE.z), W.LAKE.r * s, 0, 7); x.fill();
   x.fillStyle = '#c9cfd8'; x.beginPath(); x.arc(tx(0), tx(0), 15 * s, 0, 7); x.fill(); x.fillStyle = '#2f8a4e'; x.beginPath(); x.arc(tx(0), tx(0), 3 * s, 0, 7); x.fill();
   x.font = `bold ${Math.round(9 * s / 2.2)}px system-ui`; x.textAlign = 'center';
   for (const d of V.doors) { x.fillStyle = d.job ? '#a8141a' : '#8a6a4a'; x.save(); x.translate(tx(d.x), tx(d.z)); x.rotate(-d.ry); x.fillRect(-d.w / 2 * s, -d.d / 2 * s, d.w * s, d.d * s); x.restore(); if (d.job) { x.fillStyle = '#1a2440'; x.fillText(d.name, tx(d.x), tx(d.z) - d.d / 2 * s - 4); } }
   x.fillStyle = '#3cbcff'; x.beginPath(); x.arc(tx(W.PAD.x), tx(W.PAD.z), 5 * s, 0, 7); x.fill(); x.fillStyle = '#1a2440'; x.fillText('Wichtelmobil', tx(W.PAD.x), tx(W.PAD.z) + 7 * s);
+  x.fillStyle = '#1a2440'; x.fillText('Weihnachtsmarkt', tx(REG.market.x), tx(REG.market.z) + 22 * s / 2.2); x.fillText('Eishöhle', tx(REG.cave.x), tx(REG.cave.z)); x.fillStyle = '#7ad0ff'; x.beginPath(); x.arc(tx(REG.cave.x), tx(REG.cave.z), 11 * s, 0, 7); x.globalAlpha = .4; x.fill(); x.globalAlpha = 1; x.fillStyle = '#c4161c'; x.beginPath(); x.arc(tx(REG.market.x), tx(REG.market.z), 13 * s, 0, 7); x.globalAlpha = .3; x.fill(); x.globalAlpha = 1;
   for (const b of S.built) { x.fillStyle = '#d8a62a'; x.fillRect(tx(b.x) - 2, tx(b.z) - 2, 4, 4); }
   x.save(); x.translate(tx(P.pos.x), tx(P.pos.z)); x.rotate(-player.rotation.y + Math.PI); x.fillStyle = '#ff2a2a'; x.beginPath(); x.moveTo(0, -9); x.lineTo(6, 7); x.lineTo(-6, 7); x.closePath(); x.fill(); x.restore();
 }
@@ -672,7 +695,8 @@ function frame(now) {
   village.fog.color.setRGB(.05 + day * .35, .1 + day * .3, .21 + day * .3);
   const inVillage = P.scene === village;
   // Eingabe → Bewegung
-  if (P.mode === 'walk' || P.mode === 'build' || P.mode === 'mission') {
+  if (P.mode === 'walk' || P.mode === 'build' || P.mode === 'mission' || P.mode === 'inside') {
+    const RM = inVillage ? null : (P.mode === 'mission' ? MS.kh : IN);
     let ix = (K.KeyD || K.ArrowRight ? 1 : 0) - (K.KeyA || K.ArrowLeft ? 1 : 0) + joy.x, iy = (K.KeyW || K.ArrowUp ? 1 : 0) - (K.KeyS || K.ArrowDown ? 1 : 0) + joy.y;
     const l = Math.hypot(ix, iy); if (l > 1) { ix /= l; iy /= l; }
     const mag = Math.min(1, l);
@@ -688,9 +712,9 @@ function frame(now) {
     P.speed = Math.hypot(P.vel.x, P.vel.z);
     if (P.speed > .3) { const a = Math.atan2(P.vel.x, P.vel.z); let d = a - player.rotation.y; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; player.rotation.y += d * Math.min(1, dt * 10); }
     if (inVillage) { collide(P.pos, colliders, circles); const r = Math.hypot(P.pos.x, P.pos.z); if (r > 150) { P.pos.x *= 150 / r; P.pos.z *= 150 / r; } }
-    else collide(P.pos, MS.kh.colliders, MS.kh.circles);
+    else collide(P.pos, RM.colliders, RM.circles);
     const base = inVillage ? (ice ? .02 : W.H(P.pos.x, P.pos.z)) : 0;
-    const gy = inVillage ? supportY(P.pos, colliders, circles, base) : supportY(P.pos, MS.kh.colliders, MS.kh.circles, base);
+    const gy = inVillage ? supportY(P.pos, colliders, circles, base) : supportY(P.pos, RM.colliders, RM.circles, base);
     const jumpHeld = K.Space || holdJ;
     if (jumpPressed && P.mode !== 'build') {
       if (P.onG) { P.vy = 8.2; P.onG = false; P.jumps = 1; sfx('jump'); FX.emit(P.pos, 8, { speed: 1.5, life: .5, size: .4, grav: 2 }); if (P.mode === 'mission') MS.noise += 6; }
@@ -722,7 +746,7 @@ function frame(now) {
     if (d > 70) { m.visible = false; continue; } m.visible = true;
     if (n.hitT > 0) { n.hitT -= dt; m.rotation.y += dt * 10; MD.animateWichtel(m, dt, 0, { cheer: n.hitT }); continue; }
     if (d < 2.6 && P.mode === 'walk') { const a = Math.atan2(P.pos.x - m.position.x, P.pos.z - m.position.z); m.rotation.y += (a - m.rotation.y) * .1; MD.animateWichtel(m, dt, 0); continue; }
-    if (n.wait > 0) { n.wait -= dt; MD.animateWichtel(m, dt, 0); continue; }
+    if (n.wait > 0 || n.d.stay) { n.wait -= dt; MD.animateWichtel(m, dt, 0); continue; }
     if (!n.target) npcTarget(n);
     const to = n.target.clone().sub(m.position); to.y = 0; const l = to.length();
     if (l < 1) { n.target = null; n.wait = 2 + Math.random() * 5; continue; }
@@ -738,6 +762,8 @@ function frame(now) {
     sun.position.set(P.pos.x + 30, P.pos.y + 55, P.pos.z + 18); sun.target.position.copy(P.pos);
   }
   if (P.mode === 'mission') updateMission(dt);
+  if (IN && P.scene === IN.scene) IN.anim.forEach(f => f(T, dt));
+  if (inVillage) REG.anim.forEach(f => f(T, dt));
   // Kamera
   const tgt = P.mode === 'fly' ? mobil.position : (P.mode === 'title' ? new THREE.Vector3(0, 6, 0) : P.pos);
   CAM.tgt.lerp(new THREE.Vector3(tgt.x, tgt.y + (P.mode === 'fly' ? 2 : 1.5), tgt.z), P.mode === 'title' ? 1 : Math.min(1, dt * 10));
@@ -745,10 +771,10 @@ function frame(now) {
   if (P.mode === 'fly') { dist = 13; yaw = F.yaw + Math.PI; pitch = .28 - F.pitch * .4; CAM.yaw += (yaw - CAM.yaw) * .05; }
   if (P.mode === 'title') { dist = 48; pitch = .3; }
   const cp = new THREE.Vector3(CAM.tgt.x + Math.sin(yaw) * Math.cos(pitch) * dist, CAM.tgt.y + Math.sin(pitch) * dist, CAM.tgt.z + Math.cos(yaw) * Math.cos(pitch) * dist);
-  if (inVillage) { const gh = W.H(cp.x, cp.z) + .6; if (cp.y < gh) cp.y = gh; if (P.mode === 'walk' || P.mode === 'build') cp.copy(camBlock(CAM.tgt, cp)); } else { cp.x = Math.max(-MS.kh.W + 1, Math.min(MS.kh.W - 1, cp.x)); cp.z = Math.max(-MS.kh.D + 1, Math.min(MS.kh.D - 1, cp.z)); cp.y = Math.min(cp.y, 10); }
+  if (inVillage) { const gh = W.H(cp.x, cp.z) + .6; if (cp.y < gh) cp.y = gh; if (P.mode === 'walk' || P.mode === 'build') cp.copy(camBlock(CAM.tgt, cp)); } else { const RMc = P.mode === 'inside' ? IN : MS.kh; if (RMc) { cp.x = Math.max(-RMc.W + .6, Math.min(RMc.W - .6, cp.x)); cp.z = Math.max(-RMc.D + .6, Math.min(RMc.D - .6, cp.z)); cp.y = Math.min(cp.y, P.mode === 'inside' ? 3.7 : 10); } }
   camera.position.lerp(cp, P.mode === 'title' ? 1 : Math.min(1, dt * 8)); camera.lookAt(CAM.tgt);
   // Interaktionen
-  near = (P.mode === 'walk' || P.mode === 'fly' || P.mode === 'mission') ? findNear() : null;
+  near = (P.mode === 'walk' || P.mode === 'fly' || P.mode === 'mission' || P.mode === 'inside') ? findNear() : null;
   const pr = $('#prompt'); if (near) { pr.textContent = (isTouch ? '✋ ' : '[E] ') + near.label; pr.classList.add('on'); } else pr.classList.remove('on');
   if (actionPressed) { if (P.mode === 'ui' && P.uiAction) P.uiAction(); else if (near && near.t !== 'prank') interact(near); else if (P.mode === 'build') placeNow(); }
   if (P.mode !== 'ui') P.uiAction = null;
@@ -762,4 +788,4 @@ function frame(now) {
 }
 ensureDay(); hud(); title();
 requestAnimationFrame(frame);
-window.__dbg = { Q, qState, setupStep, stepDone, questEvent, questTalk, QS, targets, npcs, throwBall, renderer, village, S, P, V, MS, startMission, startFly, land, JOBS, toggleMap, CAM, interact, findNear: () => near };
+window.__dbg = { enterBuilding, exitBuilding, REG, getIN: () => IN, Q, qState, setupStep, stepDone, questEvent, questTalk, QS, targets, npcs, throwBall, renderer, village, S, P, V, MS, startMission, startFly, land, JOBS, toggleMap, CAM, interact, findNear: () => near };

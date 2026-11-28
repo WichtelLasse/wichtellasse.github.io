@@ -1,6 +1,6 @@
 // Realistische, prozedurale 3D-Modelle für Wichtel 3D
 import * as THREE from './three.min.js';
-import { signTexture, windowTexture } from './w3d-tex.js?v=3';
+import { signTexture, windowTexture } from './w3d-tex.js?v=5';
 
 export let T = null;
 const M = {}; // Material-Cache

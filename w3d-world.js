@@ -1,6 +1,6 @@
 // Welt: Gelände, Himmel, Dorf, Wald, Kollisionen, Kinderhaus
 import * as THREE from './three.min.js';
-import * as MD from './w3d-models.js?v=3';
+import * as MD from './w3d-models.js?v=5';
 
 // ---------- Rauschen & Gelände ----------
 function hash(x, z) { const s = Math.sin(x * 127.1 + z * 311.7) * 43758.5453; return s - Math.floor(s); }
@@ -187,6 +187,8 @@ export function buildVillage(scene) {
     const a = rr() * Math.PI * 2, d = 70 + Math.pow(rr(), .8) * 170, x = Math.cos(a) * d, z = Math.sin(a) * d;
     if (Math.hypot(x - LAKE.x, z - LAKE.z) < LAKE.r + 4) continue;
     if (Math.abs(x) < 10 && z < -60 && z > -150) continue; // Schneise Richtung Portal
+    if (Math.hypot(x - 82, z - 30) < 22 || Math.hypot(x + 60, z + 95) < 17) continue; // Markt & Eishöhle
+    if (Math.abs(x - 41) < 5 && Math.hypot(x, z) < 100 && z > 30 && z < 34) continue;
     trees[i % 2].push([x, z, .7 + rr() * .7, rr() * 6.28]);
   }
   // ein paar Tannen im Dorf
@@ -216,7 +218,7 @@ export function buildVillage(scene) {
 }
 
 // ---------- Glitzersterne zum Sammeln ----------
-export const STAR_SPOTS = [[6, 0, 2], [-20, -40, 1], [44, -12, 1], [-58, 20, 1], [58, 40, 1], [-46, 44, 1.2], [-40, 36, 1], [12, -62, 1], [-30, 70, 1], [40, 70, 1], [82, 0, 2], [-84, -10, 2], [0, -100, 3], [70, -70, 4], [-75, -75, 4], [-100, 40, 5], [100, 50, 5], [30, 20, 1], [-10, 26, 1], [52, 30, 1], [-28, -2, 1], [0, 46, 1.5], [-52, -14, 6.5], [31, -20, 9.5], [0, -36, 11]];
+export const STAR_SPOTS = [[6, 0, 2], [-20, -40, 1], [44, -12, 1], [-58, 20, 1], [58, 40, 1], [-46, 44, 1.2], [-40, 36, 1], [12, -62, 1], [-30, 70, 1], [40, 70, 1], [82, 0, 2], [-84, -10, 2], [0, -100, 3], [70, -70, 4], [-75, -75, 4], [-100, 40, 5], [100, 50, 5], [30, 20, 1], [-10, 26, 1], [52, 30, 1], [-28, -2, 1], [0, 46, 1.5], [-52, -14, 6.5], [31, -20, 9.5], [0, -36, 11], [-60, -95, 1], [-56, -98, 1.5], [82, 24, 1], [82, 36, 3.2], [-64, -92, 1]];
 export function makeStar() {
   const s = new THREE.Shape(); for (let i = 0; i < 10; i++) { const r = i % 2 ? .22 : .55, a = i / 10 * Math.PI * 2 + Math.PI / 2; s[i ? 'lineTo' : 'moveTo'](Math.cos(a) * r, Math.sin(a) * r); }
   const g = new THREE.ExtrudeGeometry(s, { depth: .15, bevelEnabled: true, bevelSize: .05, bevelThickness: .05, bevelSegments: 2 }); g.center();
@@ -307,4 +309,119 @@ export function buildKidHouse() {
   spots.brief = { name: 'Brief an die Wichteltür legen', pos: new THREE.Vector3(-4, 0, -D + 3.4), done: () => { const b = new THREE.Mesh(new THREE.PlaneGeometry(1.2, .8), new THREE.MeshStandardMaterial({ color: 0xfff6e0, side: THREE.DoubleSide })); b.rotation.x = -Math.PI / 2; b.position.set(-2.4, .05, -D + 2.4); scene.add(b); } };
   spots.geschenk = { name: 'Geschenke unter dem Baum vertauschen', pos: new THREE.Vector3(-38, 0, -22), done: () => { scene.children.filter(o => o.userData.isGift).forEach(g => g.rotation.y += 1); } };
   return { scene, colliders, circles, spots, start: new THREE.Vector3(-4, 0, -D + 3), exit: new THREE.Vector3(-4, 0, -D + 2.2), kidDoor: new THREE.Vector3(-W + 2, 0, 18), kidLight, W, D };
+}
+
+// ---------- Begehbare Häuser (Innenräume) ----------
+function canvasTex(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d')); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; }
+export function buildInterior(type, name) {
+  const scene = new THREE.Scene(), colliders = [], circles = [], W2 = 9, D2 = 7, HH = 4.2;
+  scene.background = new THREE.Color(0x1a120c); scene.fog = new THREE.Fog(0x1a120c, 20, 40);
+  const floorMat = new THREE.MeshStandardMaterial({ map: MD.T.wood.clone(), roughness: .6 }); floorMat.map.repeat.set(5, 4); floorMat.map.needsUpdate = true;
+  const fl = new THREE.Mesh(new THREE.PlaneGeometry(W2 * 2, D2 * 2), floorMat); fl.rotation.x = -Math.PI / 2; fl.receiveShadow = true; scene.add(fl);
+  const wallKey = { baeckerei: 'brick', werkstatt: 'wood', schule: 'woodCream', post: 'woodBlue', cafe: 'woodCream', bib: 'wood', home: 'woodRed' }[type] || 'wood';
+  const wm = new THREE.MeshStandardMaterial({ map: MD.T[wallKey].clone(), roughness: .85 }); wm.map.repeat.set(4, 1.4); wm.map.needsUpdate = true;
+  const wall = (x, z, w, ry) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, HH), wm); m.position.set(x, HH / 2, z); m.rotation.y = ry; m.receiveShadow = true; scene.add(m); };
+  wall(0, -D2, W2 * 2, 0); wall(0, D2, W2 * 2, Math.PI); wall(-W2, 0, D2 * 2, Math.PI / 2); wall(W2, 0, D2 * 2, -Math.PI / 2);
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(W2 * 2, D2 * 2), new THREE.MeshStandardMaterial({ color: 0x5a3a24, roughness: .9 })); ceil.rotation.x = Math.PI / 2; ceil.position.y = HH; scene.add(ceil);
+  for (let x = -W2 + 1.5; x < W2; x += 3) { const b = new THREE.Mesh(new THREE.BoxGeometry(.3, .3, D2 * 2), new THREE.MeshStandardMaterial({ color: 0x3a2414 })); b.position.set(x, HH - .15, 0); scene.add(b); }
+  colliders.push({ x: 0, z: -D2 - .5, hw: W2, hd: .5, ry: 0 }, { x: 0, z: D2 + .5, hw: W2, hd: .5, ry: 0 }, { x: -W2 - .5, z: 0, hw: .5, hd: D2, ry: 0 }, { x: W2 + .5, z: 0, hw: .5, hd: D2, ry: 0 });
+  const wood = new THREE.MeshStandardMaterial({ map: MD.T.wood, roughness: .7 }), dark = new THREE.MeshStandardMaterial({ color: 0x3a2414, roughness: .8 });
+  const add = (mesh, x, y, z, ry = 0, col = true, hw, hd) => { mesh.position.set(x, y, z); mesh.rotation.y = ry; mesh.traverse(o => { if (o.isMesh) { o.castShadow = o.receiveShadow = true; } }); scene.add(mesh); if (col) colliders.push({ x, z, hw: hw || .6, hd: hd || .6, ry }); return mesh; };
+  const box = (w, h, d, mat, r = .06) => new THREE.Mesh(MD.roundBox(w, h, d, Math.min(r, w / 3, h / 3, d / 3)), mat);
+  // Tür (Ausgang) vorne
+  const door = box(1.6, 2.6, .15, new THREE.MeshStandardMaterial({ color: 0x5a2e18, roughness: .6 })); door.position.set(0, 1.3, D2 - .08); scene.add(door);
+  const mat = new THREE.Mesh(new THREE.PlaneGeometry(2, 1.2), new THREE.MeshStandardMaterial({ color: 0x8a1e1e, roughness: 1 })); mat.rotation.x = -Math.PI / 2; mat.position.set(0, .02, D2 - 1); scene.add(mat);
+  // Fenster mit Nordlicht draussen
+  const sky = canvasTex(128, 96, g => { const gr = g.createLinearGradient(0, 0, 0, 96); gr.addColorStop(0, '#061030'); gr.addColorStop(1, '#1f4a70'); g.fillStyle = gr; g.fillRect(0, 0, 128, 96); g.fillStyle = 'rgba(80,255,170,.35)'; g.beginPath(); g.moveTo(0, 40); g.bezierCurveTo(40, 10, 80, 50, 128, 20); g.lineTo(128, 34); g.bezierCurveTo(80, 64, 40, 24, 0, 54); g.fill(); g.fillStyle = '#fff'; for (let i = 0; i < 25; i++) g.fillRect(Math.random() * 128, Math.random() * 50, 1, 1); });
+  for (const x of [-5, 5]) { const w = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1.4), new THREE.MeshBasicMaterial({ map: sky })); w.position.set(x, 2.3, -D2 + .02); scene.add(w); const fr = box(2, .12, .2, dark); fr.position.set(x, 1.55, -D2 + .1); scene.add(fr); }
+  // Licht
+  scene.add(new THREE.HemisphereLight(0xffe2c0, 0x3a2414, 1.1));
+  const lamp = new THREE.PointLight(0xffc080, 40, 26, 1.3); lamp.position.set(0, HH - .6, 0); scene.add(lamp);
+  const bulb = new THREE.Mesh(new THREE.SphereGeometry(.25, 12, 10), new THREE.MeshStandardMaterial({ color: 0xfff2c0, emissive: 0xffc060, emissiveIntensity: 3 })); bulb.position.copy(lamp.position); scene.add(bulb);
+  let station = new THREE.Vector3(0, 0, -3), stationLabel = 'Arbeiten', host = new THREE.Vector3(3, 0, -3.5), anim = [];
+  if (type === 'baeckerei') {
+    const oven = new THREE.Group(); const body = box(3.2, 2.6, 2, new THREE.MeshStandardMaterial({ map: MD.T.brick, roughness: .9 }), .2); body.position.y = 1.3; oven.add(body); const mouth = new THREE.Mesh(new THREE.CircleGeometry(.6, 24, 0, Math.PI), new THREE.MeshStandardMaterial({ color: 0xff7a20, emissive: 0xff5a10, emissiveIntensity: 2.5 })); mouth.position.set(0, .9, 1.01); oven.add(mouth); anim.push(t => { mouth.material.emissiveIntensity = 2 + Math.sin(t * 9) * .6 + Math.sin(t * 23) * .3; });
+    const fire = new THREE.PointLight(0xff6a20, 12, 8, 1.5); fire.position.set(0, 1, 1.6); oven.add(fire); add(oven, 0, 0, -5.8, 0, true, 1.7, 1.1);
+    station.set(0, 0, -3.6); stationLabel = 'Plätzchen in den Ofen schieben';
+    const counter = box(5, 1.1, 1.2, wood); add(counter, 4.5, .55, 1, 0, true, 2.6, .7);
+    for (let i = 0; i < 8; i++) { const br = new THREE.Mesh(new THREE.CapsuleGeometry(.18, .5, 4, 10), new THREE.MeshStandardMaterial({ color: 0xc98a3a, roughness: .7 })); br.rotation.z = Math.PI / 2; br.position.set(2.6 + i * .5, 1.3, 1 + (i % 2) * .25); scene.add(br); }
+    for (const z of [-3, 0, 3]) { const sh = box(.6, 2.8, 2.2, wood); add(sh, -8.4, 1.4, z, 0, true, .4, 1.2); for (let k = 0; k < 3; k++) { const ck = new THREE.Mesh(new THREE.CylinderGeometry(.18, .18, .06, 14), new THREE.MeshStandardMaterial({ color: 0xb8742a })); ck.position.set(-8.1, .7 + k * .8, z); scene.add(ck); } }
+    const flour = new THREE.Mesh(new THREE.CylinderGeometry(.5, .45, 1, 14), new THREE.MeshStandardMaterial({ color: 0xe8dcc0, roughness: 1 })); add(flour, 3, .5, -5.5, 0, true, .5, .5);
+  } else if (type === 'werkstatt') {
+    for (const [x, z] of [[-4, -3], [4, -3], [-4, 2], [4, 2]]) { const bench = new THREE.Group(); const top = box(3, .15, 1.4, wood); top.position.y = 1; bench.add(top); for (const sx of [-1.3, 1.3]) for (const sz of [-.55, .55]) { const l = new THREE.Mesh(new THREE.BoxGeometry(.12, 1, .12), dark); l.position.set(sx, .5, sz); bench.add(l); } const toy = MD.makeGift([0xc4161c, 0x2a6ad8, 0xd8a62a, 0x2f8a4e][(x + z + 20) % 4]); toy.position.set(.6, 1.08, 0); bench.add(toy); const train = box(.7, .4, .3, new THREE.MeshStandardMaterial({ color: 0x2a6ad8, roughness: .4 })); train.position.set(-.6, 1.3, 0); bench.add(train); add(bench, x, 0, z, 0, true, 1.6, .8); }
+    station.set(0, 0, -3); stationLabel = 'Spielzeug zusammenbauen';
+    const rack = box(6, 2.5, .3, dark); add(rack, 0, 1.25, -6.7, 0, true, 3, .3);
+    for (let i = 0; i < 6; i++) { const tool = new THREE.Mesh(new THREE.BoxGeometry(.08, .7, .08), new THREE.MeshStandardMaterial({ color: 0x9aa3b5, metalness: .8, roughness: .3 })); tool.position.set(-2.5 + i, 1.6, -6.5); scene.add(tool); }
+    const belt = box(8, .5, 1, new THREE.MeshStandardMaterial({ color: 0x2b2b30, roughness: .6 })); add(belt, 0, .6, 5, 0, true, 4, .6);
+    const gifts = []; for (let i = 0; i < 6; i++) { const g = MD.makeGift([0xc4161c, 0x2a6ad8, 0xd8a62a][i % 3]); g.scale.setScalar(.7); g.position.set(-4 + i * 1.5, .85, 5); scene.add(g); gifts.push(g); } anim.push((t, dt) => gifts.forEach(g => { g.position.x += dt * .8; if (g.position.x > 4) g.position.x = -4; }));
+  } else if (type === 'schule') {
+    const board = new THREE.Mesh(new THREE.PlaneGeometry(6, 2.2), new THREE.MeshStandardMaterial({ map: canvasTex(512, 188, g => { g.fillStyle = '#1f3a2a'; g.fillRect(0, 0, 512, 188); g.fillStyle = '#e9f1e0'; g.font = '30px Georgia'; g.fillText('Regel 1: Nie erwischen lassen!', 20, 50); g.fillText('7 × 8 = 56', 20, 100); g.fillText('Nordpol = 90° Nord', 20, 150); }), roughness: .9 }));
+    board.position.set(0, 2.3, -D2 + .05); scene.add(board);
+    for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) { const desk = new THREE.Group(); const top = box(1.3, .1, .8, wood); top.position.y = .8; desk.add(top); const l = new THREE.Mesh(new THREE.BoxGeometry(.1, .8, .6), dark); l.position.set(0, .4, 0); desk.add(l); const book = box(.4, .08, .3, new THREE.MeshStandardMaterial({ color: [0xc4161c, 0x2a6ad8, 0x2f8a4e][(r + c) % 3] }), .02); book.position.set(.2, .9, 0); desk.add(book); add(desk, -4.5 + c * 3, 0, -1 + r * 2.2, 0, true, .7, .45); }
+    station.set(0, 0, -4); stationLabel = 'Unterricht beginnen';
+    const globe = new THREE.Mesh(new THREE.SphereGeometry(.45, 20, 14), new THREE.MeshStandardMaterial({ color: 0x3a7ad8, roughness: .5 })); globe.position.set(6, 1.4, -5); scene.add(globe); anim.push((t, dt) => { globe.rotation.y += dt * .5; });
+  } else if (type === 'post') {
+    for (let i = 0; i < 6; i++) { const sack = new THREE.Mesh(new THREE.SphereGeometry(.6, 14, 10), new THREE.MeshStandardMaterial({ color: 0x8a6a3e, roughness: 1 })); sack.scale.set(1, 1.2, 1); sack.position.set(-7 + i * .9, .6, -5.5 + (i % 2) * .6); scene.add(sack); }
+    circles.push({ x: -5, z: -5.3, r: 2.6 });
+    const shelf = box(.5, 3, 8, wood); add(shelf, 8.4, 1.5, 0, 0, true, .4, 4);
+    for (let i = 0; i < 30; i++) { const l = new THREE.Mesh(new THREE.BoxGeometry(.05, .3, .45), new THREE.MeshStandardMaterial({ color: 0xfff6e0 })); l.position.set(8.1, .5 + (i % 5) * .55, -3.5 + Math.floor(i / 5) * 1.3); scene.add(l); }
+    const desk = box(4, 1.1, 1.4, wood); add(desk, 0, .55, -3.5, 0, true, 2.1, .8); station.set(0, 0, -2); stationLabel = 'Wunschzettel sortieren';
+  } else if (type === 'cafe') {
+    const counter = box(6, 1.1, 1.2, wood); add(counter, 0, .55, -5, 0, true, 3.1, .7); station.set(0, 0, -3.6); stationLabel = 'Bestellen';
+    for (const [x, z] of [[-5, 0], [5, 0], [-5, 4], [5, 4], [0, 2]]) { const t = new THREE.Group(); const top = new THREE.Mesh(new THREE.CylinderGeometry(.7, .7, .08, 20), wood); top.position.y = .8; t.add(top); const leg = new THREE.Mesh(new THREE.CylinderGeometry(.08, .1, .8, 8), dark); leg.position.y = .4; t.add(leg); const cup = new THREE.Mesh(new THREE.CylinderGeometry(.1, .08, .18, 12), new THREE.MeshStandardMaterial({ color: 0xffffff })); cup.position.set(.2, .93, 0); t.add(cup); add(t, x, 0, z, 0, false); circles.push({ x, z, r: .8 }); }
+    const steam = []; for (let i = 0; i < 3; i++) { const s = new THREE.Mesh(new THREE.SphereGeometry(.12, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .3 })); scene.add(s); steam.push(s); } anim.push(t => steam.forEach((s, i) => { const k = (t * .5 + i / 3) % 1; s.position.set(.2 + Math.sin(k * 6) * .05, 1.05 + k * .8, 2); s.material.opacity = .35 * (1 - k); s.scale.setScalar(1 + k * 2); }));
+  } else if (type === 'bib') {
+    for (let i = 0; i < 4; i++) { const sh = new THREE.Group(); const fr = box(4, 3.4, .5, dark); fr.position.y = 1.7; sh.add(fr); for (let r = 0; r < 4; r++) for (let k = 0; k < 14; k++) { const b = new THREE.Mesh(new THREE.BoxGeometry(.2, .55 + (k % 3) * .08, .35), new THREE.MeshStandardMaterial({ color: [0x8a1e1e, 0x1f4a7a, 0x2f6a3e, 0xb8862a, 0x5a3a7a][(k + r + i) % 5], roughness: .8 })); b.position.set(-1.6 + k * .24, .55 + r * .8, .2); sh.add(b); } add(sh, -6 + (i % 2) * 12, 0, -2.5 + Math.floor(i / 2) * 5, Math.PI / 2 * (i % 2 ? -1 : 1), true, .4, 2.1); }
+    const desk = box(3, .9, 1.4, wood); add(desk, 0, .45, -4, 0, true, 1.6, .8); station.set(0, 0, -2.6); stationLabel = 'Wichtel-Wissen lesen';
+  } else if (type === 'home') {
+    const bed = new THREE.Group(); const fr = box(2, .5, 3, wood); fr.position.y = .25; bed.add(fr); const mat2 = box(1.8, .3, 2.8, new THREE.MeshStandardMaterial({ map: MD.T.knit, roughness: 1 })); mat2.position.y = .6; bed.add(mat2); const pil = box(1.2, .25, .5, new THREE.MeshStandardMaterial({ color: 0xffffff }), .12); pil.position.set(0, .85, -1.1); bed.add(pil); add(bed, -6.5, 0, -4.5, 0, true, 1.1, 1.6);
+    const fp = new THREE.Group(); const st = box(2.6, 2.4, 1, new THREE.MeshStandardMaterial({ map: MD.T.stone, roughness: .9 }), .1); st.position.y = 1.2; fp.add(st); const fire = new THREE.Mesh(new THREE.ConeGeometry(.35, .8, 8), new THREE.MeshStandardMaterial({ color: 0xff7a20, emissive: 0xff5a10, emissiveIntensity: 3 })); fire.position.set(0, .7, .45); fp.add(fire); const fl2 = new THREE.PointLight(0xff7a30, 14, 9, 1.5); fl2.position.set(0, 1, 1.2); fp.add(fl2); add(fp, 4, 0, -6.3, 0, true, 1.4, .6); anim.push(t => { fire.scale.y = 1 + Math.sin(t * 11) * .2; fl2.intensity = 12 + Math.sin(t * 17) * 3; });
+    const ward = box(2, 3, .9, new THREE.MeshStandardMaterial({ map: MD.T.woodRed, roughness: .8 })); add(ward, 7.5, 1.5, -3, -Math.PI / 2, true, .5, 1.1); station.set(6, 0, -3); stationLabel = 'Kleiderschrank öffnen';
+    const rug = new THREE.Mesh(new THREE.CircleGeometry(2, 32), new THREE.MeshStandardMaterial({ color: 0x2a5a3a, roughness: 1 })); rug.rotation.x = -Math.PI / 2; rug.position.set(0, .02, 0); scene.add(rug);
+  }
+  // leuchtender Ring an der Arbeitsstelle
+  const ring = new THREE.Mesh(new THREE.RingGeometry(.7, .9, 32), new THREE.MeshBasicMaterial({ color: 0xffd27a, transparent: true, opacity: .8, depthWrite: false })); ring.rotation.x = -Math.PI / 2; ring.position.set(station.x, .04, station.z); scene.add(ring); anim.push(t => { ring.material.opacity = .5 + Math.sin(t * 4) * .3; });
+  // Namensschild innen
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(3.2, .8), new THREE.MeshStandardMaterial({ map: canvasTex(512, 128, g => { g.fillStyle = '#2b1a0e'; g.fillRect(0, 0, 512, 128); g.strokeStyle = '#ffd27a'; g.lineWidth = 6; g.strokeRect(6, 6, 500, 116); g.fillStyle = '#ffd27a'; g.font = 'bold 54px Georgia'; g.textAlign = 'center'; g.fillText(name, 256, 84); }), roughness: .6 }));
+  sign.position.set(0, 3.5, -D2 + .06); scene.add(sign);
+  return { scene, colliders, circles, W: W2, D: D2, spawn: new THREE.Vector3(0, 0, D2 - 3.2), exit: new THREE.Vector3(0, 0, D2 - .6), station, stationLabel, host, anim };
+}
+
+// ---------- Neues Gebiet: Weihnachtsmarkt und Eishöhle ----------
+export function buildRegions(scene, colliders, circles) {
+  const anim = [];
+  // Weihnachtsmarkt im Osten
+  const MX = 82, MZ = 30, stands = [];
+  for (let i = 0; i < 10; i++) {
+    const a = i / 10 * Math.PI * 2, x = MX + Math.cos(a) * 13, z = MZ + Math.sin(a) * 13;
+    const g = new THREE.Group(), wood = new THREE.MeshStandardMaterial({ map: MD.T.wood, roughness: .8 });
+    const hut = new THREE.Mesh(MD.roundBox(3.6, 2.4, 2.4, .08), wood); hut.position.y = 1.2; g.add(hut);
+    const roof = new THREE.Mesh(new THREE.ConeGeometry(3, 1.4, 4), new THREE.MeshStandardMaterial({ color: [0xa8141a, 0x2a5a3a, 0x2a3e6a][i % 3], roughness: .8 })); roof.position.y = 3.1; roof.rotation.y = Math.PI / 4; roof.scale.set(1, 1, .75); g.add(roof);
+    const sn = new THREE.Mesh(new THREE.ConeGeometry(2.6, .7, 4), new THREE.MeshStandardMaterial({ color: 0xf6f9ff, roughness: .95 })); sn.position.y = 3.55; sn.rotation.y = Math.PI / 4; sn.scale.set(1, 1, .75); g.add(sn);
+    const win = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 1), new THREE.MeshStandardMaterial({ color: 0x553311, emissive: 0xffb060, emissiveIntensity: 1.2 })); win.position.set(0, 1.5, 1.21); g.add(win);
+    const lights = new THREE.Mesh(new THREE.TorusGeometry(1.9, .04, 6, 30, Math.PI), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: [0xffd27a, 0xff6a6a, 0x7ad0ff][i % 3], emissiveIntensity: 3 })); lights.position.set(0, 2.4, 1.25); g.add(lights);
+    g.position.set(x, H(x, z), z); g.rotation.y = Math.atan2(MX - x, MZ - z); g.traverse(o => { if (o.isMesh) { o.castShadow = o.receiveShadow = true; } }); scene.add(g);
+    colliders.push({ x, z, hw: 1.9, hd: 1.3, ry: g.rotation.y, top: g.position.y + 2.4 }); stands.push(g);
+  }
+  const mtree = MD.makeXmasTree(9); mtree.position.set(MX, H(MX, MZ), MZ); scene.add(mtree); circles.push({ x: MX, z: MZ, r: 2.6 });
+  const mlight = new THREE.PointLight(0xffc070, 40, 30, 1.5); mlight.position.set(MX, 7, MZ); scene.add(mlight);
+  const garl = new THREE.Group(); for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2, b = (i + 1) / 10 * Math.PI * 2; const c = new THREE.CatmullRomCurve3([new THREE.Vector3(Math.cos(a) * 13, 3.6, Math.sin(a) * 13), new THREE.Vector3(Math.cos((a + b) / 2) * 7, 5.5, Math.sin((a + b) / 2) * 7), new THREE.Vector3(0, 8.5, 0)]); const t = new THREE.Mesh(new THREE.TubeGeometry(c, 24, .04, 5), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffe0a0, emissiveIntensity: 2.5 })); garl.add(t); }
+  garl.position.set(MX, H(MX, MZ), MZ); scene.add(garl);
+  // Eishöhle im Norden (an der Schneise zum Tor)
+  const CX = -60, CZ = -95, cave = new THREE.Group();
+  const rock = new THREE.MeshStandardMaterial({ map: MD.T.stone, color: 0xb0c4dc, roughness: .9, side: THREE.DoubleSide, flatShading: true });
+  const dome = new THREE.SphereGeometry(12, 20, 12, .32, Math.PI * 2 - .64, 0, Math.PI / 2), dp = dome.attributes.position; for (let i = 0; i < dp.count; i++) { const k = 1 + (Math.sin(i * 12.9898) * 43758.5 % 1) * .12; dp.setXYZ(i, dp.getX(i) * k, dp.getY(i) * k, dp.getZ(i) * k); } dome.computeVertexNormals();
+  const dm = new THREE.Mesh(dome, rock); dm.scale.set(1, .7, 1); cave.add(dm);
+  const opening = new THREE.Mesh(new THREE.CircleGeometry(3.6, 24), new THREE.MeshBasicMaterial({ color: 0x02040a })); cave.add(opening);
+  const crystals = []; const cm = new THREE.MeshStandardMaterial({ color: 0x9ff0ff, emissive: 0x3ac8ff, emissiveIntensity: 1.4, roughness: .1, metalness: .1, transparent: true, opacity: .9 });
+  for (let i = 0; i < 26; i++) { const a = i * 2.39, r = 4 + (i % 5) * 1.5, cr = new THREE.Mesh(new THREE.OctahedronGeometry(.4 + (i % 4) * .25, 0), cm); cr.scale.y = 2.2; cr.position.set(Math.cos(a) * r, .6 + (i % 3) * .2, Math.sin(a) * r); cr.rotation.set(Math.sin(i) * .4, i, Math.cos(i) * .4); cave.add(cr); crystals.push(cr); }
+  const cl = new THREE.PointLight(0x6ad8ff, 30, 22, 1.4); cl.position.set(0, 4, 0); cave.add(cl);
+  const toV = Math.atan2(-CX, -CZ);
+  cave.position.set(CX, H(CX, CZ) - .2, CZ); cave.rotation.y = toV + Math.PI / 2; scene.add(cave); cave.updateMatrixWorld(true);
+  // Kollisionsring um die Höhle (mit Eingang Richtung Dorf)
+  for (let i = 0; i < 28; i++) { const a = i / 28 * Math.PI * 2; let d = Math.abs(((a - toV + Math.PI * 3) % (Math.PI * 2)) - Math.PI); if (d < .3) continue; circles.push({ x: CX + Math.sin(a) * 11.6, z: CZ + Math.cos(a) * 11.6, r: 1.6 }); }
+  opening.position.set(Math.sin(toV) * 11.7, 2.4, Math.cos(toV) * 11.7); opening.lookAt(new THREE.Vector3(Math.sin(toV) * 30, 2.4, Math.cos(toV) * 30)); opening.visible = false;
+  for (const cr of crystals) if (cr.position.length() > 3.5) { const wp = cr.getWorldPosition(new THREE.Vector3()); circles.push({ x: wp.x, z: wp.z, r: .5 }); }
+  anim.push(t => { cm.emissiveIntensity = 1.2 + Math.sin(t * 1.5) * .4; });
+  return { anim, market: new THREE.Vector3(MX, 0, MZ), cave: new THREE.Vector3(CX, 0, CZ) };
 }
