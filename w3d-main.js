@@ -1,9 +1,10 @@
 // Wichtel 3D – Das Leben im Wichteldorf
 import * as THREE from './three.min.js';
-import { makeTextures } from './w3d-tex.js?v=5';
-import * as MD from './w3d-models.js?v=5';
-import * as W from './w3d-world.js?v=5';
-import { Particles, Footprints, candyFly } from './w3d-fx.js?v=5';
+import { makeTextures } from './w3d-tex.js?v=8';
+import * as MD from './w3d-models.js?v=8';
+import * as W from './w3d-world.js?v=8';
+import { Particles, Footprints, candyFly } from './w3d-fx.js?v=8';
+import * as TR from './w3d-travel.js?v=8';
 
 const $ = s => document.querySelector(s);
 const isTouch = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
@@ -272,7 +273,7 @@ function camBlock(from, to) {
 const balls = [];
 const ballGeo = new THREE.SphereGeometry(.16, 12, 10), ballMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .8 });
 function throwBall() {
-  if (P.mode !== 'walk' && P.mode !== 'mission') return;
+  if (P.mode !== 'walk' && P.mode !== 'mission' && P.mode !== 'town') return;
   const yaw = player.rotation.y, m = new THREE.Mesh(ballGeo, ballMat); m.castShadow = true;
   m.position.set(P.pos.x + Math.sin(yaw) * .4, P.pos.y + 1.1, P.pos.z + Math.cos(yaw) * .4);
   m.userData.v = new THREE.Vector3(Math.sin(yaw) * 16 + P.vel.x * .5, 5, Math.cos(yaw) * 16 + P.vel.z * .5); m.userData.t = 3;
@@ -283,6 +284,7 @@ function throwBall() {
     for (const c of cands) { const d = c.clone().sub(m.position); const hd = Math.hypot(d.x, d.z); if (hd > 28 || hd < 1) continue; const dot = (d.x * fw.x + d.z * fw.z) / hd; if (dot < .6) continue; const sc = hd * (1.6 - dot); if (sc < bs) { bs = sc; best = c; } }
     if (best) { const d = best.clone().sub(m.position), hd = Math.hypot(d.x, d.z), t = hd / 17; m.userData.v.set(d.x / t, (d.y + .5 * 14 * t * t) / t, d.z / t); player.rotation.y = Math.atan2(d.x, d.z); }
   }
+  else if (P.mode === 'mission' && MS.cat && MS.catState !== 'sleep') { const c = MS.cat.position.clone().setY(2); const d = c.sub(m.position), hd = Math.hypot(d.x, d.z); if (hd < 30) { const t = hd / 17; m.userData.v.set(d.x / t, (d.y + .5 * 14 * t * t) / t, d.z / t); player.rotation.y = Math.atan2(d.x, d.z); } }
   P.scene.add(m); balls.push(m); P.throwT = .35; sfx('jump'); if (P.mode === 'mission') MS.noise += 10;
 }
 function updateBalls(dt) {
@@ -295,6 +297,7 @@ function updateBalls(dt) {
       for (const t of [...targets]) { const rp = t.userData.root.position; if (t.userData.root.visible && Math.hypot(rp.x - b.position.x, rp.z - b.position.z) < 1.1 && Math.abs(rp.y + 1.6 - b.position.y) < 1.1) { hit = true; QUEST && QUEST.ev('target', t); } }
       for (const c of colliders) { const dx = b.position.x - c.x, dz = b.position.z - c.z, cs = Math.cos(c.ry), sn = Math.sin(c.ry), lx = dx * cs - dz * sn, lz = dx * sn + dz * cs; if (Math.abs(lx) < c.hw && Math.abs(lz) < c.hd && b.position.y < (c.top > 500 ? 30 : topAt(c, dx, dz))) { hit = true; break; } }
     }
+    if (P.mode === 'mission' && MS.cat && b.position.distanceTo(MS.cat.position.clone().setY(2)) < 2.6) { hit = true; if (MS.catState !== 'sleep') { MS.catState = 'scared'; MS.catT = 4; toast('❄️ Treffer! Die Katze rennt davon.'); sfx('meow'); } }
     if (hit || b.userData.t < 0) { FX.emit(b.position, 14, { speed: 2.5, life: .7, size: .35, grav: 6 }); P.scene.remove(b); balls.splice(i, 1); }
   }
 }
@@ -309,6 +312,9 @@ function findNear() {
     for (const n of npcs) if (n.m.position.distanceTo(P.pos) < 2.4) return { t: 'npc', n, label: 'Mit ' + n.d.n + ' reden' };
     if (Math.hypot(P.pos.x - W.PAD.x, P.pos.z - W.PAD.z) < 5.5) return { t: 'mobil', label: 'Ins Wichtelmobil steigen' };
     if (hay.length) for (const h of hay) if (h.position.distanceTo(P.pos) < 2) return { t: 'hay', h, label: 'Futter aufheben' };
+  } else if (P.mode === 'town' && TOWN) {
+    for (const h of TOWN.houses) if (Math.hypot(P.pos.x - h.pos.x, P.pos.z - h.pos.z) < 2.4) return { t: 'kidhouse', h, label: 'Durch die Wichteltür: ' + h.name };
+    if (Math.hypot(P.pos.x - TOWN.pad.x, P.pos.z - TOWN.pad.z) < 4.5) return { t: 'order', label: orderT > 0 ? 'Wichtelmobil kommt …' : 'Wichtelmobil bestellen (5 Zuckerstangen)' };
   } else if (P.mode === 'inside' && IN) {
     if (Math.hypot(P.pos.x - IN.station.x, P.pos.z - IN.station.z) < 1.5) return { t: 'station', label: IN.stationLabel };
     if (Math.hypot(P.pos.x - IN.exit.x, P.pos.z - IN.exit.z) < 1.6) return { t: 'out', label: 'Nach draussen gehen' };
@@ -328,7 +334,9 @@ function interact(n) {
   else if (n.t === 'out') exitBuilding();
   else if (n.t === 'npc' && questTalk(n.n.d.n)) { if (!n.n.talkedToday) { n.n.talkedToday = true; progress('talk'); } }
   else if (n.t === 'npc') { const line = n.n.d.say[Math.floor(Math.random() * n.n.d.say.length)]; panel(`<h2>${n.n.d.n}</h2><p class="say">«${line}»</p><button class="btn" data-close>Tschüss!</button>`); if (!n.n.talkedToday) { n.n.talkedToday = true; progress('talk'); addXP(2); } }
-  else if (n.t === 'mobil') startFly();
+  else if (n.t === 'mobil') travelMenu();
+  else if (n.t === 'kidhouse') startMission({ town: TOWN, pos: P.pos.clone(), variant: n.h.variant });
+  else if (n.t === 'order') { if (orderT > 0) return; if (S.candy < 5) { toast('Du brauchst 5 Zuckerstangen für die Bestellung.'); return; } addCandy(-5); orderT = 8; toast('📞 Wichtelmobil bestellt! Es landet in 8 Sekunden.'); }
   else if (n.t === 'land') land();
   else if (n.t === 'hay') { village.remove(n.h); hay.splice(hay.indexOf(n.h), 1); sfx('coin'); if (!hay.length) { clearTimeout(hayTimer); addCandy(14); addXP(14); progress('stall'); toast('🦌 Alle Rentiere sind satt! Danke!'); S.jobs++; save(); } else toast('Noch ' + hay.length + ' Futter übrig'); }
   else if (n.t === 'exit') endMission(true);
@@ -477,40 +485,141 @@ function updateFly(dt) {
 }
 
 // ================= Streich-Mission beim Kind =================
-const MS = { kh: null, todo: [], done: [], noise: 0, t: 0, hold: 0, cat: null, catT: 0, catTarget: new THREE.Vector3(), over: false };
-function makeCat() { const g = new THREE.Group(), fur = new THREE.MeshStandardMaterial({ color: 0xd8823a, roughness: .95 }); const b = new THREE.Mesh(new THREE.CapsuleGeometry(1, 2.4, 6, 14), fur); b.rotation.z = Math.PI / 2; b.position.y = 1.8; g.add(b); const h = new THREE.Mesh(new THREE.SphereGeometry(1, 18, 14), fur); h.position.set(2, 2.6, 0); g.add(h); for (const s of [-1, 1]) { const e = new THREE.Mesh(new THREE.ConeGeometry(.35, .7, 8), fur); e.position.set(2, 3.6, s * .55); g.add(e); const eye = new THREE.Mesh(new THREE.SphereGeometry(.16, 10, 8), new THREE.MeshStandardMaterial({ color: 0x9aff6a, emissive: 0x6aff40, emissiveIntensity: 1.5 })); eye.position.set(2.85, 2.8, s * .38); g.add(eye); } for (const x of [-1.2, 1.2]) for (const z of [-.5, .5]) { const l = new THREE.Mesh(new THREE.CapsuleGeometry(.25, 1, 4, 8), fur); l.position.set(x, .6, z); g.add(l); } const tail = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(-1.8, 2, 0), new THREE.Vector3(-2.8, 2.6, 0), new THREE.Vector3(-3.2, 4, .4)]), 20, .2, 8), fur); g.add(tail); g.traverse(o => { if (o.isMesh) o.castShadow = true; }); return g; }
-function startMission() {
+const MS = { kh: null, todo: [], done: [], noise: 0, t: 0, hold: 0, cat: null, over: false, hearts: 3, par: null, parState: 'sleep', parI: 0, alertT: 0, seenT: 0, lostT: 0, catState: 'sleep', catT: 0, origin: null, hidden: false, hideName: '' };
+function startMission(opt = {}) {
   if (P.mode === 'mission') return;
   fade(() => {
-    MS.kh = W.buildKidHouse(); const keys = Object.keys(MS.kh.spots).sort(() => Math.random() - .5); MS.todo = keys.slice(0, Math.min(5, 3 + Math.floor(S.missions / 3))); MS.done = []; MS.noise = 0; MS.t = 240; MS.over = false;
-    mobil.remove(player); player.scale.setScalar(1); MS.kh.scene.add(player); FX.move(MS.kh.scene); P.scene = MS.kh.scene; P.mode = 'mission'; P.pos.copy(MS.kh.start); P.vy = 0; player.rotation.y = 0; CAM.yaw = Math.PI; CAM.pitch = .6; CAM.dist = 7;
+    MS.kh = W.buildKidHouse(opt.variant !== undefined ? opt.variant : Math.floor(Math.random() * 5));
+    const keys = Object.keys(MS.kh.spots).sort(() => Math.random() - .5); MS.todo = keys.slice(0, Math.min(5, 3 + Math.floor(S.missions / 3))); MS.done = []; MS.noise = 0; MS.t = 240; MS.over = false; MS.hearts = 3; MS.parState = 'sleep'; MS.catState = 'sleep'; MS.seenT = 0;
+    MS.origin = opt.town ? { town: opt.town, pos: opt.pos.clone() } : null;
+    if (player.parent) player.parent.remove(player); player.scale.setScalar(1); MS.kh.scene.add(player); FX.move(MS.kh.scene); P.scene = MS.kh.scene; P.mode = 'mission'; P.pos.copy(MS.kh.start); P.vy = 0; player.rotation.y = 0; CAM.yaw = Math.PI; CAM.pitch = .6; CAM.dist = 7;
     MS.marks = {}; for (const k of MS.todo) { const sp = MS.kh.spots[k], m = new THREE.Mesh(new THREE.RingGeometry(1.6, 2.1, 40), new THREE.MeshBasicMaterial({ color: 0xffd27a, transparent: true, opacity: .85, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.position.set(sp.pos.x, .06, sp.pos.z); MS.kh.scene.add(m); MS.marks[k] = m; }
-    MS.cat = makeCat(); MS.cat.position.set(20, 0, 10); MS.kh.scene.add(MS.cat); MS.catTarget.set(0, 0, 0);
+    MS.hideMarks = MS.kh.hides.map(h => { const m = new THREE.Mesh(new THREE.RingGeometry(h.r - .25, h.r, 40), new THREE.MeshBasicMaterial({ color: 0x7ad0ff, transparent: true, opacity: .35, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.position.set(h.x, .05, h.z); MS.kh.scene.add(m); return m; });
+    MS.cat = TR.makeCat(); MS.cat.position.set(-18, 0, -14); MS.cat.rotation.y = 1; MS.kh.scene.add(MS.cat);
+    MS.par = TR.makeHuman({ pj: [0x5a7ab8, 0x7a4a8a, 0x3a6a4a][Math.floor(Math.random() * 3)], hair: Math.floor(Math.random() * 3) }); MS.par.visible = false; MS.kh.scene.add(MS.par);
     $('#mission').classList.add('on'); $('#quest').style.display = 'none'; $('#btnJ').textContent = '⤒'; $('#btnD').classList.remove('on'); renderMission(); tutStep(3);
-    toast('🌙 Psst! Mach die Streiche, ohne das Kind zu wecken. Schleichen = Joystick nur leicht bewegen (oder Shift halten).', 5000);
+    toast('🌙 Psst! Die Katze schläft auf dem Teppich. Schleich dich an ihr vorbei (Joystick nur leicht / Shift).', 5000);
   });
 }
 function renderMission() { $('#mlist').innerHTML = MS.todo.map(k => `<li class="${MS.done.includes(k) ? 'ok' : ''}">${MS.done.includes(k) ? '✅' : '⬜'} ${MS.kh.spots[k].name}</li>`).join('') + (MS.done.length === MS.todo.length ? '<li class="go">➡️ Zurück zur Wichteltür!</li>' : ''); }
 function endMission(win, why) {
   if (MS.over) return; MS.over = true;
-  if (win) { const rew = Math.min(90, 35 + S.missions * 3); S.missions++; addCandy(rew); addXP(70 + MS.todo.length * 8); progress('mission'); sfx('rank'); panel(`<h2>🌟 Streich gelungen!</h2><p class="say">Am Morgen wird das Kind staunen. Niemand hat dich gesehen!</p><p class="big">+${rew} 🍬</p><button class="btn" data-close>Zurück ins Wichteldorf</button>`); }
-  else { sfx('fail'); addCandy(3); panel(`<h2>😱 Fast erwischt!</h2><p class="say">${why}</p><p>Zum Glück bist du gerade noch durch die Wichteltür entkommen. Versuch es nochmal!</p><button class="btn" data-close>Zurück ins Wichteldorf</button>`); }
+  const back = MS.origin ? 'Zurück nach ' + MS.origin.town.dest.name : 'Zurück ins Wichteldorf';
+  if (win) { const rew = Math.min(90, 35 + S.missions * 3) + MS.hearts * 5; S.missions++; addCandy(rew); addXP(70 + MS.todo.length * 8); progress('mission'); sfx('rank'); panel(`<h2>🌟 Streich gelungen!</h2><p class="say">Am Morgen wird das Kind staunen. ${MS.hearts === 3 ? 'Niemand hat dich bemerkt!' : 'Knapp, aber geschafft!'}</p><p class="big">+${rew} 🍬</p><button class="btn" data-close>${back}</button>`); }
+  else { sfx('fail'); addCandy(3); panel(`<h2>😱 Erwischt!</h2><p class="say">${why}</p><p>Zum Glück bist du gerade noch durch die Wichteltür entkommen. Versuch es nochmal!</p><button class="btn" data-close>${back}</button>`); }
   P.prev = 'walk';
-  setTimeout(() => fade(() => { MS.kh.scene.remove(player); village.add(player); P.scene = village; FX.move(village); P.pos.set(W.PAD.x + 3, 0, W.PAD.z + 4); mobil.position.set(W.PAD.x, W.H(W.PAD.x, W.PAD.z) + .7, W.PAD.z); $('#mission').classList.remove('on'); MS.kh = null; $('#quest').style.display = ''; }), 50);
+  setTimeout(() => fade(() => {
+    MS.kh.scene.remove(player);
+    if (MS.origin) { const T2 = MS.origin.town; T2.scene.add(player); P.scene = T2.scene; FX.move(T2.scene); P.pos.copy(MS.origin.pos); P.prev = 'town'; }
+    else { village.add(player); P.scene = village; FX.move(village); P.pos.set(W.PAD.x + 3, 0, W.PAD.z + 4); mobil.position.set(W.PAD.x, W.H(W.PAD.x, W.PAD.z) + .7, W.PAD.z); }
+    $('#mission').classList.remove('on'); MS.kh = null; $('#quest').style.display = '';
+  }), 50);
 }
+function loseHeart(why) {
+  MS.hearts--; sfx('fail'); P.land = 1; if (navigator.vibrate) try { navigator.vibrate(200); } catch (e) { }
+  if (MS.hearts <= 0) { endMission(false, why); return true; }
+  toast('💔 ' + why + ' Noch ' + MS.hearts + ' Leben!', 3200); return false;
+}
+function sees(from, yaw, to, range, cosA) { const d = to.clone().sub(from); d.y = 0; const l = d.length(); if (l > range) return false; d.multiplyScalar(1 / l); return d.x * Math.sin(yaw) + d.z * Math.cos(yaw) > cosA; }
 function updateMission(dt) {
-  MS.t -= dt; MS.noise = Math.max(0, MS.noise - dt * 7);
-  // Katze patrouilliert
-  const c = MS.cat; if (c) { const to = MS.catTarget.clone().sub(c.position); to.y = 0; if (to.length() < 1 || MS.catT <= 0) { MS.catTarget.set((Math.random() - .5) * 90, 0, (Math.random() - .5) * 60); MS.catT = 6 + Math.random() * 6; } MS.catT -= dt; to.normalize(); c.position.addScaledVector(to, dt * 4.5); c.rotation.y = Math.atan2(-to.z, to.x); collide(c.position, MS.kh.colliders, MS.kh.circles, 2); const toP = P.pos.clone().sub(c.position); toP.y = 0; const d = toP.length(); const look = new THREE.Vector3(Math.cos(c.rotation.y), 0, -Math.sin(c.rotation.y)); if (d < 16 && toP.normalize().dot(look) > .55 && P.speed > 4.5) { MS.noise += dt * 30; if (Math.random() < dt * 1.5) { sfx('meow'); toast('🐱 Miau! Die Katze hat dich gesehen!'); } } }
-  if (MS.noise >= 100) { MS.kh.kidLight.material.opacity = 1; endMission(false, 'Es war zu laut, das Kind ist aufgewacht und hat das Licht angemacht!'); return; }
+  const K2 = MS.kh; MS.t -= dt; MS.noise = Math.max(0, MS.noise - dt * 7);
+  // Versteckt?
+  const hz = K2.hides.find(h => Math.hypot(P.pos.x - h.x, P.pos.z - h.z) < h.r); MS.hidden = !!hz && P.speed < 4.6;
+  if (MS.hidden && MS.hideName !== hz.n) { MS.hideName = hz.n; toast('🤫 Versteckt: ' + hz.n); } if (!MS.hidden) MS.hideName = '';
+  MS.hideMarks.forEach(m => m.material.opacity = MS.parState !== 'sleep' || MS.catState === 'hunt' ? .5 + Math.sin(T * 6) * .3 : .25);
+  // ---- Katze ----
+  const c = MS.cat, cu = c.userData; cu.t += dt;
+  const toP = P.pos.clone().sub(c.position); toP.y = 0; const dP = toP.length();
+  if (MS.catState === 'sleep') { MS.catT -= dt; cu.head.rotation.z = -.6; c.scale.y = 1 + Math.sin(T * 1.5) * .03; cu.eyes.forEach(e => e.visible = false); if (MS.catT <= 0 && (MS.noise > 35 || (dP < 7 && P.speed > 4.6))) { MS.catState = 'hunt'; sfx('meow'); toast('🐱 Die Katze ist aufgewacht und will dich fressen! Renn weg oder wirf einen Schneeball!', 3500); } }
+  else {
+    cu.eyes.forEach(e => e.visible = true); cu.head.rotation.z = 0; c.scale.y = 1;
+    let target, sp;
+    if (MS.catState === 'hunt') { target = MS.hidden ? null : P.pos; sp = 8.6; if (!target) { MS.catT += dt; if (MS.catT > 4) { MS.catState = 'sleep'; MS.catT = 8; toast('😼 Die Katze hat dich verloren und legt sich wieder hin.'); } } else MS.catT = 0; }
+    else if (MS.catState === 'scared') { target = new THREE.Vector3(c.position.x - toP.x, 0, c.position.z - toP.z); sp = 11; MS.catT -= dt; if (MS.catT <= 0) { MS.catState = 'sleep'; MS.catT = 25; } }
+    else if (MS.catState === 'pause') { MS.catT -= dt; if (MS.catT <= 0) MS.catState = 'hunt'; }
+    if (target && MS.catState !== 'pause') { const to = target.clone().sub(c.position); to.y = 0; if (to.length() > .5) { to.normalize(); c.position.addScaledVector(to, dt * sp); c.rotation.y = Math.atan2(-to.z, to.x); collide(c.position, K2.colliders, K2.circles, 1.6); cu.legs.forEach((l, i) => l.rotation.z = Math.sin(cu.t * 14 + i * 1.6) * .6); } }
+    if (MS.catState === 'hunt' && dP < 2.4 && !MS.hidden) { sfx('meow'); const away = toP.normalize(); P.pos.addScaledVector(away, 9); P.vy = 6; P.onG = false; MS.catState = 'pause'; MS.catT = 2; FX.emit(c.position.clone().setY(2), 20, { speed: 3, life: .6, size: .4, color: 0xd8823a, grav: 4 }); if (loseHeart('Die Katze hat dich geschnappt!')) return; }
+  }
+  // ---- Eltern ----
+  const p = MS.par, pu = p.userData;
+  if (MS.parState === 'sleep') { if (MS.noise >= 55) { MS.parState = 'search'; MS.parI = 0; MS.alertT = 35; p.visible = true; p.position.copy(K2.parentPath[0]); K2.kidLight.material.opacity = 1; sfx('fail'); toast('😨 Zu laut! Mama/Papa ist aufgewacht und sucht mit der Taschenlampe. Versteck dich!', 4000); } }
+  else {
+    let target, sp = 4.2;
+    if (MS.parState === 'search') { target = K2.parentPath[MS.parI]; if (p.position.distanceTo(target) < 1.5) MS.parI = (MS.parI + 1) % K2.parentPath.length; MS.alertT -= dt; if (MS.alertT <= 0) MS.parState = 'back'; }
+    else if (MS.parState === 'chase') { target = P.pos; sp = 6.2; if (MS.hidden) { MS.lostT += dt; if (MS.lostT > 2) { MS.parState = 'search'; toast('🤔 «Hm … war wohl nichts.»'); } } else MS.lostT = 0; }
+    else if (MS.parState === 'back') { target = K2.parentPath[0]; if (p.position.distanceTo(target) < 1.5) { MS.parState = 'sleep'; p.visible = false; MS.noise = 20; K2.kidLight.material.opacity = 0; toast('😴 Alle schlafen wieder. Weiter geht\'s!'); } }
+    if (target) { const to = target.clone().sub(p.position); to.y = 0; if (to.length() > .3) { to.normalize(); p.position.addScaledVector(to, dt * sp); const ry = Math.atan2(to.x, to.z); let dd = ry - p.rotation.y; while (dd > Math.PI) dd -= Math.PI * 2; while (dd < -Math.PI) dd += Math.PI * 2; p.rotation.y += dd * Math.min(1, dt * 4); collide(p.position, K2.colliders, [], 2); TR.animateHuman(p, dt, sp); } }
+    pu.cone.material.opacity = .08 + Math.sin(T * 7) * .015;
+    if (MS.parState !== 'back' && !MS.hidden && sees(p.position, p.rotation.y, P.pos, 22, .88)) { MS.seenT += dt; if (MS.seenT > .5 && MS.parState === 'search') { MS.parState = 'chase'; toast('😲 «Was war das?!» Lauf und versteck dich!', 2500); sfx('fail'); } } else MS.seenT = Math.max(0, MS.seenT - dt);
+    if (MS.parState === 'chase' && p.position.distanceTo(P.pos) < 3.5) { P.pos.copy(K2.start); MS.parState = 'search'; if (loseHeart('Fast hätte dich Mama/Papa gepackt! Du bist zur Wichteltür geflüchtet.')) return; }
+  }
   if (MS.t <= 0) { endMission(false, 'Die Nacht ist vorbei, es wird schon hell!'); return; }
-  MS.kh.kidLight.material.opacity = MS.noise / 140;
   const hh = Math.floor(1 + (240 - MS.t) / 60), mm = Math.floor(((240 - MS.t) % 60));
-  $('#mclock').textContent = '🕐 0' + hh + ':' + String(mm).padStart(2, '0') + ' Uhr'; $('#noisebar').style.width = Math.min(100, MS.noise) + '%'; $('#noisebar').style.background = MS.noise > 70 ? '#ff4a4a' : MS.noise > 40 ? '#ffb347' : '#6fe39a';
+  $('#mclock').innerHTML = '🕐 0' + hh + ':' + String(mm).padStart(2, '0') + ' <span style="color:#ff5a6a;letter-spacing:2px">' + '♥'.repeat(MS.hearts) + '<span style="opacity:.25">' + '♥'.repeat(3 - MS.hearts) + '</span></span>' + (MS.hidden ? ' <small>🤫</small>' : '');
+  $('#noisebar').style.width = Math.min(100, MS.noise / .55) + '%'; $('#noisebar').style.background = MS.noise > 40 ? '#ff4a4a' : MS.noise > 25 ? '#ffb347' : '#6fe39a';
   // Streich halten
   const holding = (holdA || K.KeyE) && near && near.t === 'prank';
-  if (holding) { MS.hold += dt; MS.noise += dt * 3; $('#hold').style.width = Math.min(100, MS.hold / 2.2 * 100) + '%'; if (MS.hold >= 2.2) { const s = MS.kh.spots[near.k]; s.done(); MS.done.push(near.k); if (MS.marks[near.k]) MS.kh.scene.remove(MS.marks[near.k]); MS.hold = 0; sfx('star'); toast('✨ ' + s.name + ' – erledigt!'); renderMission(); } } else { MS.hold = Math.max(0, MS.hold - dt * 2); $('#hold').style.width = Math.min(100, MS.hold / 2.2 * 100) + '%'; }
+  if (holding) { MS.hold += dt; MS.noise += dt * 3; $('#hold').style.width = Math.min(100, MS.hold / 2.2 * 100) + '%'; if (MS.hold >= 2.2) { const s = K2.spots[near.k]; s.done(); MS.done.push(near.k); if (MS.marks[near.k]) K2.scene.remove(MS.marks[near.k]); MS.hold = 0; sfx('star'); toast('✨ ' + s.name + ' – erledigt!'); renderMission(); } } else { MS.hold = Math.max(0, MS.hold - dt * 2); $('#hold').style.width = Math.min(100, MS.hold / 2.2 * 100) + '%'; }
 }
+
+// ================= Weltreise =================
+const TOWNS = {}; let TOWN = null, FL = null, TRV = null;
+const EXPRESS_MS = 20 * 60 * 1000;
+function nextExpress() { return Math.ceil(Date.now() / EXPRESS_MS) * EXPRESS_MS; }
+function expressDest() { return TR.DEST[Math.floor(Date.now() / EXPRESS_MS + 1) % TR.DEST.length]; }
+function mmss(ms) { const s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+function drawWorld(cv, sel) {
+  const x = cv.getContext('2d'), w = cv.width, h = cv.height;
+  const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#0c2a4a'); g.addColorStop(1, '#06182c'); x.fillStyle = g; x.fillRect(0, 0, w, h);
+  x.strokeStyle = 'rgba(255,255,255,.06)'; for (let i = 1; i < 12; i++) { x.beginPath(); x.moveTo(i * w / 12, 0); x.lineTo(i * w / 12, h); x.stroke(); } for (let i = 1; i < 6; i++) { x.beginPath(); x.moveTo(0, i * h / 6); x.lineTo(w, i * h / 6); x.stroke(); }
+  const land = [[.18, .3, .14, .14], [.3, .62, .07, .16], [.52, .28, .07, .06], [.55, .55, .08, .15], [.7, .3, .18, .14], [.85, .68, .06, .05], [.5, .95, .45, .05], [.45, .1, .08, .04], [.83, .38, .02, .05]];
+  x.fillStyle = '#2f6a4e'; land.forEach(([cx, cy, rx, ry]) => { x.beginPath(); x.ellipse(cx * w, cy * h, rx * w, ry * h, 0, 0, 7); x.fill(); });
+  x.fillStyle = '#e8f2ff'; x.beginPath(); x.ellipse(.5 * w, .02 * h, .5 * w, .05 * h, 0, 0, 7); x.fill(); x.beginPath(); x.ellipse(.5 * w, .98 * h, .5 * w, .05 * h, 0, 0, 7); x.fill();
+  // Nordpol / Wichteldorf
+  x.fillStyle = '#ffd27a'; x.beginPath(); x.arc(.5 * w, .04 * h, 7, 0, 7); x.fill(); x.font = 'bold 13px system-ui'; x.textAlign = 'center'; x.fillText('Wichteldorf', .5 * w, .04 * h + 22);
+  TR.DEST.forEach(d => { x.fillStyle = d.id === sel ? '#ffd27a' : '#ff5a5a'; x.beginPath(); x.arc(d.x * w, d.y * h, d.id === sel ? 8 : 6, 0, 7); x.fill(); x.fillStyle = '#fff'; x.font = (d.id === sel ? 'bold ' : '') + '12px system-ui'; x.fillText(d.name, d.x * w, d.y * h - 11); });
+}
+function travelMenu() {
+  const nx = nextExpress(), ed = expressDest();
+  const p = panel(`<h2>🛷 Wichtelmobil</h2><div class="shop"><button class="buy" data-t="free">Rund ums Dorf fliegen<small>Ringe, Sterne auf Dächern, Nordlicht-Tor</small></button><button class="buy" data-t="world">Weltreise<small>Alleine zu einem Ort auf der Weltkarte fliegen</small></button><button class="buy" data-t="express">Wichtel-Express<small>Mit allen Wichteln nach ${ed.name} · Abfahrt in <b id="excd">${mmss(nx - Date.now())}</b></small></button></div><button class="btn ghost" data-close>Doch nicht</button>`, 'wide');
+  const iv = setInterval(() => { const e = $('#excd'); if (!e) { clearInterval(iv); return; } e.textContent = mmss(nextExpress() - Date.now()); }, 500);
+  p.addEventListener('click', e => { const b = e.target.closest('.buy'); if (!b) return; sfx('click'); const t = b.dataset.t; if (t === 'free') { closePanel(); startFly(); } else if (t === 'world') worldMap(); else if (t === 'express') { closePanel(); waitExpress(); } });
+}
+function worldMap(fromTown) {
+  let sel = TR.DEST[0].id;
+  const p = panel(`<h2>🌍 Weltkarte</h2><canvas id="wmap" width="760" height="380" style="width:100%;border-radius:14px;cursor:pointer"></canvas><div class="sw" id="wlist">${TR.DEST.map(d => `<button class="opt" data-d="${d.id}">${d.name}</button>`).join('')}</div><p id="wsel" class="big"></p><button class="btn" id="wgo">Losfliegen!</button>${fromTown ? '<button class="btn ghost" id="whome">Nach Hause ins Wichteldorf</button>' : ''}<button class="btn ghost" data-close>Abbrechen</button>`, 'wide');
+  const cv = $('#wmap'); const upd = () => { drawWorld(cv, sel); const d = TR.DEST.find(d => d.id === sel); $('#wsel').textContent = d.name + ' · ' + d.land; [...document.querySelectorAll('#wlist .opt')].forEach(b => b.classList.toggle('on', b.dataset.d === sel)); }; upd();
+  $('#wlist').addEventListener('click', e => { const b = e.target.closest('.opt'); if (b) { sel = b.dataset.d; sfx('click'); upd(); } });
+  cv.addEventListener('click', e => { const r = cv.getBoundingClientRect(), mx = (e.clientX - r.left) / r.width, my = (e.clientY - r.top) / r.height; let best = null, bd = 1; TR.DEST.forEach(d => { const dd = Math.hypot(d.x - mx, (d.y - my) * .5); if (dd < bd) { bd = dd; best = d; } }); if (best) { sel = best.id; sfx('click'); upd(); } });
+  $('#wgo').onclick = () => { closePanel(); travelTo(TR.DEST.find(d => d.id === sel)); };
+  if (fromTown) $('#whome').onclick = () => { closePanel(); travelTo(null); };
+}
+function waitExpress() {
+  P.mode = 'express'; village.remove(player); player.position.set(-.5, .55, 0); player.rotation.set(0, Math.PI / 2, 0); player.scale.setScalar(1.2); mobil.add(player);
+  toast('Du sitzt im Wichtel-Express. Die anderen Wichtel steigen auch ein …', 4000); $('#expressbar').classList.add('on');
+}
+function updateExpress() { const left = nextExpress() - Date.now(); const ed = expressDest(); $('#extext').textContent = 'Wichtel-Express nach ' + ed.name + ' · Abfahrt in ' + mmss(left); if (left < 900) { $('#expressbar').classList.remove('on'); mobil.remove(player); player.scale.setScalar(1); travelTo(TR.DEST[Math.floor(Date.now() / EXPRESS_MS) % TR.DEST.length], true); } }
+$('#exLeave').onclick = () => { $('#expressbar').classList.remove('on'); mobil.remove(player); player.scale.setScalar(1); village.add(player); P.mode = 'walk'; P.pos.set(W.PAD.x + 3, 0, W.PAD.z + 3); };
+function travelTo(dest, express) {
+  fade(() => {
+    if (player.parent) player.parent.remove(player);
+    FL = FL || TR.buildFlight(); FL.scene.add(player); player.position.set(-.5, .55, 0); player.rotation.set(0, Math.PI / 2, 0); player.scale.setScalar(1.2); FL.mobil.add(player);
+    TRV = { dest, t: 0, dur: 6, express }; P.scene = FL.scene; P.mode = 'travel'; FX.move(FL.scene);
+    $('#travelbar').classList.add('on'); $('#trtext').textContent = (dest ? 'Flug nach ' + dest.name : 'Flug nach Hause ins Wichteldorf') + (express ? ' (Wichtel-Express)' : '');
+    $('#quest').style.display = 'none'; sfx('bell');
+  });
+}
+function arrive() {
+  const dest = TRV.dest; $('#travelbar').classList.remove('on');
+  fade(() => {
+    FL.mobil.remove(player); player.scale.setScalar(1); player.rotation.set(0, 0, 0);
+    if (!dest) { TOWN = null; village.add(player); P.scene = village; FX.move(village); P.mode = 'walk'; P.pos.set(W.PAD.x + 3, 0, W.PAD.z + 3); mobil.position.set(W.PAD.x, W.H(W.PAD.x, W.PAD.z) + .7, W.PAD.z); $('#quest').style.display = ''; toast('Willkommen zurück im Wichteldorf!'); return; }
+    TOWN = TOWNS[dest.id] || (TOWNS[dest.id] = TR.buildTown(dest));
+    TOWN.scene.add(player); P.scene = TOWN.scene; FX.move(TOWN.scene); P.mode = 'town'; P.pos.copy(TOWN.spawn); P.vel.set(0, 0, 0); CAM.yaw = 0; CAM.dist = 8; CAM.pitch = .35;
+    if (!S.visited) S.visited = []; if (!S.visited.includes(dest.id)) { S.visited.push(dest.id); addXP(25); addCandy(15); save(); toast('🌍 Neuer Ort entdeckt: ' + dest.name + '! Leuchtende Ringe an den Türen = Kinderhäuser für Streiche.', 5000); } else toast('Willkommen in ' + dest.name + '!');
+  });
+}
+let orderT = 0;
 
 // ================= Stern einsammeln =================
 function collectStar(s) { FX.emit(s.position, 40, { speed: 4, life: 1.1, size: .5, glow: 1, color: 0xffd27a, grav: 1 }); P.cheer = 1; s.visible = false; village.remove(s); S.stars.push(s.userData.i); addCandy(5); addXP(10); progress('stars'); sfx('star'); toast('✨ Glitzerstern gefunden! (' + S.stars.length + '/' + W.STAR_SPOTS.length + ')'); if (S.stars.length === W.STAR_SPOTS.length) { addCandy(100); toast('🌟 ALLE Glitzersterne gefunden! +100 🍬', 5000); } }
@@ -699,8 +808,8 @@ function frame(now) {
   village.fog.color.setRGB(.05 + day * .35, .1 + day * .3, .21 + day * .3);
   const inVillage = P.scene === village;
   // Eingabe → Bewegung
-  if (P.mode === 'walk' || P.mode === 'build' || P.mode === 'mission' || P.mode === 'inside') {
-    const RM = inVillage ? null : (P.mode === 'mission' ? MS.kh : IN);
+  if (P.mode === 'walk' || P.mode === 'build' || P.mode === 'mission' || P.mode === 'inside' || P.mode === 'town') {
+    const RM = inVillage ? null : (P.mode === 'mission' ? MS.kh : P.mode === 'town' ? TOWN : IN);
     let ix = (K.KeyD || K.ArrowRight ? 1 : 0) - (K.KeyA || K.ArrowLeft ? 1 : 0) + joy.x, iy = (K.KeyW || K.ArrowUp ? 1 : 0) - (K.KeyS || K.ArrowDown ? 1 : 0) + joy.y;
     const l = Math.hypot(ix, iy); if (l > 1) { ix /= l; iy /= l; }
     const mag = Math.min(1, l);
@@ -767,18 +876,22 @@ function frame(now) {
   }
   if (P.mode === 'mission') updateMission(dt);
   if (IN && P.scene === IN.scene) IN.anim.forEach(f => f(T, dt));
+  if (TOWN && P.scene === TOWN.scene) { TOWN.anim.forEach(f => f(T, dt)); if (orderT > 0) { orderT -= dt; if (orderT <= 0) { toast('🛷 Dein Wichtelmobil ist da!'); worldMap(true); } } }
+  if (P.mode === 'travel' && FL) { FL.tick(T, dt); TRV.t += dt; if (TRV.t >= TRV.dur && !TRV.done) { TRV.done = true; arrive(); } }
+  if (P.mode === 'express') updateExpress();
   if (inVillage) REG.anim.forEach(f => f(T, dt));
   // Kamera
-  const tgt = P.mode === 'fly' ? mobil.position : (P.mode === 'title' ? new THREE.Vector3(0, 6, 0) : P.pos);
+  const tgt = P.mode === 'fly' || P.mode === 'express' ? mobil.position : P.mode === 'travel' ? FL.mobil.position : (P.mode === 'title' ? new THREE.Vector3(0, 6, 0) : P.pos);
   CAM.tgt.lerp(new THREE.Vector3(tgt.x, tgt.y + (P.mode === 'fly' ? 2 : 1.5), tgt.z), P.mode === 'title' ? 1 : Math.min(1, dt * 10));
   let dist = CAM.dist, yaw = CAM.yaw, pitch = CAM.pitch;
   if (P.mode === 'fly') { dist = 13; yaw = F.yaw + Math.PI; pitch = .28 - F.pitch * .4; CAM.yaw += (yaw - CAM.yaw) * .05; }
   if (P.mode === 'title') { dist = 48; pitch = .3; }
+  if (P.mode === 'travel') { dist = 9; pitch = .25; yaw = -Math.PI / 2 + Math.sin(T * .3) * .6; }
   const cp = new THREE.Vector3(CAM.tgt.x + Math.sin(yaw) * Math.cos(pitch) * dist, CAM.tgt.y + Math.sin(pitch) * dist, CAM.tgt.z + Math.cos(yaw) * Math.cos(pitch) * dist);
-  if (inVillage) { const gh = W.H(cp.x, cp.z) + .6; if (cp.y < gh) cp.y = gh; if (P.mode === 'walk' || P.mode === 'build') cp.copy(camBlock(CAM.tgt, cp)); } else { const RMc = P.mode === 'inside' ? IN : MS.kh; if (RMc) { cp.x = Math.max(-RMc.W + .6, Math.min(RMc.W - .6, cp.x)); cp.z = Math.max(-RMc.D + .6, Math.min(RMc.D - .6, cp.z)); cp.y = Math.min(cp.y, P.mode === 'inside' ? 3.7 : 10); } }
+  if (inVillage) { const gh = W.H(cp.x, cp.z) + .6; if (cp.y < gh) cp.y = gh; if (P.mode === 'walk' || P.mode === 'build') cp.copy(camBlock(CAM.tgt, cp)); } else { const RMc = P.mode === 'inside' ? IN : P.mode === 'mission' ? MS.kh : null; if (RMc) { cp.x = Math.max(-RMc.W + .6, Math.min(RMc.W - .6, cp.x)); cp.z = Math.max(-RMc.D + .6, Math.min(RMc.D - .6, cp.z)); cp.y = Math.min(cp.y, P.mode === 'inside' ? 3.7 : 10); } }
   camera.position.lerp(cp, P.mode === 'title' ? 1 : Math.min(1, dt * 8)); camera.lookAt(CAM.tgt);
   // Interaktionen
-  near = (P.mode === 'walk' || P.mode === 'fly' || P.mode === 'mission' || P.mode === 'inside') ? findNear() : null;
+  near = (P.mode === 'walk' || P.mode === 'fly' || P.mode === 'mission' || P.mode === 'inside' || P.mode === 'town') ? findNear() : null;
   const pr = $('#prompt'); if (near) { pr.textContent = (isTouch ? '✋ ' : '[E] ') + near.label; pr.classList.add('on'); } else pr.classList.remove('on');
   if (actionPressed) { if (P.mode === 'ui' && P.uiAction) P.uiAction(); else if (near && near.t !== 'prank') interact(near); else if (P.mode === 'build') placeNow(); }
   if (P.mode !== 'ui') P.uiAction = null;
@@ -792,4 +905,4 @@ function frame(now) {
 }
 ensureDay(); hud(); title();
 requestAnimationFrame(frame);
-window.__dbg = { enterBuilding, exitBuilding, REG, getIN: () => IN, Q, qState, setupStep, stepDone, questEvent, questTalk, QS, targets, npcs, throwBall, renderer, village, S, P, V, MS, startMission, startFly, land, JOBS, toggleMap, CAM, interact, findNear: () => near };
+window.__dbg = { TR, travelTo, getTOWN: () => TOWN, worldMap, waitExpress, enterBuilding, exitBuilding, REG, getIN: () => IN, Q, qState, setupStep, stepDone, questEvent, questTalk, QS, targets, npcs, throwBall, renderer, village, S, P, V, MS, startMission, startFly, land, JOBS, toggleMap, CAM, interact, findNear: () => near };

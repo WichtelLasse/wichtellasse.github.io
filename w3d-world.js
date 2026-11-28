@@ -1,6 +1,6 @@
 // Welt: Gelände, Himmel, Dorf, Wald, Kollisionen, Kinderhaus
 import * as THREE from './three.min.js';
-import * as MD from './w3d-models.js?v=5';
+import * as MD from './w3d-models.js?v=8';
 
 // ---------- Rauschen & Gelände ----------
 function hash(x, z) { const s = Math.sin(x * 127.1 + z * 311.7) * 43758.5453; return s - Math.floor(s); }
@@ -226,13 +226,14 @@ export function makeStar() {
 }
 
 // ---------- Kinderhaus (Streich-Mission), alles 4x vergrössert, damit der Wichtel klein wirkt ----------
-export function buildKidHouse() {
+export function buildKidHouse(v = 0) {
+  const PAL = [[0xe9e1d2, 0x4a5a78, 0x7a2a2a], [0xd8e6ef, 0x7a3a3a, 0x2a4a6a], [0xefe0c8, 0x2f5a3e, 0x6a3a7a], [0xe6dcef, 0x8a6a3a, 0x2a5a4a], [0xf2e8d8, 0x3a3a48, 0x8a5a2a]][Math.abs(v) % 5];
   const scene = new THREE.Scene(), S = 4, colliders = [], circles = [], spots = {};
   scene.background = new THREE.Color(0x10141f); scene.fog = new THREE.Fog(0x10141f, 60, 160);
   const W = 26 * S / 2, D = 18 * S / 2;   // Innenraum 26 x 18 m (Wohnzimmer, Küche, Eingang)
   const floorMat = new THREE.MeshStandardMaterial({ map: MD.T.wood.clone(), normalMap: MD.T.woodN.clone(), roughness: .55 }); floorMat.map.repeat.set(14, 10); floorMat.map.needsUpdate = true; floorMat.normalMap.repeat.set(14, 10); floorMat.normalMap.needsUpdate = true;
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(W * 2, D * 2), floorMat); floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
-  const wallMat = new THREE.MeshStandardMaterial({ color: 0xe9e1d2, roughness: .9 }), wallH = 2.6 * S;
+  const wallMat = new THREE.MeshStandardMaterial({ color: PAL[0], roughness: .9 }), wallH = 2.6 * S;
   const wall = (x, z, w, rot) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, wallH), wallMat); m.position.set(x, wallH / 2, z); m.rotation.y = rot; m.receiveShadow = true; scene.add(m); };
   wall(0, -D, W * 2, 0); wall(0, D, W * 2, Math.PI); wall(-W, 0, D * 2, Math.PI / 2); wall(W, 0, D * 2, -Math.PI / 2);
   colliders.push({ x: 0, z: -D - .5, hw: W, hd: .5, ry: 0 }, { x: 0, z: D + .5, hw: W, hd: .5, ry: 0 }, { x: -W - .5, z: 0, hw: .5, hd: D, ry: 0 }, { x: W + .5, z: 0, hw: .5, hd: D, ry: 0 });
@@ -242,11 +243,11 @@ export function buildKidHouse() {
   const fab = c => new THREE.MeshStandardMaterial({ color: c, roughness: .95 });
   const box = (w, h, d, mat, x, y, z, ry = 0, col = true, r = .25) => { const m = new THREE.Mesh(MD.roundBox(w, h, d, Math.min(r, w / 3, h / 3, d / 3)), mat); m.position.set(x, y, z); m.rotation.y = ry; m.castShadow = m.receiveShadow = true; scene.add(m); if (col) colliders.push({ x, z, hw: w / 2 + .3, hd: d / 2 + .3, ry }); return m; };
   // Sofa
-  const sofaM = fab(0x4a5a78);
+  const sofaM = fab(PAL[1]);
   box(8.5, 1.8, 3.4, sofaM, -18, .9, -26); box(8.5, 3.2, .9, sofaM, -18, 2.2, -27.4, 0, false); box(.9, 2.6, 3.4, sofaM, -22.4, 1.6, -26, 0, false); box(.9, 2.6, 3.4, sofaM, -13.6, 1.6, -26, 0, false);
   for (const x of [-20, -16]) box(2.2, 1.4, 1, fab(0xc4161c), x, 2.6, -26.8, 0, false);
   // Teppich
-  const rug = new THREE.Mesh(new THREE.CircleGeometry(9, 48), new THREE.MeshStandardMaterial({ color: 0x7a2a2a, roughness: 1 })); rug.rotation.x = -Math.PI / 2; rug.position.set(-18, .03, -14); scene.add(rug);
+  const rug = new THREE.Mesh(new THREE.CircleGeometry(9, 48), new THREE.MeshStandardMaterial({ color: PAL[2], roughness: 1 })); rug.rotation.x = -Math.PI / 2; rug.position.set(-18, .03, -14); scene.add(rug);
   // Weihnachtsbaum im Wohnzimmer
   const xt = MD.makeXmasTree(9); xt.position.set(-44, 0, -28); scene.add(xt); circles.push({ x: -44, z: -28, r: 3.4 });
   for (let i = 0; i < 6; i++) { const gf = MD.makeGift([0xc4161c, 0x2a6ad8, 0xd8a62a][i % 3]); gf.userData.isGift = true; gf.scale.setScalar(2.4); gf.position.set(-44 + Math.cos(i) * 4.5, 0, -28 + Math.sin(i) * 4.5 + 2); scene.add(gf); }
@@ -308,7 +309,11 @@ export function buildKidHouse() {
   spots.kekse = { name: 'Kekse naschen und Krümel verteilen', pos: new THREE.Vector3(32, 0, -29.5), done: () => { for (let i = 0; i < 14; i++) { const k = new THREE.Mesh(new THREE.SphereGeometry(.1 + Math.random() * .08, 6, 5), new THREE.MeshStandardMaterial({ color: 0xc8904a })); k.position.set(30 + Math.random() * 5, 3.95, -33 + Math.random() * 1.6); scene.add(k); } jar.scale.y = .6; } };
   spots.brief = { name: 'Brief an die Wichteltür legen', pos: new THREE.Vector3(-4, 0, -D + 3.4), done: () => { const b = new THREE.Mesh(new THREE.PlaneGeometry(1.2, .8), new THREE.MeshStandardMaterial({ color: 0xfff6e0, side: THREE.DoubleSide })); b.rotation.x = -Math.PI / 2; b.position.set(-2.4, .05, -D + 2.4); scene.add(b); } };
   spots.geschenk = { name: 'Geschenke unter dem Baum vertauschen', pos: new THREE.Vector3(-38, 0, -22), done: () => { scene.children.filter(o => o.userData.isGift).forEach(g => g.rotation.y += 1); } };
-  return { scene, colliders, circles, spots, start: new THREE.Vector3(-4, 0, -D + 3), exit: new THREE.Vector3(-4, 0, -D + 2.2), kidDoor: new THREE.Vector3(-W + 2, 0, 18), kidLight, W, D };
+  // Vorhang am Fenster (Versteck)
+  const cur = new THREE.Mesh(new THREE.PlaneGeometry(6, wallH - .5, 12, 1), new THREE.MeshStandardMaterial({ color: PAL[1], roughness: 1, side: THREE.DoubleSide })); const cp = cur.geometry.attributes.position; for (let i = 0; i < cp.count; i++) cp.setZ(i, Math.sin(cp.getX(i) * 2.2) * .35); cur.geometry.computeVertexNormals(); cur.position.set(7, (wallH - .5) / 2, D - 1); cur.rotation.y = Math.PI; scene.add(cur);
+  const hides = [{ x: 14, z: -8, r: 2.6, n: 'unter dem Tisch' }, { x: 7, z: D - 2, r: 2.6, n: 'hinter dem Vorhang' }, { x: -40, z: -24, r: 2.6, n: 'unter dem Weihnachtsbaum' }, { x: 51, z: -28, r: 2.2, n: 'neben dem Kühlschrank' }, { x: -18, z: -22.6, r: 2.4, n: 'im Schatten vom Sofa' }];
+  const parentPath = [[-W + 4, 18], [-30, 10], [-20, -14], [0, -10], [14, -16], [30, -24], [40, 0], [20, 24], [-10, 22], [-W + 4, 18]].map(([x, z]) => new THREE.Vector3(x, 0, z));
+  return { hides, parentPath, scene, colliders, circles, spots, start: new THREE.Vector3(-4, 0, -D + 3), exit: new THREE.Vector3(-4, 0, -D + 2.2), kidDoor: new THREE.Vector3(-W + 2, 0, 18), kidLight, W, D };
 }
 
 // ---------- Begehbare Häuser (Innenräume) ----------

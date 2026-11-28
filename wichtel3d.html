@@ -161,6 +161,7 @@ body.touch #mission ul{font-size:.62rem!important;margin-top:3px}body.touch #mis
 body.touch #taskbox{font-size:.75rem;max-width:40vw}
 body.touch #prompt{font-size:.8rem!important;padding:7px 14px!important;bottom:calc(14px + env(safe-area-inset-bottom))!important}
 body.touch #joy{opacity:.75}body.touch .tbtn{opacity:.85}
+#expressbar,#travelbar{position:fixed;z-index:22;left:50%;transform:translateX(-50%);bottom:calc(24px + env(safe-area-inset-bottom));display:none;align-items:center;font-weight:800;font-size:.9rem;white-space:nowrap}#expressbar.on,#travelbar.on{display:flex}#travelbar{top:40%;bottom:auto;font-size:1.2rem;padding:12px 22px}
 </style>
 </head>
 <body>
@@ -205,13 +206,15 @@ body.touch #joy{opacity:.75}body.touch .tbtn{opacity:.85}
   <button id="btnS" class="tbtn tc" aria-label="Schneeball werfen"><span class="sball"></span></button>
   <div id="buildbar"><button class="btn ghost" id="bRot">↻ Drehen</button><button class="btn" id="bPlace">✔ Platzieren</button><button class="btn ghost" id="bCancel">✕</button></div>
 </div>
+<div class="card" id="expressbar"><span id="extext"></span><button class="btn ghost" id="exLeave" style="margin:0 0 0 10px;padding:6px 12px">Aussteigen</button></div>
+<div class="card" id="travelbar"><span id="trtext"></span></div>
 <div id="prompt"></div>
 <div id="toast"></div>
 <div id="panel" class="panel"></div>
 <div id="map"><canvas id="mapc" width="800" height="800"></canvas></div>
 <div id="fade"></div>
 <div id="rotate"><div class="phone"></div><b>Bitte dreh dein Handy</b><p>Wichtel 3D wird im Querformat gespielt.</p></div>
-<script type="module" src="w3d-main.js?v=7"></script>
+<script type="module" src="w3d-main.js?v=8"></script>
 <noscript><p style="padding:20px">Wichtel 3D braucht JavaScript.</p></noscript>
 </body>
 </html>
