@@ -168,7 +168,7 @@ function toast(m, ms = 2600) { const t = $('#toast'); t.textContent = m; t.class
 function floatText(m) { const e = document.createElement('div'); e.className = 'float'; e.textContent = m; document.body.appendChild(e); setTimeout(() => e.remove(), 1400); }
 function hud() { $('#candy').textContent = S.candy; $('#starsN').textContent = S.stars.length + '/' + W.STAR_SPOTS.length; const r = rank(), lo = RANKS[r][0], hi = RANKS[r + 1] ? RANKS[r + 1][0] : lo + 1; $('#rank').textContent = RANKS[r][1]; $('#xpbar').style.width = Math.min(100, (S.xp - lo) / (hi - lo) * 100) + '%'; $('#pname').textContent = S.name || 'Wichtel'; }
 function renderTasks() { ensureDay(); $('#tasks').innerHTML = S.tasks.map(k => `<li class="${taskDone(k) ? 'ok' : ''}">${taskDone(k) ? '✅' : '⬜'} ${TASKS[k][0]} <b>${Math.min(S.tp[k] || 0, TASKS[k][1])}/${TASKS[k][1]}</b></li>`).join('') + `<li class="streak">🔥 Serie: ${S.streak} Tag${S.streak === 1 ? '' : 'e'}</li>`; }
-function panel(html, cls = '') { const p = $('#panel'); p.className = 'panel on ' + cls; p.innerHTML = html; P.prev = P.mode === 'ui' ? P.prev : P.mode; P.mode = 'ui'; return p; }
+function panel(html, cls = '') { const old = $('#panel'), p = old.cloneNode(false); old.replaceWith(p); p.className = 'panel on ' + cls; p.innerHTML = html; P.prev = P.mode === 'ui' ? P.prev : P.mode; P.mode = 'ui'; return p; }
 function closePanel() { $('#panel').className = 'panel'; $('#panel').innerHTML = ''; if (P.mode === 'ui') P.mode = P.prev || 'walk'; }
 window.addEventListener('click', e => { if (e.target.closest('[data-close]')) { sfx('click'); closePanel(); } });
 
