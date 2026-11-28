@@ -32,6 +32,7 @@ function ensureDay() {
 }
 function taskDone(k) { return (S.tp[k] || 0) >= TASKS[k][1]; }
 function progress(k, n = 1) {
+  try { questEvent(k); } catch (e) { console.error(e); }
   ensureDay(); if (!S.tasks.includes(k) || taskDone(k)) return;
   S.tp[k] = (S.tp[k] || 0) + n; if (taskDone(k)) { toast('✅ Tagesaufgabe geschafft: ' + TASKS[k][0]); sfx('ok'); }
   if (S.tasks.every(taskDone) && !S.tclaimed) toast('🏆 Alle Tagesaufgaben fertig! Hol die Belohnung im Rathaus.', 4500);
@@ -188,8 +189,8 @@ window.addEventListener('click', e => { if (e.target.closest('[data-close]')) { 
 
 // ================= Tutorial / Ziel-Kompass =================
 const TUT = [['Lauf zur Bäckerei Zimtstern und backe Plätzchen', 'baeckerei'], ['Kauf im Bau-Laden etwas und stell es ins Dorf', 'laden'], ['Steig auf dem Landeplatz ins Wichtelmobil', 'pad'], ['Flieg durch das grüne Nordlicht-Tor zur Menschenwelt', 'portal']];
-function tutTarget() { if (S.tut >= TUT.length) return null; const [txt, id] = TUT[S.tut]; let pos; if (id === 'pad') pos = new THREE.Vector3(W.PAD.x, 0, W.PAD.z); else if (id === 'portal') pos = W.PORTAL.clone(); else pos = V.doors.find(d => d.id === id).pos; return { txt, pos }; }
-function tutStep(n) { if (S.tut === n) { S.tut++; save(); sfx('ok'); const t = tutTarget(); if (t) toast('Nächstes Ziel: ' + t.txt, 3500); else toast('Super! Jetzt bist du ein echter Wichtel. Schau dir die Tagesaufgaben an (📋).', 4500); } }
+function tutTarget() { const qt = questTarget(); if (qt) return qt; if (S.tut >= TUT.length) return null; const [txt, id] = TUT[S.tut]; let pos; if (id === 'pad') pos = new THREE.Vector3(W.PAD.x, 0, W.PAD.z); else if (id === 'portal') pos = W.PORTAL.clone(); else pos = V.doors.find(d => d.id === id).pos; return { txt, pos }; }
+function tutStep(n) { if (S.tut === n) { S.tut++; save(); } }
 
 // ================= Eingabe =================
 const K = {}; let joy = { x: 0, y: 0, on: false }, actionPressed = false, jumpPressed = false;
@@ -269,6 +270,13 @@ function throwBall() {
   const yaw = player.rotation.y, m = new THREE.Mesh(ballGeo, ballMat); m.castShadow = true;
   m.position.set(P.pos.x + Math.sin(yaw) * .4, P.pos.y + 1.1, P.pos.z + Math.cos(yaw) * .4);
   m.userData.v = new THREE.Vector3(Math.sin(yaw) * 16 + P.vel.x * .5, 5, Math.cos(yaw) * 16 + P.vel.z * .5); m.userData.t = 3;
+  // Zielhilfe: nächstes Ziel vor dem Wichtel automatisch anvisieren
+  if (P.scene === village) {
+    const fw = new THREE.Vector3(Math.sin(CAM.yaw + Math.PI), 0, Math.cos(CAM.yaw + Math.PI)); let best = null, bs = 1e9;
+    const cands = targets.map(t => t.userData.root.position.clone().setY(t.userData.root.position.y + 1.6)).concat(npcs.filter(n => n.m.visible).map(n => n.m.position.clone().setY(n.m.position.y + .9)));
+    for (const c of cands) { const d = c.clone().sub(m.position); const hd = Math.hypot(d.x, d.z); if (hd > 28 || hd < 1) continue; const dot = (d.x * fw.x + d.z * fw.z) / hd; if (dot < .6) continue; const sc = hd * (1.6 - dot); if (sc < bs) { bs = sc; best = c; } }
+    if (best) { const d = best.clone().sub(m.position), hd = Math.hypot(d.x, d.z), t = hd / 17; m.userData.v.set(d.x / t, (d.y + .5 * 14 * t * t) / t, d.z / t); player.rotation.y = Math.atan2(d.x, d.z); }
+  }
   P.scene.add(m); balls.push(m); P.throwT = .35; sfx('jump'); if (P.mode === 'mission') MS.noise += 10;
 }
 function updateBalls(dt) {
@@ -277,8 +285,8 @@ function updateBalls(dt) {
     let hit = false; const gy = P.scene === village ? W.H(b.position.x, b.position.z) : 0;
     if (b.position.y < gy + .1) hit = true;
     if (P.scene === village) {
-      for (const n of npcs) if (n.m.visible && n.m.position.distanceTo(b.position.clone().setY(b.position.y - .8)) < .7) { hit = true; n.hitT = 1.2; n.wait = 1.5; toast('❄️ ' + n.d.n + ': «' + ['Hey! Na warte!', 'Hihi, getroffen!', 'Das gibt Revanche!', 'Brrr, kalt!'][Math.floor(Math.random() * 4)] + '»'); addXP(1); QUEST && QUEST.ev('hitnpc'); }
-      for (const t of targets) if (t.visible && t.position.distanceTo(b.position) < 1.1) { hit = true; QUEST && QUEST.ev('target', t); }
+      for (const n of npcs) if (n.m.visible && n.m.position.distanceTo(b.position.clone().setY(b.position.y - .8)) < .7) { hit = true; n.hitT = 1.2; n.wait = 1.5; toast('❄️ ' + n.d.n + ': «' + ['Hey! Na warte!', 'Hihi, getroffen!', 'Das gibt Revanche!', 'Brrr, kalt!'][Math.floor(Math.random() * 4)] + '»'); addXP(1); QUEST && QUEST.ev('hitnpc', n.d.n); }
+      for (const t of [...targets]) { const rp = t.userData.root.position; if (t.userData.root.visible && Math.hypot(rp.x - b.position.x, rp.z - b.position.z) < 1.1 && Math.abs(rp.y + 1.6 - b.position.y) < 1.1) { hit = true; QUEST && QUEST.ev('target', t); } }
       for (const c of colliders) { const dx = b.position.x - c.x, dz = b.position.z - c.z, cs = Math.cos(c.ry), sn = Math.sin(c.ry), lx = dx * cs - dz * sn, lz = dx * sn + dz * cs; if (Math.abs(lx) < c.hw && Math.abs(lz) < c.hd && b.position.y < (c.top > 500 ? 30 : topAt(c, dx, dz))) { hit = true; break; } }
     }
     if (hit || b.userData.t < 0) { FX.emit(b.position, 14, { speed: 2.5, life: .7, size: .35, grav: 6 }); P.scene.remove(b); balls.splice(i, 1); }
@@ -307,6 +315,7 @@ const JOBLABEL = { bake: 'Plätzchen backen', toy: 'Spielzeug bauen', school: 'U
 function interact(n) {
   sfx('click');
   if (n.t === 'door') JOBS[n.d.job] && JOBS[n.d.job](n.d);
+  else if (n.t === 'npc' && questTalk(n.n.d.n)) { if (!n.n.talkedToday) { n.n.talkedToday = true; progress('talk'); } }
   else if (n.t === 'npc') { const line = n.n.d.say[Math.floor(Math.random() * n.n.d.say.length)]; panel(`<h2>${n.n.d.n}</h2><p class="say">«${line}»</p><button class="btn" data-close>Tschüss!</button>`); if (!n.n.talkedToday) { n.n.talkedToday = true; progress('talk'); addXP(2); } }
   else if (n.t === 'mobil') startFly();
   else if (n.t === 'land') land();
@@ -452,7 +461,7 @@ function startMission() {
     mobil.remove(player); player.scale.setScalar(1); MS.kh.scene.add(player); FX.move(MS.kh.scene); P.scene = MS.kh.scene; P.mode = 'mission'; P.pos.copy(MS.kh.start); P.vy = 0; player.rotation.y = 0; CAM.yaw = Math.PI; CAM.pitch = .8; CAM.dist = 7;
     MS.marks = {}; for (const k of MS.todo) { const sp = MS.kh.spots[k], m = new THREE.Mesh(new THREE.RingGeometry(1.6, 2.1, 40), new THREE.MeshBasicMaterial({ color: 0xffd27a, transparent: true, opacity: .85, depthWrite: false })); m.rotation.x = -Math.PI / 2; m.position.set(sp.pos.x, .06, sp.pos.z); MS.kh.scene.add(m); MS.marks[k] = m; }
     MS.cat = makeCat(); MS.cat.position.set(20, 0, 10); MS.kh.scene.add(MS.cat); MS.catTarget.set(0, 0, 0);
-    $('#mission').classList.add('on'); $('#btnJ').textContent = '⤒'; $('#btnD').classList.remove('on'); renderMission(); tutStep(3);
+    $('#mission').classList.add('on'); $('#quest').style.display = 'none'; $('#btnJ').textContent = '⤒'; $('#btnD').classList.remove('on'); renderMission(); tutStep(3);
     toast('🌙 Psst! Mach die Streiche, ohne das Kind zu wecken. Schleichen = Joystick nur leicht bewegen (oder Shift halten).', 5000);
   });
 }
@@ -462,7 +471,7 @@ function endMission(win, why) {
   if (win) { const rew = Math.min(90, 35 + S.missions * 3); S.missions++; addCandy(rew); addXP(70 + MS.todo.length * 8); progress('mission'); sfx('rank'); panel(`<h2>🌟 Streich gelungen!</h2><p class="say">Am Morgen wird das Kind staunen. Niemand hat dich gesehen!</p><p class="big">+${rew} 🍬</p><button class="btn" data-close>Zurück ins Wichteldorf</button>`); }
   else { sfx('fail'); addCandy(3); panel(`<h2>😱 Fast erwischt!</h2><p class="say">${why}</p><p>Zum Glück bist du gerade noch durch die Wichteltür entkommen. Versuch es nochmal!</p><button class="btn" data-close>Zurück ins Wichteldorf</button>`); }
   P.prev = 'walk';
-  setTimeout(() => fade(() => { MS.kh.scene.remove(player); village.add(player); P.scene = village; FX.move(village); P.pos.set(W.PAD.x + 3, 0, W.PAD.z + 4); mobil.position.set(W.PAD.x, W.H(W.PAD.x, W.PAD.z) + .7, W.PAD.z); $('#mission').classList.remove('on'); MS.kh = null; }), 50);
+  setTimeout(() => fade(() => { MS.kh.scene.remove(player); village.add(player); P.scene = village; FX.move(village); P.pos.set(W.PAD.x + 3, 0, W.PAD.z + 4); mobil.position.set(W.PAD.x, W.H(W.PAD.x, W.PAD.z) + .7, W.PAD.z); $('#mission').classList.remove('on'); MS.kh = null; $('#quest').style.display = ''; }), 50);
 }
 function updateMission(dt) {
   MS.t -= dt; MS.noise = Math.max(0, MS.noise - dt * 7);
@@ -503,6 +512,139 @@ $('#hMenu').onclick = () => {
   $('#mReset').onclick = () => { if ($('#mReset').dataset.sure) { localStorage.removeItem(SKEY); location.reload(); } else { $('#mReset').dataset.sure = 1; $('#mReset').textContent = 'Wirklich? Nochmal tippen'; } };
 };
 
+// ================= Story & Aufträge =================
+const npcBy = name => npcs.find(n => n.d.n === name);
+const doorPos = id => V.doors.find(d => d.id === id).pos.clone();
+const qGroup = new THREE.Group(); village.add(qGroup);
+function letterMesh() { const g = new THREE.Group(); const p = new THREE.Mesh(MD.roundBox(.6, .05, .42, .02), new THREE.MeshStandardMaterial({ color: 0xfff6e0, roughness: .8 })); g.add(p); const seal = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, .03, 12), new THREE.MeshStandardMaterial({ color: 0xc4161c, roughness: .4 })); seal.position.y = .04; g.add(seal); const glow = new THREE.Mesh(new THREE.RingGeometry(.5, .62, 28), new THREE.MeshBasicMaterial({ color: 0xffd27a, transparent: true, opacity: .8, side: THREE.DoubleSide, depthWrite: false })); glow.rotation.x = -Math.PI / 2; glow.position.y = -.3; g.add(glow); g.userData.spin = true; return g; }
+function targetMesh() { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'); ['#c4161c', '#fff', '#c4161c', '#fff', '#c4161c'].forEach((col, i) => { x.fillStyle = col; x.beginPath(); x.arc(64, 64, 62 - i * 12, 0, 7); x.fill(); }); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; const g = new THREE.Group(); const board = new THREE.Mesh(new THREE.CylinderGeometry(.8, .8, .12, 32), [new THREE.MeshStandardMaterial({ color: 0x6a4a30 }), new THREE.MeshStandardMaterial({ map: t }), new THREE.MeshStandardMaterial({ map: t })]); board.rotation.x = Math.PI / 2; board.position.y = 1.6; g.add(board); const post = new THREE.Mesh(new THREE.CylinderGeometry(.07, .09, 1.6, 8), new THREE.MeshStandardMaterial({ color: 0x4a3424 })); post.position.y = .8; g.add(post); g.traverse(o => { if (o.isMesh) o.castShadow = true; }); return g; }
+function archMesh(i) { const g = new THREE.Group(); const a = new THREE.Mesh(new THREE.TorusGeometry(2.4, .18, 10, 40, Math.PI), new THREE.MeshStandardMaterial({ color: 0x9fffd8, emissive: 0x30ffa8, emissiveIntensity: 1.6 })); g.add(a); g.userData.i = i; return g; }
+function giftCarry() { const g = MD.makeGift(0xc4161c); g.scale.setScalar(.8); return g; }
+const Q = [
+  { t: 'Kapitel 1: Neu im Wichteldorf', steps: [
+    { k: 'talk', npc: 'Bürgermeister Bommel', say: 'Willkommen im Wichteldorf! Ich bin Bürgermeister Bommel. Jeder neue Wichtel lernt bei uns zuerst die wichtigsten Dinge. Geh zur Wichtel-Akademie, Professor Knopf wartet schon.', txt: 'Sprich mit Bürgermeister Bommel' },
+    { k: 'talk', npc: 'Professor Knopf', say: 'Ah, der Neue! Regel Nummer 1: Ein Wichtel lässt sich nie erwischen. Regel Nummer 2: Ohne Wissen kein guter Wichtel. Setz dich, wir machen gleich einen Test!', txt: 'Sprich mit Professor Knopf bei der Akademie' },
+    { k: 'job', job: 'school', txt: 'Mach den Unterricht in der Wichtel-Akademie', at: () => doorPos('schule') },
+    { k: 'job', job: 'bake', txt: 'Hilf Oma Zimt in der Bäckerei beim Backen', at: () => doorPos('baeckerei') },
+    { k: 'talk', npc: 'Bürgermeister Bommel', say: 'Bravo! Du bist jetzt offiziell ein Wichtel des Dorfes. Hier ist deine Belohnung. Und schau dich um: Mit Doppelsprung kommst du über Kisten sogar auf die Dächer!', txt: 'Zurück zu Bürgermeister Bommel', reward: 25 }
+  ] },
+  { t: 'Kapitel 2: Der Wunschzettel-Sturm', steps: [
+    { k: 'talk', npc: 'Frau Post', say: 'Oh nein, oh nein! Ein Windstoss hat mir 8 Wunschzettel aus dem Sack geweht. Sie liegen überall im Dorf, einer sogar auf einem Dach! Bitte sammle sie ein, die Kinder warten!', txt: 'Sprich mit Frau Post' },
+    { k: 'collect', n: 8, spawn: 'letters', txt: 'Sammle die verwehten Wunschzettel' },
+    { k: 'talk', npc: 'Frau Post', say: 'Alle 8! Du bist ein Schatz. Jetzt müssen sie nur noch sortiert werden …', txt: 'Bring die Briefe zu Frau Post' },
+    { k: 'job', job: 'post', txt: 'Sortiere die Wunschzettel in der Post', at: () => doorPos('post'), reward: 30 }
+  ] },
+  { t: 'Kapitel 3: Wo ist Blitzi?', steps: [
+    { k: 'talk', npc: 'Funki', say: 'Blitzi ist weg! Das freche Rentier ist heute Nacht abgehauen. Siehst du die leuchtenden Hufspuren? Folge ihnen in den Wald!', txt: 'Sprich mit Funki beim Rentierstall' },
+    { k: 'trail', txt: 'Folge den Hufspuren in den Wald' },
+    { k: 'lead', txt: 'Bring Blitzi zurück zum Rentierstall (er folgt dir)', at: () => new THREE.Vector3(42, 0, 22) },
+    { k: 'talk', npc: 'Funki', say: 'Blitzi! Da bist du ja, du Ausreisser! Danke, kleiner Wichtel. Hilfst du mir noch, alle Rentiere zu füttern?', txt: 'Sprich mit Funki' },
+    { k: 'job', job: 'stall', txt: 'Füttere die Rentiere (sammle das Futter)', at: () => doorPos('stall'), reward: 35 }
+  ] },
+  { t: 'Kapitel 4: Die grosse Schneeballschlacht', steps: [
+    { k: 'talk', npc: 'Flocki', say: 'Hey du! Ich bin der beste Schneeballwerfer im Dorf. Glaubst du, du kannst mich schlagen? Triff zuerst alle 10 Zielscheiben auf dem Dorfplatz, und zwar in 60 Sekunden!', txt: 'Sprich mit Flocki' },
+    { k: 'targets', n: 10, time: 60, txt: 'Triff 10 Zielscheiben mit Schneebällen (F / Schneeball-Knopf)' },
+    { k: 'hitnpc', npc: 'Flocki', n: 3, txt: 'Jetzt Revanche: Triff Flocki 3-mal!' },
+    { k: 'talk', npc: 'Flocki', say: 'Okay, okay, du hast gewonnen! Du bist echt gut. Ab jetzt bist du mein bester Freund.', txt: 'Sprich mit Flocki', reward: 40 }
+  ] },
+  { t: 'Kapitel 5: Rennen um den Eissee', steps: [
+    { k: 'talk', npc: 'Lotte', say: 'Jedes Jahr gibt es das grosse Wichtel-Rennen um den Eissee. Lauf durch alle 8 leuchtenden Tore in 70 Sekunden! Auf dem Eis rutschst du, pass auf!', txt: 'Sprich mit Lotte bei der Bibliothek' },
+    { k: 'race', time: 70, txt: 'Lauf durch alle Tore!' },
+    { k: 'talk', npc: 'Lotte', say: 'Wahnsinn, was für ein Tempo! Du bist der neue Rennmeister!', txt: 'Sprich mit Lotte', reward: 40 }
+  ] },
+  { t: 'Kapitel 6: Geschenke-Lieferdienst', steps: [
+    { k: 'job', job: 'toy', txt: 'Baue Spielzeug in der Werkstatt', at: () => doorPos('werkstatt') },
+    { k: 'deliver', n: 3, txt: 'Bring die 3 Geschenke zu den Wichtelhäusern (Tür)' },
+    { k: 'talk', npc: 'Bürgermeister Bommel', say: 'Die ganze Nachbarschaft redet von dir! So einen fleissigen Wichtel hatten wir lange nicht.', txt: 'Sprich mit Bürgermeister Bommel', reward: 45 }
+  ] },
+  { t: 'Kapitel 7: Der erste Streich', steps: [
+    { k: 'talk', npc: 'Professor Knopf', say: 'Jetzt kommt die Meisterprüfung. Flieg mit dem Wichtelmobil durch das Nordlicht-Tor in die Menschenwelt und mach einen Streich, ohne dass das Kind aufwacht. Viel Glück!', txt: 'Sprich mit Professor Knopf' },
+    { k: 'fly', txt: 'Steig ins Wichtelmobil auf dem Landeplatz', at: () => new THREE.Vector3(W.PAD.x, 0, W.PAD.z) },
+    { k: 'mission', txt: 'Flieg durch das Nordlicht-Tor und mach einen Streich', at: () => W.PORTAL.clone() },
+    { k: 'talk', npc: 'Professor Knopf', say: 'Ausgezeichnet! Niemand hat dich gesehen. Du hast die Prüfung bestanden, Meisterwichtel in Ausbildung!', txt: 'Melde dich bei Professor Knopf', reward: 60 }
+  ] },
+  { t: 'Kapitel 8: Herr der Ringe am Himmel', steps: [
+    { k: 'rings', n: 12, txt: 'Flieg mit dem Wichtelmobil durch 12 Nordlicht-Ringe' },
+    { k: 'talk', npc: 'Flocki', say: 'Ich hab dich am Himmel gesehen! Das sah unglaublich aus!', txt: 'Erzähl es Flocki', reward: 50 }
+  ] },
+  { t: 'Kapitel 9: Das grosse Dorffest', steps: [
+    { k: 'talk', npc: 'Bürgermeister Bommel', say: 'Heute Abend ist das grosse Dorffest! Hilf mir, das Dorf zu schmücken: Stell 3 Sachen aus dem Bau-Laden auf.', txt: 'Sprich mit Bürgermeister Bommel' },
+    { k: 'build', n: 3, txt: 'Bau 3 Sachen ins Dorf', at: () => doorPos('laden') },
+    { k: 'talk', npc: 'Bürgermeister Bommel', say: 'Es ist wunderschön! Liebe Wichtel, ich ernenne unseren Freund zum DORFHELDEN! Feuerwerk los!', txt: 'Geh zum Fest bei Bürgermeister Bommel', reward: 100, fireworks: true }
+  ] }
+];
+function qState() { if (!S.q) S.q = { ch: 0, st: 0, n: 0 }; return S.q; }
+function curStep() { const q = qState(); const ch = Q[q.ch]; return ch ? ch.steps[q.st] : null; }
+const QS = { objs: [], blitzi: null, carry: null, timer: 0, gate: 0 };
+function clearQ() { QS.objs.forEach(o => qGroup.remove(o)); QS.objs = []; targets.length = 0; if (QS.carry) { player.remove(QS.carry); QS.carry = null; } }
+function setupStep() {
+  clearQ(); const s = curStep(); renderQuest(); if (!s) return;
+  if (s.k === 'collect') { const spots = [[12, 22, 0], [-18, 26, 0], [40, -4, 0], [-44, -8, 0], [22, -40, 0], [-30, 40, 0], [60, 34, 0], [-30, -20, 'roof']]; spots.slice(qState().n).forEach(([x, z, r]) => { const l = letterMesh(); let y = W.H(x, z) + .5; if (r === 'roof') { const c = colliders.find(c => Math.hypot(c.x - x, c.z - z) < 2); y = (c ? c.top + c.roof.rh + .6 : 8); } l.position.set(x, y, z); qGroup.add(l); QS.objs.push(l); }); }
+  if (s.k === 'trail') { const from = new THREE.Vector2(44, 8), to = new THREE.Vector2(96, -62); for (let i = 0; i <= 22; i++) { const t = i / 22, x = from.x + (to.x - from.x) * t + Math.sin(t * 9) * 4, z = from.y + (to.y - from.y) * t; const hp = new THREE.Mesh(new THREE.CircleGeometry(.22, 12), new THREE.MeshBasicMaterial({ color: 0x7affd0, transparent: true, opacity: .85, depthWrite: false })); hp.rotation.x = -Math.PI / 2; hp.position.set(x, W.H(x, z) + .05, z); qGroup.add(hp); QS.objs.push(hp); }
+    if (!QS.blitzi) { QS.blitzi = MD.makeReindeer(); QS.blitzi.scale.setScalar(.85); village.add(QS.blitzi); } QS.blitzi.position.set(96, W.H(96, -62), -62); }
+  if (s.k === 'lead' && !QS.blitzi) { QS.blitzi = MD.makeReindeer(); QS.blitzi.scale.setScalar(.85); village.add(QS.blitzi); QS.blitzi.position.set(P.pos.x + 3, 0, P.pos.z); }
+  if (s.k === 'targets') { for (let i = 0; i < s.n; i++) { const a = i / s.n * Math.PI * 2 + .3, r = 20 + (i % 3) * 2.5, x = Math.cos(a) * r, z = Math.sin(a) * r; const t = targetMesh(); t.position.set(x, W.H(x, z), z); t.rotation.y = Math.atan2(-x, -z) + Math.PI; qGroup.add(t); QS.objs.push(t); t.userData.board = t.children[0]; targets.push(t.children[0]); t.children[0].userData.root = t; } QS.timer = s.time; }
+  if (s.k === 'race') { const L = W.LAKE, pts = []; for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; pts.push([L.x + Math.cos(a) * (L.r + 5), L.z + Math.sin(a) * (L.r + 5)]); } pts.forEach(([x, z], i) => { const g = archMesh(i); g.position.set(x, W.H(x, z), z); const a = i / 8 * Math.PI * 2; g.rotation.y = -a; qGroup.add(g); QS.objs.push(g); }); QS.gate = 0; QS.timer = s.time; raceStyle(); }
+  if (s.k === 'deliver') { QS.carry = giftCarry(); QS.carry.position.set(0, 1.75, 0); player.add(QS.carry); QS.homes = V.doors.filter(d => !d.job).sort((a, b) => a.pos.distanceTo(P.pos) - b.pos.distanceTo(P.pos)).slice(0, 3).map(d => d.pos.clone()); QS.homes.slice(qState().n).forEach(p => { const m = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 6, 24, 1, true), new THREE.MeshBasicMaterial({ color: 0xffd27a, transparent: true, opacity: .25, side: THREE.DoubleSide, depthWrite: false })); m.position.set(p.x, W.H(p.x, p.z) + 3, p.z); m.userData.home = p; qGroup.add(m); QS.objs.push(m); }); }
+}
+function raceStyle() { QS.objs.forEach(o => { const on = o.userData.i === QS.gate; o.children[0].material.emissive.set(on ? 0xffc040 : 0x30ffa8); o.children[0].material.emissiveIntensity = on ? 2.6 : .5; o.visible = o.userData.i >= QS.gate; }); }
+function stepDone() {
+  const s = curStep(), q = qState(); if (!s) return;
+  if (s.reward) { addCandy(s.reward); addXP(s.reward); }
+  if (s.fireworks) fireworks();
+  q.st++; q.n = 0; sfx('ok'); FX.emit(P.pos.clone().setY(P.pos.y + 1), 30, { speed: 3, life: 1, size: .45, glow: 1, color: 0x9fffd8, grav: 1 }); P.cheer = 1;
+  if (q.st >= Q[q.ch].steps.length) { toast('🏆 ' + Q[q.ch].t + ' geschafft!', 4500); sfx('rank'); q.ch++; q.st = 0; addXP(40); if (Q[q.ch]) { const nt = Q[q.ch].t; setTimeout(() => toast('Neues Kapitel: ' + nt, 4500), 4600); } else setTimeout(() => toast('🎉 Du hast die ganze Geschichte geschafft! Jetzt warten jeden Tag neue Aufgaben im Rathaus.', 6000), 4600); }
+  save(); setupStep();
+}
+function questTalk(name) {
+  const s = curStep(); if (!s || s.k !== 'talk' || s.npc !== name) return false;
+  panel(`<h2>${name}</h2><p class="say">«${s.say}»</p><button class="btn" data-close>${s.reward ? 'Danke!' : 'Mach ich!'}</button>`); stepDone(); return true;
+}
+function questEvent(type, data) {
+  const s = curStep(), q = qState(); if (!s) return;
+  if (s.k === 'job' && type === s.job) stepDone();
+  else if (s.k === 'mission' && type === 'mission') stepDone();
+  else if (s.k === 'build' && type === 'build') { q.n++; renderQuest(); if (q.n >= s.n) stepDone(); else save(); }
+  else if (s.k === 'rings' && type === 'rings') { q.n++; renderQuest(); if (q.n >= s.n) stepDone(); else save(); }
+  else if (s.k === 'target' + 's' && type === 'target') { const root = data.userData.root; if (!root.visible) return; root.visible = false; FX.emit(root.position.clone().setY(1.6), 25, { speed: 3, life: .8, size: .4, glow: 1, color: 0xff6a6a, grav: 2 }); targets.splice(targets.indexOf(data), 1); q.n++; sfx('coin'); renderQuest(); if (q.n >= s.n) stepDone(); }
+  else if (s.k === 'hitnpc' && type === 'hitnpc' && data === s.npc) { q.n++; renderQuest(); if (q.n >= s.n) stepDone(); }
+}
+const QUESTAPI = { ev: (t, d) => { if (t === 'hitnpc') return; questEvent(t, d); } };
+function updateQuest(dt) {
+  const s = curStep(), q = qState(); if (!s || P.scene !== village) return;
+  for (const o of QS.objs) if (o.userData.spin) { o.rotation.y += dt * 2; o.position.y += Math.sin(T * 3 + o.position.x) * .003; }
+  if (s.k === 'collect') for (const o of [...QS.objs]) { if (o.position.distanceTo(P.pos.clone().setY(P.pos.y + .6)) < 1.4) { qGroup.remove(o); QS.objs.splice(QS.objs.indexOf(o), 1); q.n++; sfx('star'); FX.emit(o.position, 20, { speed: 2.5, life: .8, size: .4, glow: 1, color: 0xfff0c0, grav: 1 }); toast('✉️ Wunschzettel ' + q.n + '/' + s.n); renderQuest(); save(); if (q.n >= s.n) stepDone(); break; } }
+  if (s.k === 'trail' && QS.blitzi && QS.blitzi.position.distanceTo(P.pos) < 4) { toast('🦌 Da ist Blitzi! Er versteckt sich hinter einer Tanne.'); stepDone(); }
+  if ((s.k === 'lead' || s.k === 'trail') && QS.blitzi) { const b = QS.blitzi; if (s.k === 'lead') { const to = P.pos.clone().sub(b.position); to.y = 0; const d = to.length(); if (d > 3) { to.normalize(); b.position.addScaledVector(to, Math.min(d - 3, dt * (d > 8 ? 9 : 5))); b.rotation.y = Math.atan2(-to.z, to.x); b.userData.legs.forEach((l, i) => l.rotation.z = Math.sin(T * 12 + i * 1.6) * .5); } b.position.y = W.H(b.position.x, b.position.z); if (b.position.distanceTo(new THREE.Vector3(42, b.position.y, 22)) < 6) { village.remove(b); QS.blitzi = null; stepDone(); } } else { b.userData.head.rotation.z = Math.sin(T * 2) * .2; } }
+  if (s.k === 'targets') { QS.timer -= dt; for (const o of QS.objs) if (o.visible) o.rotation.y += Math.sin(T + o.position.x) * dt * .5; if (QS.timer <= 0) { toast('⏱ Zeit um! Nochmal von vorn.'); q.n = 0; setupStep(); } renderQuestTimer(); }
+  if (s.k === 'race') { QS.timer -= dt; const g = QS.objs.find(o => o.userData.i === QS.gate); if (g && Math.hypot(g.position.x - P.pos.x, g.position.z - P.pos.z) < 2.8) { QS.gate++; sfx('coin'); FX.emit(g.position.clone().setY(2), 20, { speed: 3, life: .8, size: .4, glow: 1, color: 0x9fffd8, grav: 0 }); if (QS.gate >= 8) { stepDone(); return; } raceStyle(); } if (QS.timer <= 0) { toast('⏱ Zu langsam! Versuch es nochmal.'); QS.gate = 0; QS.timer = s.time; raceStyle(); } renderQuestTimer(); }
+  if (s.k === 'deliver') for (const o of [...QS.objs]) { const h = o.userData.home; if (Math.hypot(h.x - P.pos.x, h.z - P.pos.z) < 2.6) { qGroup.remove(o); QS.objs.splice(QS.objs.indexOf(o), 1); q.n++; sfx('bell'); toast('🎁 Geschenk geliefert! (' + q.n + '/3)'); FX.emit(h.clone().setY(W.H(h.x, h.z) + 1.5), 25, { speed: 3, life: 1, size: .4, glow: 1, color: 0xffd27a, grav: 1 }); renderQuest(); save(); if (q.n >= s.n) { stepDone(); } break; } }
+  if (s.k === 'fly' && P.mode === 'fly') stepDone();
+}
+function questTarget() {
+  const s = curStep(); if (!s) return null; const q = qState();
+  if (s.k === 'talk') { const n = npcBy(s.npc); return n ? { txt: s.txt, pos: n.m.position } : null; }
+  if (s.at) return { txt: s.txt, pos: s.at() };
+  if (s.k === 'collect' && QS.objs.length) { const o = QS.objs.slice().sort((a, b) => a.position.distanceTo(P.pos) - b.position.distanceTo(P.pos))[0]; return { txt: s.txt + ' (' + q.n + '/' + s.n + ')', pos: o.position }; }
+  if (s.k === 'trail') return { txt: s.txt, pos: new THREE.Vector3(96, 0, -62) };
+  if (s.k === 'race') { const g = QS.objs.find(o => o.userData.i === QS.gate) || QS.objs[0]; return g ? { txt: s.txt + ' Tor ' + (QS.gate + 1) + '/8', pos: g.position } : null; }
+  if (s.k === 'targets' && targets.length) return { txt: s.txt + ' ' + q.n + '/' + s.n, pos: targets[0].userData.root.position };
+  if (s.k === 'deliver' && QS.objs.length) return { txt: s.txt + ' ' + q.n + '/3', pos: QS.objs[0].userData.home };
+  if (s.k === 'hitnpc') { const n = npcBy(s.npc); return n ? { txt: s.txt + ' ' + q.n + '/' + s.n, pos: n.m.position } : null; }
+  return { txt: s.txt, pos: null };
+}
+function renderQuest() { const s = curStep(), q = qState(), el = $('#quest'); if (!el) return; if (!s) { el.innerHTML = '<small>Dorfheld</small><b>Alle Kapitel geschafft! Tagesaufgaben gibt es im Rathaus.</b>'; return; } el.innerHTML = `<small>${Q[q.ch].t}</small><b>${s.txt}${s.n ? ' <span>' + q.n + '/' + s.n + '</span>' : ''}</b><i id="qtimer"></i>`; }
+function renderQuestTimer() { const e = $('#qtimer'); if (e) e.textContent = Math.max(0, Math.ceil(QS.timer)) + ' s'; }
+// Feuerwerk über dem Dorfplatz
+function fireworks() {
+  const cols = [0xff4a4a, 0xffd27a, 0x7ad0ff, 0x8aff9a, 0xff7ae0, 0xffffff]; let k = 0;
+  const one = () => { const p = new THREE.Vector3((Math.random() - .5) * 30, 26 + Math.random() * 14, (Math.random() - .5) * 30); FX.emit(p, 70, { speed: 9, life: 1.6, size: .7, glow: 1, color: cols[k % cols.length], grav: 3, spread: .2 }); tone(200 + Math.random() * 100, .4, 'sawtooth', .05); noiseBurst(.4, 1200, .2); if (++k < 24) setTimeout(one, 260 + Math.random() * 300); };
+  one();
+}
+// Zufalls-Aufträge nach der Story (Auftragsbrett im Rathaus)
+
+QUEST = { ev: questEvent };
+
 // ================= Titel =================
 function title() {
   const has = !!S.name; $('#title').classList.add('on');
@@ -512,7 +654,7 @@ function title() {
   sel('[data-th]', S.hat); sel('[data-tc]', S.coat);
   document.querySelectorAll('[data-th]').forEach(b => b.onclick = () => { S.hat = +b.dataset.v; sel('[data-th]', S.hat); makePlayer(); village.add(player); });
   document.querySelectorAll('[data-tc]').forEach(b => b.onclick = () => { S.coat = b.dataset.v; sel('[data-tc]', S.coat); makePlayer(); village.add(player); });
-  const go = () => { S.name = ($('#tname').value || '').trim().slice(0, 16) || S.name || 'Wichtel'; save(); $('#title').classList.remove('on'); audio(); P.mode = 'walk'; CAM.yaw = 0; hud(); renderTasks(); $('#hudwrap').classList.add('on'); const t = tutTarget(); toast(t ? 'Willkommen, ' + S.name + '! Ziel: ' + t.txt : 'Willkommen zurück, ' + S.name + '!', 4500); };
+  const go = () => { S.name = ($('#tname').value || '').trim().slice(0, 16) || S.name || 'Wichtel'; save(); $('#title').classList.remove('on'); audio(); P.mode = 'walk'; CAM.yaw = 0; hud(); renderTasks(); setupStep(); $('#hudwrap').classList.add('on'); const t = tutTarget(); toast(t ? 'Hallo ' + S.name + '! ' + t.txt : 'Willkommen zurück, ' + S.name + '!', 4500); };
   $('#tstart').onclick = go; $('#tcont').onclick = go;
 }
 
@@ -572,7 +714,7 @@ function frame(now) {
   } else if (P.mode === 'fly') updateFly(dt);
   else if (P.mode === 'title') { CAM.yaw += dt * .08; }
   // Sterne
-  updateBalls(dt); FX.update(dt);
+  updateBalls(dt); FX.update(dt); if (P.mode === 'walk' || P.mode === 'fly') updateQuest(dt);
   for (const s of starMeshes) if (s.visible) { s.rotation.y += dt * 2; s.position.y += Math.sin(T * 2 + s.userData.i) * .004; if (P.mode === 'walk' && s.position.distanceTo(player.position.clone().setY(player.position.y + .8)) < 1.4) collectStar(s); }
   // NPC
   if (inVillage) for (const n of npcs) {
@@ -614,10 +756,10 @@ function frame(now) {
   // Kompass zum Ziel
   let tt = P.mode === 'walk' || P.mode === 'fly' ? tutTarget() : null; const cmp = $('#compass');
   if (P.mode === 'mission' && MS.kh) { let best = null, bd = 1e9; for (const k of MS.todo) if (!MS.done.includes(k)) { const sp = MS.kh.spots[k], d = Math.hypot(sp.pos.x - P.pos.x, sp.pos.z - P.pos.z); if (d < bd) { bd = d; best = { txt: sp.name, pos: sp.pos }; } } tt = best || { txt: 'Zurück zur Wichteltür', pos: MS.kh.exit }; for (const k in MS.marks) MS.marks[k].material.opacity = .5 + Math.sin(T * 4) * .35; }
-  if (tt) { const dx = tt.pos.x - P.pos.x, dz = tt.pos.z - P.pos.z, a = Math.atan2(dx, dz) - (CAM.yaw + Math.PI); cmp.classList.add('on'); $('#carrow').style.transform = `rotate(${-a}rad)`; $('#ctext').textContent = tt.txt + ' · ' + Math.round(Math.hypot(dx, dz)) + ' m'; } else cmp.classList.remove('on');
+  if (tt && tt.pos) { const dx = tt.pos.x - P.pos.x, dz = tt.pos.z - P.pos.z, a = Math.atan2(dx, dz) - (CAM.yaw + Math.PI); cmp.classList.add('on'); $('#carrow').style.transform = `rotate(${-a}rad)`; $('#ctext').textContent = tt.txt + ' · ' + Math.round(Math.hypot(dx, dz)) + ' m'; } else cmp.classList.remove('on');
   if (composer && P.scene === village) { renderPass.scene = P.scene; composer.render(); } else renderer.render(P.scene, camera);
   if (!window.__ready) { window.__ready = 1; $('#loading').classList.remove('on'); }
 }
 ensureDay(); hud(); title();
 requestAnimationFrame(frame);
-window.__dbg = { renderer, village, S, P, V, MS, startMission, startFly, land, JOBS, toggleMap, CAM, interact, findNear: () => near };
+window.__dbg = { Q, qState, setupStep, stepDone, questEvent, questTalk, QS, targets, npcs, throwBall, renderer, village, S, P, V, MS, startMission, startFly, land, JOBS, toggleMap, CAM, interact, findNear: () => near };
