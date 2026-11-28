@@ -678,7 +678,8 @@ function title() {
   document.querySelectorAll('[data-th]').forEach(b => b.onclick = () => { S.hat = +b.dataset.v; sel('[data-th]', S.hat); makePlayer(); village.add(player); });
   document.querySelectorAll('[data-tc]').forEach(b => b.onclick = () => { S.coat = b.dataset.v; sel('[data-tc]', S.coat); makePlayer(); village.add(player); });
   const go = () => { S.name = ($('#tname').value || '').trim().slice(0, 16) || S.name || 'Wichtel'; save(); $('#title').classList.remove('on'); audio(); P.mode = 'walk'; CAM.yaw = 0; hud(); renderTasks(); setupStep(); $('#hudwrap').classList.add('on'); const t = tutTarget(); toast(t ? 'Hallo ' + S.name + '! ' + t.txt : 'Willkommen zurück, ' + S.name + '!', 4500); };
-  $('#tstart').onclick = go; $('#tcont').onclick = go;
+  const land = () => { try { if (isTouch && document.documentElement.requestFullscreen && !document.fullscreenElement) document.documentElement.requestFullscreen({ navigationUI: 'hide' }).then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape').catch(() => { })).catch(() => { }); } catch (e) { } };
+  $('#tstart').onclick = () => { land(); go(); }; $('#tcont').onclick = () => { land(); go(); };
 }
 
 // ================= Hauptschleife =================
