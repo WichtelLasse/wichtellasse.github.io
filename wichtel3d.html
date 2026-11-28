@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Wichtel 3D – Wichtel Lasse</title>
+<meta name="description" content="Wichtel 3D: Lebe als Wichtel im Wichteldorf am Nordpol, arbeite, baue das Dorf aus, fliege mit dem Wichtelmobil und mach heimlich Streiche.">
+<meta name="theme-color" content="#070d1f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%85%3C/text%3E%3C/svg%3E">
+<style>
+:root{--gold:#ffd27a;--ink:#0b1633;--red:#c4161c;--mint:#6fe39a;--glass:rgba(10,18,43,.72);--line:rgba(255,255,255,.16)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#05070d;color:#fff;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-user-select:none;user-select:none;touch-action:none}
+#game canvas{display:block;width:100vw;height:100vh;height:100dvh}
+button{font:inherit;color:inherit;cursor:pointer}
+.btn{display:inline-block;margin:6px 4px 0;padding:12px 22px;border-radius:999px;border:0;background:var(--gold);color:var(--ink);font-weight:800;text-decoration:none;font-size:1rem}
+.btn.ghost{background:rgba(255,255,255,.12);color:#fff;border:1px solid var(--line)}
+/* Lade- & Titelbild */
+#loading{position:fixed;inset:0;display:none;place-items:center;background:#05070d;z-index:60;font-weight:800;font-size:1.2rem}
+#loading.on{display:grid}
+#title{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:40;background:radial-gradient(ellipse at 50% 30%,rgba(10,20,50,.15),rgba(5,7,13,.75));padding:16px}
+#title.on{display:flex}
+.tbox{max-width:440px;width:100%;background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:24px;padding:22px;text-align:center;box-shadow:0 30px 80px #000a}
+.tbox h1{margin:0;font-family:Georgia,serif;font-size:2.4rem;line-height:1.05}
+.tbox h1 span{color:#ff5a5a}
+.tbox p{opacity:.85;margin:8px 0 14px}
+.tbox input{width:100%;padding:12px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.08);color:#fff;font-size:1.05rem;text-align:center;-webkit-user-select:text;user-select:text}
+.row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.row button{width:44px;height:44px;border-radius:50%;border:3px solid transparent}
+.row button.on{border-color:#fff;transform:scale(1.1)}
+.lbl{font-size:.8rem;opacity:.7;margin-top:10px;text-transform:uppercase;letter-spacing:.08em}
+/* HUD */
+#hudwrap{display:none}#hudwrap.on{display:block}
+.hud{position:fixed;z-index:20;top:max(10px,env(safe-area-inset-top));left:10px;right:10px;display:flex;justify-content:space-between;gap:8px;pointer-events:none}
+.card{pointer-events:auto;background:var(--glass);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:16px;padding:8px 12px}
+.me b{display:block;font-size:.95rem}.me small{opacity:.8;font-size:.78rem}
+.xp{height:6px;width:130px;background:rgba(255,255,255,.15);border-radius:6px;margin-top:4px;overflow:hidden}.xp i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#ff9a3a);width:0}
+.right{display:flex;gap:6px;align-items:flex-start;flex-wrap:wrap;justify-content:flex-end}
+.pill{font-weight:800;font-size:.95rem;display:flex;align-items:center;gap:4px}
+.icon{width:42px;height:42px;padding:0;display:grid;place-items:center;font-size:1.25rem;border-radius:14px}
+#taskbox{position:fixed;z-index:21;right:10px;top:calc(max(10px,env(safe-area-inset-top)) + 58px);max-width:300px;display:none}
+#taskbox.on{display:block}
+#taskbox h3{margin:2px 0 6px;font-size:.95rem}
+#tasks{list-style:none;margin:0;padding:0;font-size:.85rem}#tasks li{padding:4px 0;border-bottom:1px solid var(--line)}#tasks li.ok{opacity:.6}#tasks li b{float:right}#tasks li.streak{border:0;color:var(--gold);font-weight:800}
+#toast{position:fixed;z-index:50;left:50%;top:calc(max(10px,env(safe-area-inset-top)) + 110px);transform:translateX(-50%) translateY(-10px);opacity:0;transition:.3s;background:var(--glass);border:1px solid var(--line);padding:10px 18px;border-radius:999px;font-weight:700;max-width:92vw;text-align:center;pointer-events:none;backdrop-filter:blur(8px)}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.float{position:fixed;z-index:55;left:50%;top:40%;transform:translateX(-50%);font-weight:900;font-size:1.6rem;color:var(--gold);text-shadow:0 3px 10px #000;animation:fl 1.4s forwards;pointer-events:none}
+@keyframes fl{to{transform:translate(-50%,-80px);opacity:0}}
+#prompt{position:fixed;z-index:20;left:50%;bottom:calc(150px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--gold);color:var(--ink);font-weight:800;padding:10px 18px;border-radius:999px;display:none;box-shadow:0 8px 30px #0008;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
+#prompt.on{display:block}
+body:not(.touch) #prompt{bottom:40px}
+#compass{position:fixed;z-index:19;left:50%;top:calc(max(10px,env(safe-area-inset-top)) + 4px);transform:translateX(-50%);display:none;align-items:center;gap:8px;font-size:.82rem;font-weight:700;max-width:52vw}
+#compass.on{display:flex}
+#carrow{display:inline-block;font-size:1.3rem;color:var(--gold);transition:transform .1s}
+#ctext{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Touch-Steuerung */
+.tc{display:none}
+body.touch #hudwrap.on .tc{display:block}
+#joy{position:fixed;z-index:20;left:calc(22px + env(safe-area-inset-left));bottom:calc(26px + env(safe-area-inset-bottom));width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.22);touch-action:none}
+#knob{position:absolute;left:37px;top:37px;width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.55);box-shadow:0 4px 14px #0006;pointer-events:none}
+.tbtn{position:fixed;z-index:20;width:72px;height:72px;border-radius:50%;border:2px solid rgba(255,255,255,.3);background:rgba(10,18,43,.6);font-size:1.7rem;display:grid;place-items:center;touch-action:none}
+#btnA{right:calc(24px + env(safe-area-inset-right));bottom:calc(30px + env(safe-area-inset-bottom));background:rgba(255,210,122,.85);color:var(--ink)}
+#btnJ{right:calc(110px + env(safe-area-inset-right));bottom:calc(20px + env(safe-area-inset-bottom));width:62px;height:62px}
+#btnD{right:calc(34px + env(safe-area-inset-right));bottom:calc(116px + env(safe-area-inset-bottom));width:56px;height:56px;display:none}
+#btnD.on{display:grid}
+body.touch #hudwrap.on #btnD:not(.on){display:none}
+/* Bauen */
+#buildbar{position:fixed;z-index:22;left:50%;transform:translateX(-50%);bottom:calc(170px + env(safe-area-inset-bottom));display:none;gap:6px}
+body:not(.touch) #buildbar{bottom:90px}
+#buildbar.on{display:flex}
+/* Mission */
+#mission{position:fixed;z-index:20;left:10px;top:calc(max(10px,env(safe-area-inset-top)) + 64px);display:none;max-width:280px}
+#mission.on{display:block}
+#mission ul{list-style:none;padding:0;margin:6px 0 0;font-size:.85rem}#mission li{padding:3px 0}#mission li.ok{opacity:.6}#mission li.go{color:var(--gold);font-weight:800}
+.noise{height:10px;background:rgba(255,255,255,.15);border-radius:6px;overflow:hidden;margin-top:4px}#noisebar{height:100%;width:0;background:var(--mint);transition:width .2s}
+.holdw{height:6px;background:rgba(255,255,255,.1);border-radius:6px;margin-top:6px;overflow:hidden}#hold{height:100%;width:0;background:var(--gold)}
+/* Panels */
+.panel{position:fixed;z-index:45;left:50%;top:50%;transform:translate(-50%,-50%) scale(.96);opacity:0;pointer-events:none;transition:.2s;width:min(440px,94vw);max-height:86vh;overflow:auto;background:rgba(12,22,50,.94);border:1px solid var(--line);border-radius:22px;padding:20px;text-align:center;box-shadow:0 30px 90px #000c}
+.panel.wide{width:min(620px,94vw)}
+.panel.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+.panel h2{margin:0 0 8px;font-family:Georgia,serif;font-size:1.6rem}
+.panel h3{margin:14px 0 6px;font-size:.95rem;opacity:.85}
+.say{font-style:italic;opacity:.92;line-height:1.45}
+.big{font-size:1.25rem;font-weight:800;color:var(--gold)}
+.meter{position:relative;height:38px;border-radius:12px;background:linear-gradient(90deg,#f6e0b0,#c98a3a 50%,#4a2a14);margin:16px 0;overflow:hidden;border:2px solid var(--line)}
+.zone{position:absolute;top:0;bottom:0;background:rgba(255,226,120,.85);box-shadow:0 0 18px #ffd27a}
+.needle{position:absolute;top:-4px;bottom:-4px;width:5px;margin-left:-2px;background:#fff;box-shadow:0 0 8px #000}
+.seq{display:flex;justify-content:center;gap:6px;font-size:2rem;min-height:48px;margin:8px 0;flex-wrap:wrap}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.tile{font-size:2rem;padding:10px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.08)}
+.q{font-weight:800;font-size:1.1rem}
+.answers{display:grid;gap:8px;margin:10px 0}
+.ans{padding:12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.08);font-weight:700}
+.ans.right{background:#2f8a4e}.ans.wrong{background:#a8141a}
+.letter{background:#fff6e0;color:#3a2a14;font-family:Georgia,serif;font-size:1.15rem;padding:18px;border-radius:10px;margin:10px 0;transform:rotate(-1deg);box-shadow:0 6px 20px #0006}
+.shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:10px 0}
+.buy{padding:12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.08);font-weight:700;text-align:left;display:flex;flex-direction:column;gap:2px}
+.buy b{color:var(--gold)}.buy small{opacity:.7;font-weight:500}.buy:disabled{opacity:.45}
+.sw{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.opt{padding:8px 14px;border-radius:12px;border:2px solid var(--line);background:rgba(255,255,255,.08);font-weight:700}.opt.on{border-color:var(--gold)}.opt:disabled{opacity:.45}
+.facts{display:grid;gap:6px;text-align:left}.fact{padding:10px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.06);text-align:left}.fact.read{background:rgba(111,227,154,.12)}
+.tl{text-align:left}
+.help{text-align:left;font-size:.88rem;opacity:.9}
+#map{position:fixed;inset:0;z-index:44;background:rgba(0,0,0,.6);display:none;place-items:center}
+#map.on{display:grid}
+#mapc{width:min(92vw,80vh);height:min(92vw,80vh);border-radius:20px;box-shadow:0 30px 80px #000}
+#fade{position:fixed;inset:0;background:#000;z-index:58;opacity:0;pointer-events:none;transition:opacity .45s}
+#fade.on{opacity:1}
+@media (max-width:520px){#compass{top:calc(max(10px,env(safe-area-inset-top)) + 104px);max-width:90vw}#toast{top:calc(max(10px,env(safe-area-inset-top)) + 150px)}#taskbox{top:calc(max(10px,env(safe-area-inset-top)) + 104px)}#mission{top:calc(max(10px,env(safe-area-inset-top)) + 150px)}.xp{width:90px}.tbox h1{font-size:2rem}.icon{width:38px;height:38px}}
+</style>
+</head>
+<body>
+<div id="loading" class="on">❄️ Das Wichteldorf wird gebaut …</div>
+<div id="game"></div>
+
+<div id="title">
+  <div class="tbox">
+    <h1>Wichtel <span>3D</span></h1>
+    <p>Lebe als Wichtel im Wichteldorf am Nordpol. Arbeite, baue dein Dorf aus, flieg mit dem Wichtelmobil und mach heimlich Streiche bei den Kindern.</p>
+    <input id="tname" maxlength="16" placeholder="Wie heisst dein Wichtel?" autocomplete="off">
+    <div class="lbl">Mütze</div>
+    <div class="row"><button data-th data-v="12850716" style="background:#c4161c" aria-label="Rot"></button><button data-th data-v="3115598" style="background:#2f8a4e" aria-label="Grün"></button><button data-th data-v="2779864" style="background:#2a6ad8" aria-label="Blau"></button></div>
+    <div class="lbl">Mantel</div>
+    <div class="row"><button data-tc data-v="coatRed" style="background:#aa1e22" aria-label="Rot"></button><button data-tc data-v="coatGreen" style="background:#24663c" aria-label="Grün"></button></div>
+    <button class="btn" id="tstart">Neues Wichtel-Leben starten</button>
+    <button class="btn ghost" id="tcont">Weiterspielen</button>
+    <div><a class="btn ghost" href="index.html" style="font-size:.85rem;padding:8px 16px">← Zurück zur Website</a></div>
+  </div>
+</div>
+
+<div id="hudwrap">
+  <div class="hud">
+    <div class="card me"><b id="pname">Wichtel</b><small id="rank">Wichtel-Lehrling</small><div class="xp"><i id="xpbar"></i></div></div>
+    <div class="right">
+      <div class="card pill">🍬 <span id="candy">0</span></div>
+      <div class="card pill">✨ <span id="starsN">0</span></div>
+      <button class="card icon" id="hTasks" aria-label="Tagesaufgaben">📋</button>
+      <button class="card icon" id="hBuild" aria-label="Bauen">🔨</button>
+      <button class="card icon" id="hMap" aria-label="Karte">🗺️</button>
+      <button class="card icon" id="hMenu" aria-label="Menü">☰</button>
+    </div>
+  </div>
+  <div class="card" id="taskbox"><h3>📋 Tagesaufgaben</h3><ul id="tasks"></ul></div>
+  <div class="card" id="compass"><span id="carrow">⬆</span><span id="ctext"></span></div>
+  <div class="card" id="mission"><b id="mclock">🕐 01:00 Uhr</b><div style="font-size:.8rem;margin-top:6px">Lautstärke</div><div class="noise"><div id="noisebar"></div></div><ul id="mlist"></ul><div class="holdw"><div id="hold"></div></div></div>
+  <div id="joy" class="tc"><div id="knob"></div></div>
+  <button id="btnA" class="tbtn tc" aria-label="Aktion">✋</button>
+  <button id="btnJ" class="tbtn tc" aria-label="Springen">⤒</button>
+  <button id="btnD" class="tbtn tc" aria-label="Sinken">⬇</button>
+  <div id="buildbar"><button class="btn ghost" id="bRot">↻ Drehen</button><button class="btn" id="bPlace">✔ Platzieren</button><button class="btn ghost" id="bCancel">✕</button></div>
+</div>
+<div id="prompt"></div>
+<div id="toast"></div>
+<div id="panel" class="panel"></div>
+<div id="map"><canvas id="mapc" width="800" height="800"></canvas></div>
+<div id="fade"></div>
+<script type="module" src="w3d-main.js?v=1"></script>
+<noscript><p style="padding:20px">Wichtel 3D braucht JavaScript.</p></noscript>
+</body>
+</html>

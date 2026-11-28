@@ -160,6 +160,7 @@ onScroll();
   try{
     const ul=document.querySelector('.nav ul');
     if(ul){const k=ul.querySelector('a[href="index.html"]');[['quiz.html','Quiz'],['zeugnis.html','Zeugnis'],['live.html','📍 Live']].forEach(([h,t])=>{if(ul.querySelector('a[href="'+h+'"]'))return;const li=document.createElement('li'),a=document.createElement('a');a.className='l';a.href=h;a.textContent=t;if(location.pathname.endsWith('/'+h))a.className+=' cur';li.appendChild(a);ul.insertBefore(li,k?k.parentNode.nextSibling:null);});}
+    if(ul&&!ul.querySelector('a[href="wichtel3d.html"]')){const sp=ul.querySelector('a[href="spiele.html"]'),li=document.createElement('li'),a=document.createElement('a');a.className='l';a.href='wichtel3d.html';a.textContent='🎮 Wichtel 3D';if(location.pathname.endsWith('/wichtel3d.html'))a.className+=' cur';li.appendChild(a);if(sp)sp.parentNode.after(li);else ul.appendChild(li);}
     {const live=location.pathname.endsWith('/live.html');
       const p=document.createElement('a');p.href='live.html';p.className='livepill';
       const st=()=>{p.innerHTML='📍 <b>Lasse live</b> · Wo ist er gerade?';};
